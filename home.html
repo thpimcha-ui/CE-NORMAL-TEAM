@@ -369,7 +369,7 @@
   <header class="top">
     <div class="brand">
       <div>
-        <h1>สมุดพกแต้มทีม</h1>
+        <h1>CE NORMAL POINT</h1>
         <p class="subtle">บันทึกแต้มสะสมและแลกของรางวัลของทีมงาน</p>
       </div>
     </div>
@@ -388,7 +388,7 @@
 
   <div class="viewer-banner" id="viewerBanner">
     <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="11" width="18" height="10" rx="2"/><path d="M7 11V7a5 5 0 0 1 10 0v4"/></svg>
-    <span id="viewerBannerText">โหมดดูอย่างเดียว — เข้าสู่ระบบพนักงานเพื่อแลกของรางวัล หรือเข้าสู่ระบบแอดมินเพื่อแก้ไขข้อมูล</span>
+    <span id="viewerBannerText">โหมดดูอย่างเดียว — เลือกระบุตัวตนเพื่อแลกของรางวัล หรือเข้าสู่ระบบแอดมินเพื่อแก้ไขข้อมูล</span>
   </div>
 
   <nav class="tabs">
@@ -453,6 +453,7 @@
         <option value="earn">ได้รับแต้ม</option>
         <option value="deduct">ถูกหักแต้ม</option>
         <option value="redeem">แลกของรางวัล</option>
+        <option value="cancel">คืนแต้ม (ยกเลิก)</option>
       </select>
     </div>
     <div class="ledger-list" id="ledgerList"></div>
@@ -537,7 +538,8 @@ async function saveData(){
 
 function getBalance(empId){
   const earned = state.pointsLog.filter(p=>p.employeeId===empId).reduce((s,p)=>s+p.points,0);
-  const spent = state.redemptions.filter(r=>r.employeeId===empId).reduce((s,r)=>s+r.pointsSpent,0);
+  // ยกเว้นรายการที่ถูกยกเลิกไปแล้ว (cancelled)
+  const spent = state.redemptions.filter(r=>r.employeeId===empId && !r.cancelled).reduce((s,r)=>s+r.pointsSpent,0);
   return earned - spent;
 }
 function getMonthlyEarned(empId, year, month){
@@ -618,7 +620,7 @@ function openAdminLoginModal(){
       <div class="field"><label>รหัสผ่านแอดมิน</label><input id="pinEnter" type="password" placeholder="กรอกรหัสผ่าน"></div>
       <div class="modal-error" id="mErr">รหัสผ่านไม่ถูกต้อง</div>
       <div class="modal-actions" style="justify-content: space-between;">
-        <button class="btn danger" onclick="resetAdminPassword()">รีเซ็ตรหัสผ่าน</button>
+        <button class="btn danger ghost" onclick="openAdminResetModal()">เปลี่ยนรหัสผ่าน</button>
         <div style="display:flex; gap:10px;">
           <button class="btn ghost" onclick="closeModal()">ยกเลิก</button>
           <button class="btn primary" onclick="checkAdminPin()">เข้าสู่ระบบ</button>
@@ -628,6 +630,36 @@ function openAdminLoginModal(){
   }
   setTimeout(()=>{ const f=document.getElementById('pinEnter')||document.getElementById('pinNew'); if(f) f.focus(); }, 30);
 }
+
+function openAdminResetModal() {
+  openModal(`
+    <h3>เปลี่ยนรหัสผ่านแอดมิน</h3>
+    <div class="field"><label>รหัสผ่านเดิม</label><input id="pinOld" type="password" placeholder="กรอกรหัสผ่านปัจจุบัน"></div>
+    <div class="field"><label>รหัสผ่านใหม่</label><input id="pinNew" type="password" placeholder="อย่างน้อย 4 ตัวอักษร"></div>
+    <div class="modal-error" id="mErrReset">รหัสผ่านเดิมไม่ถูกต้อง หรือรหัสใหม่สั้นเกินไป</div>
+    <div class="modal-actions">
+      <button class="btn ghost" onclick="openAdminLoginModal()">ย้อนกลับ</button>
+      <button class="btn primary" onclick="confirmResetAdminPassword()">ยืนยัน</button>
+    </div>
+  `);
+  setTimeout(()=>{ document.getElementById('pinOld').focus(); }, 30);
+}
+
+function confirmResetAdminPassword() {
+  const oldPin = document.getElementById('pinOld').value;
+  const newPin = document.getElementById('pinNew').value;
+  
+  if (oldPin !== state.adminPin || !newPin || newPin.length < 4) {
+    document.getElementById('mErrReset').style.display = 'block';
+    return;
+  }
+  
+  state.adminPin = newPin;
+  saveData();
+  alert('เปลี่ยนรหัสผ่านแอดมินสำเร็จ!');
+  openAdminLoginModal();
+}
+
 function setAdminPin(){
   const a = document.getElementById('pinNew').value;
   const b = document.getElementById('pinConfirm').value;
@@ -639,13 +671,6 @@ function checkAdminPin(){
   const v = document.getElementById('pinEnter').value;
   if(v !== state.adminPin){ document.getElementById('mErr').style.display='block'; return; }
   isAdmin = true; closeModal(); render();
-}
-function resetAdminPassword() {
-  if(confirm('คุณต้องการรีเซ็ตรหัสผ่านแอดมินใช่หรือไม่? (การกระทำนี้จะล้างรหัสผ่านเดิม และให้ทุกคนต้องตั้งรหัสผ่านใหม่)')) {
-    state.adminPin = '';
-    saveData();
-    openAdminLoginModal(); // กลับไปหน้าตั้งรหัสผ่านใหม่
-  }
 }
 
 /* ---------------- employee self-service login (NO PASSWORD) ---------------- */
@@ -712,7 +737,6 @@ function renderPeriodSelects(){
     const sorted = [...years].sort((a,b)=>a-b);
     ys.innerHTML = sorted.map(y=>`<option value="${y}">ปี ${y}</option>`).join('');
     
-    // Set value ป้องกันไม่ให้ค่าเริ่มต้นผิดพลาด
     if (selYear < 2026) selYear = 2026;
     ys.value = selYear;
     ys.onchange = ()=>{ selYear = Number(ys.value); render(); };
@@ -730,7 +754,7 @@ function renderTabs(){
 
 function renderDashboard(){
   const allEarned = state.pointsLog.reduce((s,p)=>s+p.points,0);
-  const allRedeemed = state.redemptions.reduce((s,r)=>s+r.pointsSpent,0);
+  const allRedeemed = state.redemptions.filter(r=>!r.cancelled).reduce((s,r)=>s+r.pointsSpent,0);
   const allTimeTop = [...state.employees].map(e=>({e, pts:getAllTimeEarned(e.id)})).sort((a,b)=>b.pts-a.pts)[0];
   document.getElementById('allTimeRow').innerHTML = `
     <div class="stat-card">
@@ -757,6 +781,7 @@ function renderDashboard(){
 
   const monthEarned = state.pointsLog.filter(p=>p.year===selYear && p.month===selMonth).reduce((s,p)=>s+p.points,0);
   const monthRedeemed = state.redemptions.filter(r=>{
+    if(r.cancelled) return false;
     const d = new Date(r.date); return d.getFullYear()===selYear && d.getMonth()+1===selMonth;
   }).reduce((s,r)=>s+r.pointsSpent,0);
 
@@ -913,10 +938,35 @@ function renderLedger(){
     const isDeduct = p.points < 0;
     rows.push({type: isDeduct ? 'deduct' : 'earn', date:p.date, employeeId:p.employeeId, points:p.points, note:p.reason||(isDeduct?'หักแต้ม':'ให้แต้ม')});
   });
+  
+  // แปลงรายการแลกของรางวัลเป็นรายการในประวัติ
   state.redemptions.forEach(r=>{
     const rw = state.rewards.find(x=>x.id===r.rewardId);
-    rows.push({type:'redeem', date:r.date, employeeId:r.employeeId, points:-r.pointsSpent, note: rw ? rw.name : 'ของรางวัล (ถูกลบแล้ว)'});
+    const note = rw ? rw.name : 'ของรางวัล (ถูกลบแล้ว)';
+    
+    // 1. รายการดั้งเดิม (หักแต้ม)
+    rows.push({
+      type: 'redeem', 
+      id: r.id,
+      date: r.date, 
+      employeeId: r.employeeId, 
+      points: -r.pointsSpent, 
+      note: note,
+      cancelled: r.cancelled
+    });
+    
+    // 2. แถวรายการที่ยกเลิกแล้ว (คืนแต้ม) จะแสดงก็ต่อเมื่อถูกยกเลิก
+    if(r.cancelled && r.cancelDate) {
+      rows.push({
+        type: 'cancel',
+        date: r.cancelDate,
+        employeeId: r.employeeId,
+        points: r.pointsSpent,
+        note: 'ยกเลิกการแลก: ' + note
+      });
+    }
   });
+  
   rows.sort((a,b)=> new Date(b.date) - new Date(a.date));
   if(empVal) rows = rows.filter(r=>r.employeeId===empVal);
   if(typeVal) rows = rows.filter(r=>r.type===typeVal);
@@ -926,23 +976,61 @@ function renderLedger(){
     list.innerHTML = `<div class="empty-state">ไม่พบรายการ</div>`;
     return;
   }
-  const badgeLabel = {earn:'ได้รับแต้ม', deduct:'ถูกหักแต้ม', redeem:'แลกรางวัล'};
+  
+  const badgeLabel = {earn:'ได้รับแต้ม', deduct:'ถูกหักแต้ม', redeem:'แลกรางวัล', cancel:'คืนแต้ม (ยกเลิก)'};
   list.innerHTML = rows.map(r=>{
     const emp = state.employees.find(e=>e.id===r.employeeId);
     const d = new Date(r.date);
     const dateStr = `${String(d.getDate()).padStart(2,'0')}/${String(d.getMonth()+1).padStart(2,'0')}/${d.getFullYear()}`;
+    
+    // จัดการสีของ Badge
+    const badgeClass = (r.type === 'earn' || r.type === 'cancel') ? 'earn' : 'redeem';
+    
+    // ปุ่มยกเลิกสำหรับพนักงานตัวเอง หรือแอดมิน
+    const canCancel = r.type === 'redeem' && !r.cancelled && (isAdmin || currentEmployeeId === r.employeeId);
+    const cancelBtnHTML = canCancel 
+      ? `<button class="btn small danger ghost" style="padding:0px 6px; font-size:11px; margin-left:6px; border-radius:4px; min-width:auto;" onclick="cancelRedemption('${r.id}')">ยกเลิก</button>` 
+      : '';
+
     return `
       <div class="led-row">
         <div class="led-date">${dateStr}</div>
-        <div class="led-badge ${r.type==='earn'?'earn':'redeem'}">${badgeLabel[r.type]}</div>
+        <div class="led-badge ${badgeClass}">${badgeLabel[r.type]}</div>
         <div class="led-emp">
           <div class="n">${emp ? escapeHtml(emp.name) : 'พนักงาน (ถูกลบแล้ว)'}</div>
-          <div class="note">${escapeHtml(r.note)}</div>
+          <div class="note" style="display:flex; align-items:center;">
+            <span style="${r.cancelled && r.type==='redeem' ? 'text-decoration:line-through; opacity:0.6;' : ''}">${escapeHtml(r.note)}</span>
+            ${cancelBtnHTML}
+          </div>
         </div>
-        <div class="led-pts ${r.points>=0?'pos':'neg'}">${r.points>=0?'+':''}${fmt(r.points)}</div>
+        <div class="led-pts ${r.points>=0?'pos':'neg'}">
+          ${r.points>=0?'+':''}${fmt(r.points)}
+        </div>
       </div>
     `;
   }).join('');
+}
+
+// ฟังก์ชันกดยกเลิกรายการแลกของรางวัล
+function cancelRedemption(redemptionId) {
+  if(!confirm('คุณแน่ใจหรือไม่ว่าต้องการยกเลิกการแลกของรางวัลนี้และทำการ "คืนแต้ม"?')) return;
+  const r = state.redemptions.find(x => x.id === redemptionId);
+  if(!r) return;
+  
+  // ตรวจสอบสิทธิ์
+  if(!isAdmin && currentEmployeeId !== r.employeeId) {
+    alert('คุณไม่มีสิทธิ์ยกเลิกรายการของบุคคลอื่น');
+    return;
+  }
+  
+  if(r.cancelled) return; // ยกเลิกไปแล้วไม่ต้องทำซ้ำ
+  
+  r.cancelled = true;
+  r.cancelDate = new Date().toISOString(); // เพื่อบันทึกเวลาที่กดยกเลิก (โชว์ในประวัติ)
+  
+  saveData();
+  render();
+  alert('ยกเลิกรายการสำเร็จ ระบบทำการคืนแต้มเรียบร้อยแล้ว');
 }
 
 function escapeHtml(s){
@@ -990,6 +1078,7 @@ function saveEmployee(id){
   }
   saveData(); closeModal(); render();
 }
+
 function openEmployeeDetail(empId){
   const e = state.employees.find(x=>x.id===empId);
   if(!e) return;
@@ -998,10 +1087,28 @@ function openEmployeeDetail(empId){
     const isDeduct = p.points < 0;
     rows.push({type: isDeduct?'deduct':'earn', date:p.date, points:p.points, note:p.reason||(isDeduct?'หักแต้ม':'ให้แต้ม')});
   });
+  
   state.redemptions.filter(r=>r.employeeId===empId).forEach(r=>{
     const rw = state.rewards.find(x=>x.id===r.rewardId);
-    rows.push({type:'redeem',date:r.date,points:-r.pointsSpent,note:rw?rw.name:'ของรางวัล (ถูกลบแล้ว)'});
+    const note = rw?rw.name:'ของรางวัล (ถูกลบแล้ว)';
+    
+    rows.push({
+      type: 'redeem',
+      date: r.date,
+      points: -r.pointsSpent,
+      note: note + (r.cancelled ? ' (ยกเลิกแล้ว)' : '')
+    });
+    
+    if(r.cancelled && r.cancelDate) {
+      rows.push({
+        type: 'cancel',
+        date: r.cancelDate,
+        points: r.pointsSpent,
+        note: 'คืนแต้ม (ยกเลิก: ' + note + ')'
+      });
+    }
   });
+  
   rows.sort((a,b)=>new Date(b.date)-new Date(a.date));
   const yearly = getYearlyEarned(empId, selYear);
   openModal(`
@@ -1023,9 +1130,10 @@ function openEmployeeDetail(empId){
       ${rows.length===0 ? '<div class="empty-state">ยังไม่มีประวัติ</div>' : rows.map(r=>{
         const d=new Date(r.date);
         const dateStr = `${String(d.getDate()).padStart(2,'0')}/${String(d.getMonth()+1).padStart(2,'0')}/${d.getFullYear()}`;
-        const lbl = {earn:'ได้รับ', deduct:'ถูกหัก', redeem:'แลก'}[r.type];
+        const lbl = {earn:'ได้รับ', deduct:'ถูกหัก', redeem:'แลก', cancel:'คืนแต้ม'}[r.type];
+        const badgeClass = (r.type === 'earn' || r.type === 'cancel') ? 'earn' : 'redeem';
         return `<div class="led-row"><div class="led-date">${dateStr}</div>
-          <div class="led-badge ${r.type==='earn'?'earn':'redeem'}">${lbl}</div>
+          <div class="led-badge ${badgeClass}">${lbl}</div>
           <div class="led-emp"><div class="note">${escapeHtml(r.note)}</div></div>
           <div class="led-pts ${r.points>=0?'pos':'neg'}">${r.points>=0?'+':''}${fmt(r.points)}</div></div>`;
       }).join('')}
