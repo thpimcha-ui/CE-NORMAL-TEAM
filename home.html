@@ -28,6 +28,8 @@
     --positive:#3d5c4f;
     --negative:#a8493f;
     --negative-bg:#f6ece9;
+    --warning:#f39c12;
+    --warning-bg:#fcf3cf;
     --gold-1:#c9a227;
     --gold-2:#9b7c1d;
     --silver-1:#9a9a94;
@@ -57,6 +59,8 @@
     --accent-bg:#1f2e28;
     --negative:#d3877a;
     --negative-bg:#3a2320;
+    --warning:#f39c12;
+    --warning-bg:#4a3c10;
     --backdrop-color:rgba(0,0,0,.6);
   }
   *{box-sizing:border-box;}
@@ -106,6 +110,8 @@
   .btn.ghost{background:transparent;}
   .btn.danger{border-color:var(--negative);color:var(--negative);background:transparent;}
   .btn.danger:hover{background:var(--negative-bg);}
+  .btn.warning{border-color:var(--warning);color:var(--warning);background:transparent;}
+  .btn.warning:hover{background:var(--warning-bg);}
   .btn.small{padding:6px 11px;font-size:12.5px;}
   .btn svg{width:14px;height:14px;flex:none;}
   .btn:disabled{opacity:.45;cursor:not-allowed;}
@@ -134,6 +140,7 @@
     border-radius:var(--radius-sm);padding:9px 14px;font-size:12.5px;color:var(--text-secondary);margin-bottom:18px;
   }
   .viewer-banner.employee-active{border-color:var(--accent);background:var(--accent-bg);color:var(--accent);}
+  .viewer-banner.admin-notif{background:var(--warning-bg);color:var(--warning);border-color:var(--warning);cursor:pointer;}
   .viewer-banner svg{width:14px;height:14px;flex:none;}
 
   /* ---------- tabs ---------- */
@@ -201,7 +208,15 @@
   .lb-bar-wrap{width:110px;flex:none;height:5px;background:var(--surface-3);border-radius:3px;overflow:hidden;}
   .lb-bar{height:100%;background:var(--accent);border-radius:3px;}
   .lb-pts{font-family:var(--font-mono);font-weight:600;font-size:14px;color:var(--accent);width:56px;text-align:right;flex:none;}
-  .empty-state{padding:32px 18px;text-align:center;color:var(--text-muted);font-size:13.5px;}
+
+  /* ---------- Rank Labels ---------- */
+  .rank-badge-text { padding: 3px 8px; border-radius: 12px; font-size: 11px; font-weight: 600; font-family: var(--font-mono); display:inline-block; }
+  .rank-Silver { background: #e0e0e0; color: #333; }
+  .rank-Gold { background: #f1c40f; color: #000; }
+  .rank-Diamond { background: #3498db; color: #fff; }
+  .rank-Master { background: #9b59b6; color: #fff; }
+  .rank-Predator { background: #e74c3c; color: #fff; }
+  body[data-theme="dark"] .rank-Silver { background: #4a4a4a; color: #eee; }
 
   /* ---------- year trend ---------- */
   .trend-card{background:var(--surface-1);border:1px solid var(--border);border-radius:var(--radius-md);padding:18px 20px 14px;margin-bottom:8px;}
@@ -212,14 +227,14 @@
   .trend-label{font-size:10.5px;color:var(--text-muted);font-family:var(--font-mono);}
 
   /* ---------- employee grid ---------- */
-  .grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(230px,1fr));gap:14px;}
+  .grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(250px,1fr));gap:14px;}
   .emp-card{
     background:var(--surface-1);border:1px solid var(--border);border-radius:var(--radius-md);
     padding:16px;cursor:pointer;transition:border-color .15s ease, transform .1s ease;
     position:relative;
   }
   .emp-card:hover{border-color:var(--border-strong);transform:translateY(-1px);}
-  .emp-top{display:flex;align-items:center;gap:12px;margin-bottom:14px;}
+  .emp-top{display:flex;align-items:center;gap:12px;margin-bottom:10px;}
   .emp-top .avatar{width:42px;height:42px;font-size:13.5px;}
   .emp-top .n{font-weight:600;font-size:14.5px;}
   .emp-top .d{font-size:12px;color:var(--text-muted);}
@@ -227,7 +242,7 @@
   .emp-balance .num{font-family:var(--font-mono);font-weight:600;font-size:23px;color:var(--accent);}
   .emp-balance .lbl{font-size:11px;color:var(--text-muted);text-transform:uppercase;letter-spacing:.4px;}
   .emp-actions{display:flex;gap:6px;flex-wrap:wrap;}
-  .emp-actions .btn{flex:1;justify-content:center;min-width:72px;}
+  .emp-actions .btn{flex:1;justify-content:center;min-width:65px; padding: 6px 8px;}
 
   /* ---------- reward grid ---------- */
   .rw-card{
@@ -262,12 +277,14 @@
   }
   .led-badge.earn{background:var(--accent-bg);color:var(--accent);}
   .led-badge.redeem{background:var(--negative-bg);color:var(--negative);}
+  .led-badge.pending{background:var(--warning-bg);color:var(--warning);}
   .led-emp{flex:1;min-width:0;}
   .led-emp .n{font-weight:600;font-size:13.5px;}
   .led-emp .note{font-size:12px;color:var(--text-muted);}
   .led-pts{font-family:var(--font-mono);font-weight:600;font-size:14px;flex:none;width:64px;text-align:right;}
   .led-pts.pos{color:var(--accent);}
   .led-pts.neg{color:var(--negative);}
+  .led-pts.warn{color:var(--warning);}
 
   /* ---------- modal ---------- */
   .modal-backdrop{
@@ -321,8 +338,9 @@
     transform:rotate(-8deg) scale(0.4);opacity:0;
     letter-spacing:2px;text-transform:uppercase;
     transition:transform .38s cubic-bezier(.2,1.4,.4,1), opacity .38s ease;
+    background: var(--surface-1);
   }
-  .stamp-mark.show{transform:rotate(-8deg) scale(1);opacity:.85;}
+  .stamp-mark.show{transform:rotate(-8deg) scale(1);opacity:.95;}
 
   .empty-hint{
     border:1.5px dashed var(--border-strong);border-radius:var(--radius-md);
@@ -378,13 +396,18 @@
       <select class="period" id="yearSelect"></select>
       <button class="btn primary admin-only" id="btnAddPoints">
         <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 5v14M5 12h14"/></svg>
-        ปรับแต้ม
+        ปรับแต้มทั่วไป
       </button>
       <div class="admin-toggle" id="empToggle"></div>
       <div class="admin-toggle" id="adminToggle"></div>
       <button class="theme-toggle" id="themeToggle" title="สลับโหมดสว่าง/มืด" aria-label="สลับโหมดสว่าง/มืด"></button>
     </div>
   </header>
+
+  <div class="viewer-banner admin-notif admin-only" id="adminNotifBanner" style="display:none;" onclick="document.querySelector('[data-tab=\'rewards\']').click()">
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M18 8A6 6 0 0 0 6 8c0 7-3 9-3 9h18s-3-2-3-9"></path><path d="M13.73 21a2 2 0 0 1-3.46 0"></path></svg>
+    <span id="adminNotifText">มีคำขอแลกรางวัลรอการอนุมัติ คลิกเพื่อตรวจสอบ</span>
+  </div>
 
   <div class="viewer-banner" id="viewerBanner">
     <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="11" width="18" height="10" rx="2"/><path d="M7 11V7a5 5 0 0 1 10 0v4"/></svg>
@@ -433,6 +456,8 @@
 
   <!-- REWARDS -->
   <section class="tab-panel" id="panel-rewards">
+    <div id="pendingRequestsContainer" class="admin-only"></div>
+    
     <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:16px;">
       <h2 class="section-title" style="margin:0;">ของรางวัลที่แลกได้</h2>
       <button class="btn admin-only" id="btnAddReward">
@@ -453,6 +478,7 @@
         <option value="earn">ได้รับแต้ม</option>
         <option value="deduct">ถูกหักแต้ม</option>
         <option value="redeem">แลกของรางวัล</option>
+        <option value="pending">รออนุมัติแลก</option>
         <option value="cancel">คืนแต้ม (ยกเลิก)</option>
       </select>
     </div>
@@ -476,12 +502,12 @@
 // 1. นำตั้งค่า Firebase มาวางแทนที่ตรงนี้
 // ==========================================
 const firebaseConfig = {
-  apiKey: "AIzaSyAUiuOs0Hg1bT8PvYy3M42zj9VL84yrxts",
-  authDomain: "cenolmal.firebaseapp.com",
-  projectId: "cenolmal",
-  storageBucket: "cenolmal.firebasestorage.app",
-  messagingSenderId: "736326565007",
-  appId: "1:736326565007:web:3ba5f4969a1405891584fa"
+  apiKey: "YOUR_API_KEY",
+  authDomain: "YOUR_PROJECT_ID.firebaseapp.com",
+  projectId: "YOUR_PROJECT_ID",
+  storageBucket: "YOUR_PROJECT_ID.appspot.com",
+  messagingSenderId: "YOUR_MESSAGING_SENDER_ID",
+  appId: "YOUR_APP_ID"
 };
 
 firebase.initializeApp(firebaseConfig);
@@ -503,7 +529,17 @@ let selYear = now.getFullYear();
 function uid(){ return Date.now().toString(36) + Math.random().toString(36).slice(2,8); }
 function initials(name){ return name.trim().split(/\s+/).map(w=>w[0]).slice(0,2).join('').toUpperCase(); }
 function colorFor(id){ let h=0; for(const c of id) h = (h*31 + c.charCodeAt(0)) % AVATAR_COLORS.length; return AVATAR_COLORS[Math.abs(h)]; }
-function fmt(n){ return new Intl.NumberFormat('th-TH').format(Math.round(n)); }
+function fmt(n){ return new Intl.NumberFormat('th-TH', { maximumFractionDigits: 1 }).format(n); }
+
+// Rank & Target System
+function getRank(streak) {
+  const s = streak || 0;
+  if(s >= 10) return { name: 'Predator', pts: 4, class: 'rank-Predator', icon: '🐺' };
+  if(s >= 7) return { name: 'Master', pts: 2.5, class: 'rank-Master', icon: '🔥' };
+  if(s >= 5) return { name: 'Diamond', pts: 2, class: 'rank-Diamond', icon: '💎' };
+  if(s >= 3) return { name: 'Gold', pts: 1.5, class: 'rank-Gold', icon: '🏆' };
+  return { name: 'Silver', pts: 1, class: 'rank-Silver', icon: '⚪' };
+}
 
 async function loadData(){
   try{
@@ -538,8 +574,10 @@ async function saveData(){
 
 function getBalance(empId){
   const earned = state.pointsLog.filter(p=>p.employeeId===empId).reduce((s,p)=>s+p.points,0);
-  // ยกเว้นรายการที่ถูกยกเลิกไปแล้ว (cancelled)
-  const spent = state.redemptions.filter(r=>r.employeeId===empId && !r.cancelled).reduce((s,r)=>s+r.pointsSpent,0);
+  // หักคะแนนเฉพาะรายการที่ได้รับการอนุมัติ หรือกำลังรออนุมัติ (ไม่รวมที่ยกเลิก)
+  const spent = state.redemptions
+    .filter(r => r.employeeId === empId && r.status !== 'rejected' && r.cancelled !== true)
+    .reduce((s,r)=>s+r.pointsSpent,0);
   return earned - spent;
 }
 function getMonthlyEarned(empId, year, month){
@@ -568,8 +606,26 @@ function render(){
 function renderBanner(){
   const el = document.getElementById('viewerBanner');
   const txt = document.getElementById('viewerBannerText');
-  if(isAdmin){ el.style.display = 'none'; return; }
+  const notif = document.getElementById('adminNotifBanner');
+  const notifTxt = document.getElementById('adminNotifText');
+  
+  // เช็คคำขอที่ค้างอยู่ (สำหรับ Admin)
+  const pendingCount = state.redemptions.filter(r => r.status === 'pending').length;
+  
+  if(isAdmin){
+    el.style.display = 'none';
+    if(pendingCount > 0) {
+      notif.style.display = 'flex';
+      notifTxt.textContent = `มีคำขอแลกรางวัลรอการอนุมัติ ${pendingCount} รายการ คลิกเพื่อตรวจสอบ`;
+    } else {
+      notif.style.display = 'none';
+    }
+    return;
+  }
+  
+  notif.style.display = 'none';
   el.style.display = 'flex';
+  
   if(currentEmployeeId){
     const emp = state.employees.find(x=>x.id===currentEmployeeId);
     el.classList.add('employee-active');
@@ -729,10 +785,9 @@ function renderPeriodSelects(){
   }
   if(!ys.options.length){
     const years = new Set();
-    // บังคับเริ่มที่ปี 2026 ขึ้นไป
     for(let y=2026; y<=2030; y++) years.add(y);
     state.pointsLog.forEach(p => years.add(p.year));
-    years.delete(2025); // ตรวจสอบและเอาปี 2025 ออก
+    years.delete(2025); 
     
     const sorted = [...years].sort((a,b)=>a-b);
     ys.innerHTML = sorted.map(y=>`<option value="${y}">ปี ${y}</option>`).join('');
@@ -754,7 +809,7 @@ function renderTabs(){
 
 function renderDashboard(){
   const allEarned = state.pointsLog.reduce((s,p)=>s+p.points,0);
-  const allRedeemed = state.redemptions.filter(r=>!r.cancelled).reduce((s,r)=>s+r.pointsSpent,0);
+  const allRedeemed = state.redemptions.filter(r=>!r.cancelled && r.status!=='rejected').reduce((s,r)=>s+r.pointsSpent,0);
   const allTimeTop = [...state.employees].map(e=>({e, pts:getAllTimeEarned(e.id)})).sort((a,b)=>b.pts-a.pts)[0];
   document.getElementById('allTimeRow').innerHTML = `
     <div class="stat-card">
@@ -781,7 +836,7 @@ function renderDashboard(){
 
   const monthEarned = state.pointsLog.filter(p=>p.year===selYear && p.month===selMonth).reduce((s,p)=>s+p.points,0);
   const monthRedeemed = state.redemptions.filter(r=>{
-    if(r.cancelled) return false;
+    if(r.cancelled || r.status==='rejected') return false;
     const d = new Date(r.date); return d.getFullYear()===selYear && d.getMonth()+1===selMonth;
   }).reduce((s,r)=>s+r.pointsSpent,0);
 
@@ -865,29 +920,98 @@ function renderEmployees(){
       </div>`);
     return;
   }
-  grid.innerHTML = state.employees.map(e=>`
+  
+  grid.innerHTML = state.employees.map(e=>{
+    const rank = getRank(e.streak || 0);
+    return `
     <div class="emp-card" onclick="openEmployeeDetail('${e.id}')">
       <div class="emp-top">
         <div class="avatar" style="background:${colorFor(e.id)}">${initials(e.name)}</div>
-        <div><div class="n">${escapeHtml(e.name)}</div><div class="d">${escapeHtml(e.department||'ไม่ระบุแผนก')}</div></div>
+        <div>
+          <div class="n">${escapeHtml(e.name)}</div>
+          <div class="d">${escapeHtml(e.department||'ไม่ระบุแผนก')}</div>
+        </div>
+      </div>
+      <div style="margin-bottom:12px;">
+        <span class="rank-badge-text ${rank.class}">${rank.icon} ${rank.name} (Streak: ${e.streak||0})</span>
       </div>
       <div class="emp-balance">
         <div><div class="num">${fmt(getBalance(e.id))}</div><div class="lbl">แต้มคงเหลือ</div></div>
       </div>
       <div class="emp-actions admin-only" onclick="event.stopPropagation()">
-        <button class="btn small" onclick="openAddPointsModal('${e.id}','add')">ให้แต้ม</button>
-        <button class="btn small" onclick="openAddPointsModal('${e.id}','deduct')">ลดแต้ม</button>
-        <button class="btn small" onclick="openRedeemModal(null,'${e.id}')">แลกรางวัล</button>
+        <button class="btn small primary" onclick="addStreak('${e.id}')">+ Streak</button>
+        <button class="btn small warning ghost" style="color:var(--text-secondary);border-color:var(--border-strong);" onclick="resetStreak('${e.id}')">Reset 🔥</button>
       </div>
     </div>
-  `).join('');
+  `}).join('');
 }
 
+/* ---------------- Streak System ---------------- */
+function addStreak(empId) {
+  if(!isAdmin) return;
+  const e = state.employees.find(x => x.id === empId);
+  e.streak = (e.streak || 0) + 1;
+  const rankInfo = getRank(e.streak);
+  
+  // บันทึกคะแนน
+  state.pointsLog.push({
+    id: uid(), 
+    employeeId: empId, 
+    points: rankInfo.pts, 
+    month: selMonth, 
+    year: selYear, 
+    reason: `🔥 Target Streak วันที่ ${e.streak} (${rankInfo.name})`, 
+    date: new Date().toISOString()
+  });
+  
+  saveData(); render();
+}
+
+function resetStreak(empId) {
+  if(!isAdmin) return;
+  if(!confirm('ยืนยันการรีเซ็ต Streak กลับไปเป็น 0?')) return;
+  const e = state.employees.find(x => x.id === empId);
+  e.streak = 0;
+  saveData(); render();
+}
+
+/* ---------------- rewards ---------------- */
 function rewardIconSvg(){
   return `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M20 12v9H4v-9M2 7h20v5H2V7zM12 22V7M12 7c-1.5-3-6-4-6-1s4 1 6 1zM12 7c1.5-3 6-4 6-1s-4 1-6 1z"/></svg>`;
 }
 
 function renderRewards(){
+  const pendingContainer = document.getElementById('pendingRequestsContainer');
+  const pending = state.redemptions.filter(r => r.status === 'pending');
+  
+  if (isAdmin && pending.length > 0) {
+    pendingContainer.style.display = 'block';
+    pendingContainer.innerHTML = `
+      <div style="background: var(--warning-bg); border: 1px solid var(--warning); border-radius: var(--radius-md); padding: 16px; margin-bottom: 24px;">
+        <h3 style="margin: 0 0 12px; font-size: 15px; color: var(--warning);">คำขอแลกรางวัลรออนุมัติ</h3>
+        ${pending.map(p => {
+          const emp = state.employees.find(e=>e.id===p.employeeId);
+          const rw = state.rewards.find(r=>r.id===p.rewardId);
+          return `
+            <div style="display:flex; align-items:center; justify-content:space-between; flex-wrap:wrap; gap:10px; background:var(--surface-1); padding:10px 14px; border-radius:var(--radius-sm); margin-bottom:8px; border:1px solid var(--border);">
+              <div style="font-size:13.5px;">
+                <strong>${emp ? escapeHtml(emp.name) : '?'}</strong> ขอแลก <strong>${rw ? escapeHtml(rw.name) : '?'}</strong><br>
+                <span class="subtle">ใช้ ${fmt(p.pointsSpent)} แต้ม</span>
+              </div>
+              <div style="display:flex; gap:6px;">
+                <button class="btn small primary" onclick="approveRedeem('${p.id}')">อนุมัติ</button>
+                <button class="btn small danger ghost" onclick="rejectRedeem('${p.id}')">ปฏิเสธ (คืนแต้ม)</button>
+              </div>
+            </div>
+          `;
+        }).join('')}
+      </div>
+    `;
+  } else {
+    pendingContainer.style.display = 'none';
+    pendingContainer.innerHTML = '';
+  }
+
   const grid = document.getElementById('rewardGrid');
   grid.parentElement.querySelector('.empty-hint')?.remove();
   if(state.rewards.length===0){
@@ -916,10 +1040,30 @@ function renderRewards(){
         <div class="rw-name">${escapeHtml(r.name)}</div>
         <div class="rw-cost">${fmt(r.cost)} แต้ม</div>
       </div>
-      <button class="btn small admin-only" onclick="openRedeemModal('${r.id}',null)">แลกให้พนักงาน</button>
+      <button class="btn small admin-only" onclick="openRedeemModal('${r.id}',null)">แลกให้พนักงานทันที</button>
       ${currentEmployeeId ? `<button class="btn small primary" ${getBalance(currentEmployeeId) < r.cost ? 'disabled' : ''} onclick="redeemSelf('${r.id}')">แลกให้ตัวเอง (${fmt(getBalance(currentEmployeeId))} แต้ม)</button>` : ''}
     </div>
   `).join('');
+}
+
+function approveRedeem(id) {
+  if(!isAdmin) return;
+  const r = state.redemptions.find(x => x.id === id);
+  if(r) {
+    r.status = 'approved';
+    saveData(); render();
+  }
+}
+
+function rejectRedeem(id) {
+  if(!isAdmin) return;
+  if(!confirm('ปฏิเสธคำขอนี้และคืนแต้มให้พนักงาน?')) return;
+  const r = state.redemptions.find(x => x.id === id);
+  if(r) {
+    r.status = 'rejected';
+    r.cancelDate = new Date().toISOString();
+    saveData(); render();
+  }
 }
 
 function renderLedger(){
@@ -936,33 +1080,32 @@ function renderLedger(){
   let rows = [];
   state.pointsLog.forEach(p=>{
     const isDeduct = p.points < 0;
-    rows.push({type: isDeduct ? 'deduct' : 'earn', date:p.date, employeeId:p.employeeId, points:p.points, note:p.reason||(isDeduct?'หักแต้ม':'ให้แต้ม')});
+    rows.push({type: isDeduct ? 'deduct' : 'earn', id: p.id, date:p.date, employeeId:p.employeeId, points:p.points, note:p.reason||(isDeduct?'หักแต้ม':'ให้แต้ม')});
   });
   
-  // แปลงรายการแลกของรางวัลเป็นรายการในประวัติ
   state.redemptions.forEach(r=>{
     const rw = state.rewards.find(x=>x.id===r.rewardId);
     const note = rw ? rw.name : 'ของรางวัล (ถูกลบแล้ว)';
     
-    // 1. รายการดั้งเดิม (หักแต้ม)
-    rows.push({
-      type: 'redeem', 
-      id: r.id,
-      date: r.date, 
-      employeeId: r.employeeId, 
-      points: -r.pointsSpent, 
-      note: note,
-      cancelled: r.cancelled
-    });
+    const isPending = r.status === 'pending';
+    const isRejected = r.status === 'rejected' || r.cancelled === true;
+    const isApproved = r.status === 'approved' || (!r.status && !r.cancelled);
     
-    // 2. แถวรายการที่ยกเลิกแล้ว (คืนแต้ม) จะแสดงก็ต่อเมื่อถูกยกเลิก
-    if(r.cancelled && r.cancelDate) {
+    // 1. รายการดั้งเดิม 
+    if (isPending) {
+        rows.push({ type: 'pending', id: r.id, date: r.date, employeeId: r.employeeId, points: -r.pointsSpent, note: note, raw: r });
+    } else if (isApproved) {
+        rows.push({ type: 'redeem', id: r.id, date: r.date, employeeId: r.employeeId, points: -r.pointsSpent, note: note, raw: r });
+    }
+    
+    // 2. แถวรายการที่ยกเลิกแล้ว (คืนแต้ม) จะแสดงก็ต่อเมื่อถูกยกเลิก/ปฏิเสธ
+    if(isRejected && (r.cancelDate || r.date)) {
       rows.push({
         type: 'cancel',
-        date: r.cancelDate,
+        date: r.cancelDate || r.date,
         employeeId: r.employeeId,
         points: r.pointsSpent,
-        note: 'ยกเลิกการแลก: ' + note
+        note: 'ยกเลิก/ปฏิเสธ: ' + note
       });
     }
   });
@@ -977,20 +1120,24 @@ function renderLedger(){
     return;
   }
   
-  const badgeLabel = {earn:'ได้รับแต้ม', deduct:'ถูกหักแต้ม', redeem:'แลกรางวัล', cancel:'คืนแต้ม (ยกเลิก)'};
+  const badgeLabel = {earn:'ได้รับแต้ม', deduct:'ถูกหักแต้ม', redeem:'แลกรางวัล', pending:'รออนุมัติ', cancel:'คืนแต้ม'};
   list.innerHTML = rows.map(r=>{
     const emp = state.employees.find(e=>e.id===r.employeeId);
     const d = new Date(r.date);
     const dateStr = `${String(d.getDate()).padStart(2,'0')}/${String(d.getMonth()+1).padStart(2,'0')}/${d.getFullYear()}`;
     
-    // จัดการสีของ Badge
-    const badgeClass = (r.type === 'earn' || r.type === 'cancel') ? 'earn' : 'redeem';
+    let badgeClass = 'redeem';
+    if(r.type === 'earn' || r.type === 'cancel') badgeClass = 'earn';
+    if(r.type === 'pending') badgeClass = 'pending';
     
     // ปุ่มยกเลิกสำหรับพนักงานตัวเอง หรือแอดมิน
-    const canCancel = r.type === 'redeem' && !r.cancelled && (isAdmin || currentEmployeeId === r.employeeId);
+    const canCancel = (r.type === 'redeem' || r.type === 'pending') && (isAdmin || currentEmployeeId === r.employeeId);
     const cancelBtnHTML = canCancel 
       ? `<button class="btn small danger ghost" style="padding:0px 6px; font-size:11px; margin-left:6px; border-radius:4px; min-width:auto;" onclick="cancelRedemption('${r.id}')">ยกเลิก</button>` 
       : '';
+
+    let ptsClass = r.points >= 0 ? 'pos' : 'neg';
+    if (r.type === 'pending') ptsClass = 'warn';
 
     return `
       <div class="led-row">
@@ -999,11 +1146,11 @@ function renderLedger(){
         <div class="led-emp">
           <div class="n">${emp ? escapeHtml(emp.name) : 'พนักงาน (ถูกลบแล้ว)'}</div>
           <div class="note" style="display:flex; align-items:center;">
-            <span style="${r.cancelled && r.type==='redeem' ? 'text-decoration:line-through; opacity:0.6;' : ''}">${escapeHtml(r.note)}</span>
+            <span>${escapeHtml(r.note)}</span>
             ${cancelBtnHTML}
           </div>
         </div>
-        <div class="led-pts ${r.points>=0?'pos':'neg'}">
+        <div class="led-pts ${ptsClass}">
           ${r.points>=0?'+':''}${fmt(r.points)}
         </div>
       </div>
@@ -1017,24 +1164,19 @@ function cancelRedemption(redemptionId) {
   const r = state.redemptions.find(x => x.id === redemptionId);
   if(!r) return;
   
-  // ตรวจสอบสิทธิ์
   if(!isAdmin && currentEmployeeId !== r.employeeId) {
     alert('คุณไม่มีสิทธิ์ยกเลิกรายการของบุคคลอื่น');
     return;
   }
   
-  if(r.cancelled) return; // ยกเลิกไปแล้วไม่ต้องทำซ้ำ
+  if(r.cancelled || r.status === 'rejected') return; 
   
-  r.cancelled = true;
-  r.cancelDate = new Date().toISOString(); // เพื่อบันทึกเวลาที่กดยกเลิก (โชว์ในประวัติ)
+  r.status = 'rejected';
+  r.cancelDate = new Date().toISOString(); 
   
   saveData();
   render();
   alert('ยกเลิกรายการสำเร็จ ระบบทำการคืนแต้มเรียบร้อยแล้ว');
-}
-
-function escapeHtml(s){
-  return String(s ?? '').replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
 }
 
 /* ---------------- modal helpers ---------------- */
@@ -1074,7 +1216,7 @@ function saveEmployee(id){
     const e = state.employees.find(x=>x.id===id);
     e.name=name; e.department=dept;
   } else {
-    state.employees.push({id:uid(), name, department:dept});
+    state.employees.push({id:uid(), name, department:dept, streak: 0});
   }
   saveData(); closeModal(); render();
 }
@@ -1092,34 +1234,33 @@ function openEmployeeDetail(empId){
     const rw = state.rewards.find(x=>x.id===r.rewardId);
     const note = rw?rw.name:'ของรางวัล (ถูกลบแล้ว)';
     
-    rows.push({
-      type: 'redeem',
-      date: r.date,
-      points: -r.pointsSpent,
-      note: note + (r.cancelled ? ' (ยกเลิกแล้ว)' : '')
-    });
+    if (r.status === 'pending') {
+      rows.push({type: 'pending', date: r.date, points: -r.pointsSpent, note: 'รออนุมัติ: ' + note});
+    } else if (r.status === 'approved' || (!r.status && !r.cancelled)) {
+      rows.push({type: 'redeem', date: r.date, points: -r.pointsSpent, note: note});
+    }
     
-    if(r.cancelled && r.cancelDate) {
-      rows.push({
-        type: 'cancel',
-        date: r.cancelDate,
-        points: r.pointsSpent,
-        note: 'คืนแต้ม (ยกเลิก: ' + note + ')'
-      });
+    if(r.status === 'rejected' || r.cancelled) {
+      rows.push({type: 'cancel', date: r.cancelDate || r.date, points: r.pointsSpent, note: 'คืนแต้ม (ยกเลิก: ' + note + ')'});
     }
   });
   
   rows.sort((a,b)=>new Date(b.date)-new Date(a.date));
   const yearly = getYearlyEarned(empId, selYear);
+  const rank = getRank(e.streak || 0);
+  
   openModal(`
     <h3>${escapeHtml(e.name)}</h3>
-    <div class="subtle" style="margin-bottom:14px;">${escapeHtml(e.department||'')}</div>
+    <div class="subtle" style="margin-bottom:6px;">${escapeHtml(e.department||'')}</div>
+    <div style="margin-bottom:14px;"><span class="rank-badge-text ${rank.class}">${rank.icon} ${rank.name} (Streak: ${e.streak||0})</span></div>
+    
     <div class="detail-balance">
       <div><div class="num">${fmt(getBalance(empId))}</div><div class="lbl subtle">แต้มคงเหลือ</div></div>
       <div style="text-align:right"><div class="num" style="font-size:19px;color:var(--text-secondary)">${fmt(yearly)}</div><div class="lbl subtle">รวมปี ${selYear}</div></div>
     </div>
+    
     <div class="modal-actions admin-only" style="justify-content:flex-start;margin-top:0;margin-bottom:10px;">
-      <button class="btn small primary" onclick="closeModal();openAddPointsModal('${empId}','add')">ให้แต้ม</button>
+      <button class="btn small primary" onclick="closeModal();openAddPointsModal('${empId}','add')">ปรับแต้ม</button>
       <button class="btn small" onclick="closeModal();openAddPointsModal('${empId}','deduct')">ลดแต้ม</button>
       <button class="btn small" onclick="closeModal();openRedeemModal(null,'${empId}')">แลกรางวัล</button>
       <button class="btn small" onclick="openEmployeeModal('${empId}')">แก้ไข</button>
@@ -1130,12 +1271,19 @@ function openEmployeeDetail(empId){
       ${rows.length===0 ? '<div class="empty-state">ยังไม่มีประวัติ</div>' : rows.map(r=>{
         const d=new Date(r.date);
         const dateStr = `${String(d.getDate()).padStart(2,'0')}/${String(d.getMonth()+1).padStart(2,'0')}/${d.getFullYear()}`;
-        const lbl = {earn:'ได้รับ', deduct:'ถูกหัก', redeem:'แลก', cancel:'คืนแต้ม'}[r.type];
-        const badgeClass = (r.type === 'earn' || r.type === 'cancel') ? 'earn' : 'redeem';
+        const lbl = {earn:'ได้รับ', deduct:'ถูกหัก', redeem:'แลก', cancel:'คืนแต้ม', pending:'รออนุมัติ'}[r.type];
+        
+        let badgeClass = 'redeem';
+        if(r.type === 'earn' || r.type === 'cancel') badgeClass = 'earn';
+        if(r.type === 'pending') badgeClass = 'pending';
+        
+        let ptsClass = r.points >= 0 ? 'pos' : 'neg';
+        if(r.type === 'pending') ptsClass = 'warn';
+
         return `<div class="led-row"><div class="led-date">${dateStr}</div>
           <div class="led-badge ${badgeClass}">${lbl}</div>
           <div class="led-emp"><div class="note">${escapeHtml(r.note)}</div></div>
-          <div class="led-pts ${r.points>=0?'pos':'neg'}">${r.points>=0?'+':''}${fmt(r.points)}</div></div>`;
+          <div class="led-pts ${ptsClass}">${r.points>=0?'+':''}${fmt(r.points)}</div></div>`;
       }).join('')}
     </div>
   `);
@@ -1156,7 +1304,8 @@ function openAddPointsModal(empId, type){
   if(state.employees.length===0){ alert('กรุณาเพิ่มพนักงานก่อน'); return; }
   const t = type === 'deduct' ? 'deduct' : 'add';
   openModal(`
-    <h3>ปรับแต้มพนักงาน</h3>
+    <h3>ปรับแต้มทั่วไป</h3>
+    <div class="subtle" style="margin-bottom:12px;">หากต้องการให้แต้มแบบต่อเนื่อง (Streak) ให้กดปุ่ม "+ Streak" ที่การ์ดพนักงานแทน</div>
     <div class="seg-toggle" id="pTypeToggle">
       <button type="button" class="add ${t==='add'?'active':''}" onclick="setPointsType('add')">+ เพิ่มแต้ม</button>
       <button type="button" class="deduct ${t==='deduct'?'active':''}" onclick="setPointsType('deduct')">− ลดแต้ม</button>
@@ -1166,7 +1315,7 @@ function openAddPointsModal(empId, type){
       <select id="pEmp">${state.employees.map(e=>`<option value="${e.id}" ${e.id===empId?'selected':''}>${escapeHtml(e.name)}</option>`).join('')}</select>
     </div>
     <div class="field-row">
-      <div class="field"><label>จำนวนแต้ม</label><input id="pPoints" type="number" min="1" value="10"></div>
+      <div class="field"><label>จำนวนแต้ม</label><input id="pPoints" type="number" step="0.1" min="0.1" value="1"></div>
       <div class="field"><label>เดือน / ปี</label>
         <select id="pMonth" style="margin-bottom:6px;">${MONTHS_TH.map((m,i)=>`<option value="${i+1}" ${i+1===selMonth?'selected':''}>${m}</option>`).join('')}</select>
       </div>
@@ -1208,7 +1357,7 @@ function openAddRewardModal(editId){
   openModal(`
     <h3>${editing?'แก้ไขของรางวัล':'เพิ่มของรางวัล'}</h3>
     <div class="field"><label>ชื่อของรางวัล</label><input id="rName" value="${editing?escapeHtml(editing.name):''}" placeholder="เช่น บัตรกำนัลร้านกาแฟ"></div>
-    <div class="field"><label>ใช้กี่แต้ม</label><input id="rCost" type="number" min="1" value="${editing?editing.cost:100}"></div>
+    <div class="field"><label>ใช้กี่แต้ม</label><input id="rCost" type="number" min="1" step="0.5" value="${editing?editing.cost:10}"></div>
     <div class="modal-error" id="mErr">กรุณากรอกชื่อและแต้มให้ถูกต้อง</div>
     <div class="modal-actions">
       <button class="btn ghost" onclick="closeModal()">ยกเลิก</button>
@@ -1242,7 +1391,8 @@ function openRedeemModal(rewardId, empId){
   if(state.employees.length===0){ alert('กรุณาเพิ่มพนักงานก่อน'); return; }
   if(state.rewards.length===0){ alert('กรุณาเพิ่มของรางวัลก่อน'); return; }
   openModal(`
-    <h3>แลกของรางวัล</h3>
+    <h3>แอดมินแลกของรางวัลให้พนักงาน</h3>
+    <div class="subtle" style="margin-bottom:14px;">การแลกโดยแอดมินจะได้รับการ "อนุมัติทันที" โดยไม่ต้องรอยืนยัน</div>
     <div class="field">
       <label>พนักงาน</label>
       <select id="xEmp" onchange="updateRedeemBalance()">${state.employees.map(e=>`<option value="${e.id}" ${e.id===empId?'selected':''}>${escapeHtml(e.name)} (${fmt(getBalance(e.id))} แต้ม)</option>`).join('')}</select>
@@ -1269,6 +1419,8 @@ function updateRedeemBalance(){
   document.getElementById('xBalanceInfo').innerHTML =
     `แต้มคงเหลือ <strong style="color:var(--accent)">${fmt(bal)}</strong> → หลังแลก <strong style="color:${after<0?'var(--negative)':'var(--accent)'}">${fmt(after)}</strong>`;
 }
+
+// Admin ดำเนินการแลกเอง อนุมัติทันที
 function confirmRedeem(){
   if(!isAdmin) return;
   const employeeId = document.getElementById('xEmp').value;
@@ -1276,23 +1428,38 @@ function confirmRedeem(){
   const reward = state.rewards.find(r=>r.id===rewardId);
   const bal = getBalance(employeeId);
   if(!reward || bal < reward.cost){ document.getElementById('mErr').style.display='block'; return; }
-  state.redemptions.push({id:uid(), employeeId, rewardId, pointsSpent:reward.cost, date:new Date().toISOString()});
+  state.redemptions.push({
+    id: uid(), employeeId, rewardId, pointsSpent: reward.cost, date: new Date().toISOString(), status: 'approved'
+  });
   saveData(); closeModal(); render();
-  showStamp();
+  showStamp('แลกแล้ว');
 }
+
+// พนักงานส่งคำขอแลก
 function redeemSelf(rewardId){
   if(!currentEmployeeId) return;
   const reward = state.rewards.find(r=>r.id===rewardId);
   if(!reward) return;
   const bal = getBalance(currentEmployeeId);
-  if(bal < reward.cost){ alert('แต้มคงเหลือของคุณไม่พอสำหรับของรางวัลนี้'); return; }
-  if(!confirm(`ยืนยันแลก "${reward.name}" ด้วย ${fmt(reward.cost)} แต้ม?\nแต้มคงเหลือหลังแลก: ${fmt(bal-reward.cost)} แต้ม`)) return;
-  state.redemptions.push({id:uid(), employeeId:currentEmployeeId, rewardId, pointsSpent:reward.cost, date:new Date().toISOString()});
+  if(bal < reward.cost){ alert('แต้มคงเหลือของคุณไม่พอสำหรับของรางวัลนี้ (หรือแต้มคุณถูกกันไว้ในคำขอที่รออนุมัติอยู่)'); return; }
+  
+  if(!confirm(`ยืนยันส่งคำขอแลก "${reward.name}" ด้วย ${fmt(reward.cost)} แต้ม?\n(คำขอจะถูกส่งให้แอดมินอนุมัติ แต้มจะถูกหักทันที และจะคืนให้หากถูกปฏิเสธ)`)) return;
+  
+  state.redemptions.push({
+    id: uid(), 
+    employeeId: currentEmployeeId, 
+    rewardId, 
+    pointsSpent: reward.cost, 
+    date: new Date().toISOString(),
+    status: 'pending'
+  });
   saveData(); render();
-  showStamp();
+  showStamp('รออนุมัติ');
 }
-function showStamp(){
+
+function showStamp(text = 'แลกแล้ว'){
   const el = document.getElementById('stampMark');
+  el.textContent = text;
   el.classList.remove('show'); void el.offsetWidth;
   el.classList.add('show');
   setTimeout(()=>el.classList.remove('show'), 1100);
