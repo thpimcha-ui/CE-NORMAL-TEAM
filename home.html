@@ -466,7 +466,7 @@
 
 <div class="stamp-layer" id="stampLayer"><div class="stamp-mark" id="stampMark">แลกแล้ว</div></div>
 
-<!-- โหลด Firebase SDK แบบ Compat (เพื่อให้ใช้กับ script ปกติได้) -->
+<!-- โหลด Firebase SDK แบบ Compat -->
 <script src="https://www.gstatic.com/firebasejs/10.8.1/firebase-app-compat.js"></script>
 <script src="https://www.gstatic.com/firebasejs/10.8.1/firebase-firestore-compat.js"></script>
 
@@ -475,15 +475,14 @@
 // 1. นำตั้งค่า Firebase มาวางแทนที่ตรงนี้
 // ==========================================
 const firebaseConfig = {
-  apiKey: "AIzaSyAUiuOs0Hg1bT8PvYy3M42zj9VL84yrxts",
-  authDomain: "cenolmal.firebaseapp.com",
-  projectId: "cenolmal",
-  storageBucket: "cenolmal.firebasestorage.app",
-  messagingSenderId: "736326565007",
-  appId: "1:736326565007:web:3ba5f4969a1405891584fa"
+  apiKey: "YOUR_API_KEY",
+  authDomain: "YOUR_PROJECT_ID.firebaseapp.com",
+  projectId: "YOUR_PROJECT_ID",
+  storageBucket: "YOUR_PROJECT_ID.appspot.com",
+  messagingSenderId: "YOUR_MESSAGING_SENDER_ID",
+  appId: "YOUR_APP_ID"
 };
 
-// 2. เริ่มต้นใช้งาน Firebase และ Firestore
 firebase.initializeApp(firebaseConfig);
 const db = firebase.firestore();
 // ==========================================
@@ -505,9 +504,6 @@ function initials(name){ return name.trim().split(/\s+/).map(w=>w[0]).slice(0,2)
 function colorFor(id){ let h=0; for(const c of id) h = (h*31 + c.charCodeAt(0)) % AVATAR_COLORS.length; return AVATAR_COLORS[Math.abs(h)]; }
 function fmt(n){ return new Intl.NumberFormat('th-TH').format(Math.round(n)); }
 
-// ==========================================
-// 3. ฟังก์ชันดึง/บันทึกข้อมูลจาก Firestore
-// ==========================================
 async function loadData(){
   try{
     const docRef = db.collection('appData').doc(STORAGE_KEY);
@@ -538,7 +534,6 @@ async function saveData(){
     console.error('บันทึกข้อมูลไป Firestore ล้มเหลว', e); 
   }
 }
-// ==========================================
 
 function getBalance(empId){
   const earned = state.pointsLog.filter(p=>p.employeeId===empId).reduce((s,p)=>s+p.points,0);
@@ -579,10 +574,11 @@ function renderBanner(){
     txt.textContent = emp ? `เข้าสู่ระบบในฐานะ ${emp.name} · แต้มคงเหลือ ${fmt(getBalance(emp.id))} แต้ม · แลกของรางวัลให้ตัวเองได้ที่แท็บ "ของรางวัล"` : 'เข้าสู่ระบบพนักงานแล้ว';
   } else {
     el.classList.remove('employee-active');
-    txt.textContent = 'โหมดดูอย่างเดียว — เข้าสู่ระบบพนักงานเพื่อแลกของรางวัล หรือเข้าสู่ระบบแอดมินเพื่อแก้ไขข้อมูล';
+    txt.textContent = 'โหมดดูอย่างเดียว — เลือกระบุตัวตนเพื่อแลกของรางวัล หรือเข้าสู่ระบบแอดมินเพื่อแก้ไขข้อมูล';
   }
 }
 
+/* ---------------- Admin Auth & Reset ---------------- */
 function renderAdminToggle(){
   document.body.classList.toggle('is-admin', isAdmin);
   const el = document.getElementById('adminToggle');
@@ -621,9 +617,12 @@ function openAdminLoginModal(){
       <h3>เข้าสู่ระบบแอดมิน</h3>
       <div class="field"><label>รหัสผ่านแอดมิน</label><input id="pinEnter" type="password" placeholder="กรอกรหัสผ่าน"></div>
       <div class="modal-error" id="mErr">รหัสผ่านไม่ถูกต้อง</div>
-      <div class="modal-actions">
-        <button class="btn ghost" onclick="closeModal()">ยกเลิก</button>
-        <button class="btn primary" onclick="checkAdminPin()">เข้าสู่ระบบ</button>
+      <div class="modal-actions" style="justify-content: space-between;">
+        <button class="btn danger" onclick="resetAdminPassword()">รีเซ็ตรหัสผ่าน</button>
+        <div style="display:flex; gap:10px;">
+          <button class="btn ghost" onclick="closeModal()">ยกเลิก</button>
+          <button class="btn primary" onclick="checkAdminPin()">เข้าสู่ระบบ</button>
+        </div>
       </div>
     `);
   }
@@ -641,8 +640,15 @@ function checkAdminPin(){
   if(v !== state.adminPin){ document.getElementById('mErr').style.display='block'; return; }
   isAdmin = true; closeModal(); render();
 }
+function resetAdminPassword() {
+  if(confirm('คุณต้องการรีเซ็ตรหัสผ่านแอดมินใช่หรือไม่? (การกระทำนี้จะล้างรหัสผ่านเดิม และให้ทุกคนต้องตั้งรหัสผ่านใหม่)')) {
+    state.adminPin = '';
+    saveData();
+    openAdminLoginModal(); // กลับไปหน้าตั้งรหัสผ่านใหม่
+  }
+}
 
-/* ---------------- employee self-service login ---------------- */
+/* ---------------- employee self-service login (NO PASSWORD) ---------------- */
 function renderEmpToggle(){
   const el = document.getElementById('empToggle');
   el.classList.toggle('on', !!currentEmployeeId);
@@ -657,73 +663,37 @@ function renderEmpToggle(){
     el.innerHTML = `
       <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="8" r="3.5"/><path d="M5 20c0-3.5 3-6 7-6s7 2.5 7 6"/></svg>
       พนักงาน
-      <button onclick="openEmployeeLoginModal()">เข้าสู่ระบบ</button>
+      <button onclick="openEmployeeLoginModal()">ระบุตัวตนพนักงาน</button>
     `;
   }
 }
 function logoutEmployee(){ currentEmployeeId = null; render(); }
+
 function openEmployeeLoginModal(){
   if(state.employees.length===0){ alert('ยังไม่มีพนักงานในระบบ ให้แอดมินเพิ่มพนักงานก่อน'); return; }
   openModal(`
-    <h3>เข้าสู่ระบบพนักงาน</h3>
+    <h3>ระบุตัวตนของคุณ</h3>
+    <div class="subtle" style="margin-bottom:14px;">เลือกชื่อของคุณเพื่อดูแต้มสะสมและใช้แลกของรางวัล</div>
     <div class="field">
       <label>เลือกชื่อของคุณ</label>
-      <select id="eSelEmp" onchange="renderEmpPinField()">${state.employees.map(e=>`<option value="${e.id}">${escapeHtml(e.name)}</option>`).join('')}</select>
+      <select id="eSelEmp">${state.employees.map(e=>`<option value="${e.id}">${escapeHtml(e.name)}</option>`).join('')}</select>
     </div>
-    <div id="empPinFieldWrap"></div>
-    <div class="modal-error" id="mErr">รหัสผ่านไม่ถูกต้อง หรือกรอกไม่ครบ</div>
     <div class="modal-actions">
       <button class="btn ghost" onclick="closeModal()">ยกเลิก</button>
-      <button class="btn primary" id="empLoginBtn">เข้าสู่ระบบ</button>
+      <button class="btn primary" onclick="submitEmployeeLogin()">เข้าสู่ระบบ</button>
     </div>
   `);
-  renderEmpPinField();
-}
-function renderEmpPinField(){
-  const empId = document.getElementById('eSelEmp').value;
-  const emp = state.employees.find(x=>x.id===empId);
-  const wrap = document.getElementById('empPinFieldWrap');
-  const btn = document.getElementById('empLoginBtn');
-  if(emp && emp.pin){
-    wrap.innerHTML = `<div class="field"><label>รหัสผ่านของคุณ</label><input id="eSelPin" type="password" placeholder="กรอกรหัสผ่าน"></div>`;
-    btn.textContent = 'เข้าสู่ระบบ';
-    btn.onclick = submitEmployeeLogin;
-  } else {
-    wrap.innerHTML = `
-      <div class="subtle" style="margin-bottom:10px;">คุณยังไม่เคยตั้งรหัสผ่าน ตั้งรหัสผ่านของตัวเองครั้งแรก</div>
-      <div class="field"><label>ตั้งรหัสผ่านใหม่</label><input id="eSelPinNew" type="password" placeholder="อย่างน้อย 4 ตัวอักษร"></div>
-      <div class="field"><label>ยืนยันรหัสผ่าน</label><input id="eSelPinConfirm" type="password"></div>
-    `;
-    btn.textContent = 'ตั้งรหัสผ่านและเข้าสู่ระบบ';
-    btn.onclick = submitEmployeeSetPin;
-  }
-  document.getElementById('mErr').style.display = 'none';
-}
-function submitEmployeeLogin(){
-  const empId = document.getElementById('eSelEmp').value;
-  const emp = state.employees.find(x=>x.id===empId);
-  const pin = document.getElementById('eSelPin').value;
-  if(!emp || pin !== emp.pin){ document.getElementById('mErr').style.display='block'; return; }
-  currentEmployeeId = empId; closeModal(); render();
-}
-function submitEmployeeSetPin(){
-  const empId = document.getElementById('eSelEmp').value;
-  const emp = state.employees.find(x=>x.id===empId);
-  const a = document.getElementById('eSelPinNew').value;
-  const b = document.getElementById('eSelPinConfirm').value;
-  if(!emp || !a || a.length<4 || a!==b){ document.getElementById('mErr').style.display='block'; return; }
-  emp.pin = a; saveData();
-  currentEmployeeId = empId; closeModal(); render();
-}
-function resetEmployeePin(id){
-  if(!isAdmin) return;
-  const e = state.employees.find(x=>x.id===id);
-  if(!e) return;
-  if(!confirm(`รีเซ็ตรหัสผ่านของ ${e.name}? เขาจะต้องตั้งรหัสผ่านใหม่ตอนเข้าสู่ระบบครั้งถัดไป`)) return;
-  delete e.pin; saveData();
-  openEmployeeDetail(id);
 }
 
+function submitEmployeeLogin(){
+  const empId = document.getElementById('eSelEmp').value;
+  if(!empId) return;
+  currentEmployeeId = empId; 
+  closeModal(); 
+  render();
+}
+
+/* ---------------- Period Selection ---------------- */
 function renderPeriodSelects(){
   const ms = document.getElementById('monthSelect');
   const ys = document.getElementById('yearSelect');
@@ -733,11 +703,17 @@ function renderPeriodSelects(){
     ms.onchange = ()=>{ selMonth = Number(ms.value); render(); };
   }
   if(!ys.options.length){
-    const years = new Set([now.getFullYear()-1, now.getFullYear(), now.getFullYear()+1]);
+    const years = new Set();
+    // บังคับเริ่มที่ปี 2026 ขึ้นไป
     for(let y=2026; y<=2030; y++) years.add(y);
-    state.pointsLog.forEach(p=>years.add(p.year));
+    state.pointsLog.forEach(p => years.add(p.year));
+    years.delete(2025); // ตรวจสอบและเอาปี 2025 ออก
+    
     const sorted = [...years].sort((a,b)=>a-b);
     ys.innerHTML = sorted.map(y=>`<option value="${y}">ปี ${y}</option>`).join('');
+    
+    // Set value ป้องกันไม่ให้ค่าเริ่มต้นผิดพลาด
+    if (selYear < 2026) selYear = 2026;
     ys.value = selYear;
     ys.onchange = ()=>{ selYear = Number(ys.value); render(); };
   }
@@ -1042,10 +1018,6 @@ function openEmployeeDetail(empId){
       <button class="btn small" onclick="openEmployeeModal('${empId}')">แก้ไข</button>
       <button class="btn small danger" onclick="deleteEmployee('${empId}')">ลบ</button>
     </div>
-    <div class="admin-only subtle" style="margin-bottom:16px;display:flex;align-items:center;gap:8px;">
-      บัญชีล็อกอิน: ${e.pin ? 'ตั้งรหัสผ่านแล้ว' : 'ยังไม่ได้ตั้งรหัสผ่าน'}
-      ${e.pin ? `<button class="btn small ghost" onclick="resetEmployeePin('${empId}')">รีเซ็ตรหัสผ่าน</button>` : ''}
-    </div>
     <div class="subtle" style="margin-bottom:8px;">ประวัติล่าสุด</div>
     <div class="detail-history">
       ${rows.length===0 ? '<div class="empty-state">ยังไม่มีประวัติ</div>' : rows.map(r=>{
@@ -1218,9 +1190,7 @@ function showStamp(){
   setTimeout(()=>el.classList.remove('show'), 1100);
 }
 
-// ==========================================
-// 4. แก้ไขการเก็บ Theme ให้ใช้ localStorage พื้นฐาน
-// ==========================================
+/* ---------------- Theme ---------------- */
 const sunIcon = `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="4.5"/><path d="M12 2.5v2.5M12 19v2.5M4.6 4.6l1.8 1.8M17.6 17.6l1.8 1.8M2.5 12h2.5M19 12h2.5M4.6 19.4l1.8-1.8M17.6 6.4l1.8-1.8"/></svg>`;
 const moonIcon = `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M20 14.5A8.5 8.5 0 1 1 9.5 4a7 7 0 0 0 10.5 10.5z"/></svg>`;
 function applyTheme(mode){
@@ -1245,7 +1215,6 @@ document.getElementById('themeToggle').addEventListener('click', ()=>{
   applyTheme(next);
   try{ localStorage.setItem('theme-preference', next); }catch(e){ console.error('theme save failed', e); }
 });
-// ==========================================
 
 /* ---------------- tabs & init ---------------- */
 document.querySelectorAll('.tab-btn').forEach(b=>{
