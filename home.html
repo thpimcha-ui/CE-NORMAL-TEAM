@@ -54,7 +54,7 @@
     --ink:#eef0f0;
     --text-secondary:#a3aab0;
     --text-muted:#767d83;
-    --accent:#6fa38e;
+    --accent:#48c792; /* ปรับสีเขียวให้สว่างขึ้นสำหรับโหมดมืด (Neon green vibe) */
     --accent-soft:#87b9a4;
     --accent-bg:#1f2e28;
     --negative:#d3877a;
@@ -106,7 +106,7 @@
   .btn:hover{background:var(--surface-2);border-color:var(--accent);}
   .btn:active{transform:scale(.97);}
   .btn.primary{background:var(--accent);border-color:var(--accent);color:#fff;}
-  .btn.primary:hover{background:var(--accent-soft);}
+  .btn.primary:hover{background:var(--accent-soft);border-color:var(--accent-soft);}
   .btn.ghost{background:transparent;}
   .btn.danger{border-color:var(--negative);color:var(--negative);background:transparent;}
   .btn.danger:hover{background:var(--negative-bg);}
@@ -163,7 +163,7 @@
   }
   .subtle{color:var(--text-secondary);font-size:13px;}
 
-  /* ---------- stat cards ---------- */
+  /* ---------- Admin stat cards ---------- */
   .stat-row{display:grid;grid-template-columns:repeat(auto-fit,minmax(160px,1fr));gap:12px;margin-bottom:28px;}
   .stat-card{
     background:var(--surface-1);border:1px solid var(--border);border-radius:var(--radius-md);
@@ -174,7 +174,28 @@
   .stat-card .value.neg{color:var(--negative);}
   .stat-card .sub{font-size:12px;color:var(--text-muted);margin-top:4px;}
 
-  /* ---------- top3 table ---------- */
+  /* ---------- Employee Dashboard CSS ---------- */
+  .emp-dash-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; margin-bottom: 24px; }
+  .emp-stat-card { background: var(--surface-1); border: 1px solid var(--border); border-radius: var(--radius-md); padding: 22px; position:relative; overflow:hidden;}
+  .emp-stat-title { font-size: 11.5px; font-weight:600; text-transform: uppercase; letter-spacing: 0.5px; color: var(--text-muted); margin-bottom: 8px; }
+  .emp-stat-value { font-family: var(--font-display); font-size: 34px; font-weight: 600; color: var(--accent); margin-bottom: 4px; line-height: 1.1;}
+  .emp-stat-sub { font-size: 13px; color: var(--text-secondary); line-height:1.5;}
+  
+  .target-card { background: var(--surface-1); border: 1px solid var(--border); border-radius: var(--radius-md); padding: 22px; margin-bottom: 24px; }
+  .target-header { display: flex; justify-content: space-between; align-items:center; margin-bottom: 12px; font-size: 11.5px; font-weight: 600; color: var(--text-muted); text-transform: uppercase; letter-spacing:0.5px;}
+  .target-name { font-family: var(--font-display); font-size: 28px; font-weight: 600; margin-bottom: 4px; }
+  .target-pts { font-size: 13.5px; color: var(--text-secondary); margin-bottom: 16px; font-weight:500; font-family: var(--font-mono); }
+  .progress-bar { height: 10px; background: var(--surface-3); border-radius: 5px; overflow: hidden; margin-bottom: 14px; }
+  .progress-fill { height: 100%; background: var(--accent); border-radius: 5px; transition: width 0.5s ease-in-out;}
+  
+  .top3-cards { display: grid; grid-template-columns: repeat(3, 1fr); gap: 16px; margin-bottom: 28px; }
+  .top3-card { background: var(--surface-1); border: 1px solid var(--border); border-radius: var(--radius-md); padding: 24px 16px; text-align: center; }
+  .top3-rank-icon { font-size: 26px; margin-bottom: 12px; line-height:1;}
+  .top3-name { font-weight: 600; font-size: 15px; margin-bottom: 6px; text-transform: uppercase; letter-spacing:0.5px;}
+  .top3-pts { font-family: var(--font-display); font-size: 28px; font-weight:600; color: var(--ink); margin-bottom: 6px; line-height:1;}
+  .top3-streak { font-size: 11px; color: var(--warning); font-weight: 600; text-transform: uppercase; letter-spacing:0.5px;}
+
+  /* ---------- top3 table (Admin) ---------- */
   .top3-table{width:100%;border-collapse:collapse;background:var(--surface-1);border:1px solid var(--border);border-radius:var(--radius-md);overflow:hidden;margin-bottom:28px;}
   .top3-table th{
     text-align:left;font-size:11.5px;text-transform:uppercase;letter-spacing:.4px;color:var(--text-muted);
@@ -189,7 +210,6 @@
   .rank-badge.r1{background:linear-gradient(180deg,var(--gold-1),var(--gold-2));}
   .rank-badge.r2{background:linear-gradient(180deg,var(--silver-1),var(--silver-2));}
   .rank-badge.r3{background:linear-gradient(180deg,var(--bronze-1),var(--bronze-2));}
-  .top3-name{display:flex;align-items:center;gap:10px;}
   .top3-pts{font-family:var(--font-mono);font-weight:600;font-size:14.5px;color:var(--accent);text-align:right;}
 
   /* ---------- leaderboard ---------- */
@@ -210,7 +230,7 @@
   .lb-pts{font-family:var(--font-mono);font-weight:600;font-size:14px;color:var(--accent);width:56px;text-align:right;flex:none;}
 
   /* ---------- Rank Labels ---------- */
-  .rank-badge-text { padding: 3px 8px; border-radius: 12px; font-size: 11px; font-weight: 600; font-family: var(--font-mono); display:inline-block; }
+  .rank-badge-text { padding: 4px 10px; border-radius: 12px; font-size: 11px; font-weight: 600; font-family: var(--font-mono); display:inline-block; }
   .rank-Silver { background: #e0e0e0; color: #333; }
   .rank-Gold { background: #f1c40f; color: #000; }
   .rank-Diamond { background: #3498db; color: #fff; }
@@ -378,6 +398,10 @@
     .led-badge{order:2;}
     .led-emp{order:4;flex-basis:100%;min-width:0;}
     .led-pts{order:3;margin-left:auto;}
+    
+    /* Employee dash responsive */
+    .emp-dash-grid { grid-template-columns: 1fr; }
+    .top3-cards { grid-template-columns: 1fr; }
   }
 </style>
 </head>
@@ -416,36 +440,20 @@
 
   <nav class="tabs">
     <button class="tab-btn active" data-tab="dashboard">ภาพรวม</button>
-    <button class="tab-btn" data-tab="employees">ทีมงาน</button>
-    <button class="tab-btn" data-tab="rewards">ของรางวัล</button>
+    <button class="tab-btn" data-tab="employees" id="tabRanking">ทีมงาน / Ranking</button>
+    <button class="tab-btn" data-tab="rewards">รางวัล</button>
     <button class="tab-btn" data-tab="ledger">ประวัติ</button>
   </nav>
 
   <!-- DASHBOARD -->
   <section class="tab-panel active" id="panel-dashboard">
-    <h2 class="section-title">ภาพรวมทั้งหมด (ตลอดกาล)</h2>
-    <div class="stat-row" id="allTimeRow"></div>
-
-    <h2 class="section-title">ภาพรวมประจำเดือน</h2>
-    <div class="stat-row" id="statRow"></div>
-
-    <h2 class="section-title">TOP 3 ประจำเดือน</h2>
-    <table class="top3-table" id="top3Table"></table>
-
-    <h2 class="section-title">อันดับทั้งหมดประจำเดือน</h2>
-    <div class="leaderboard" id="leaderboard"></div>
-
-    <h2 class="section-title">แนวโน้มแต้มทั้งปี</h2>
-    <div class="trend-card">
-      <div class="subtle" id="trendYearLabel"></div>
-      <div class="trend-chart" id="trendChart"></div>
-    </div>
+    <!-- Content injected via JS: renderDashboard() -->
   </section>
 
-  <!-- EMPLOYEES -->
+  <!-- EMPLOYEES / RANKING -->
   <section class="tab-panel" id="panel-employees">
     <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:16px;">
-      <h2 class="section-title" style="margin:0;">พนักงานทั้งหมด</h2>
+      <h2 class="section-title" style="margin:0;">Ranking ทีมงาน</h2>
       <button class="btn admin-only" id="btnAddEmployee">
         <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 5v14M5 12h14"/></svg>
         เพิ่มพนักงาน
@@ -502,12 +510,12 @@
 // 1. นำตั้งค่า Firebase มาวางแทนที่ตรงนี้
 // ==========================================
 const firebaseConfig = {
-  apiKey: "YOUR_API_KEY",
-  authDomain: "YOUR_PROJECT_ID.firebaseapp.com",
-  projectId: "YOUR_PROJECT_ID",
-  storageBucket: "YOUR_PROJECT_ID.appspot.com",
-  messagingSenderId: "YOUR_MESSAGING_SENDER_ID",
-  appId: "YOUR_APP_ID"
+  apiKey: "AIzaSyAUiuOs0Hg1bT8PvYy3M42zj9VL84yrxts",
+  authDomain: "cenolmal.firebaseapp.com",
+  projectId: "cenolmal",
+  storageBucket: "cenolmal.firebasestorage.app",
+  messagingSenderId: "736326565007",
+  appId: "1:736326565007:web:3ba5f4969a1405891584fa"
 };
 
 firebase.initializeApp(firebaseConfig);
@@ -597,6 +605,7 @@ function render(){
   renderBanner();
   renderPeriodSelects();
   renderTabs();
+  
   if(activeTab==='dashboard') renderDashboard();
   if(activeTab==='employees') renderEmployees();
   if(activeTab==='rewards') renderRewards();
@@ -609,7 +618,6 @@ function renderBanner(){
   const notif = document.getElementById('adminNotifBanner');
   const notifTxt = document.getElementById('adminNotifText');
   
-  // เช็คคำขอที่ค้างอยู่ (สำหรับ Admin)
   const pendingCount = state.redemptions.filter(r => r.status === 'pending').length;
   
   if(isAdmin){
@@ -629,10 +637,10 @@ function renderBanner(){
   if(currentEmployeeId){
     const emp = state.employees.find(x=>x.id===currentEmployeeId);
     el.classList.add('employee-active');
-    txt.textContent = emp ? `เข้าสู่ระบบในฐานะ ${emp.name} · แต้มคงเหลือ ${fmt(getBalance(emp.id))} แต้ม · แลกของรางวัลให้ตัวเองได้ที่แท็บ "ของรางวัล"` : 'เข้าสู่ระบบพนักงานแล้ว';
+    txt.textContent = emp ? `เข้าสู่ระบบในฐานะ ${emp.name} · แต้มคงเหลือ ${fmt(getBalance(emp.id))} แต้ม · แลกของรางวัลให้ตัวเองได้ที่แท็บ "รางวัล"` : 'เข้าสู่ระบบพนักงานแล้ว';
   } else {
     el.classList.remove('employee-active');
-    txt.textContent = 'โหมดดูอย่างเดียว — เลือกระบุตัวตนเพื่อแลกของรางวัล หรือเข้าสู่ระบบแอดมินเพื่อแก้ไขข้อมูล';
+    txt.textContent = 'โหมดดูอย่างเดียว — เลือกระบุตัวตนเพื่อดู Dashboard ของตัวเอง หรือเข้าสู่ระบบแอดมินเพื่อจัดการข้อมูล';
   }
 }
 
@@ -754,7 +762,7 @@ function openEmployeeLoginModal(){
   if(state.employees.length===0){ alert('ยังไม่มีพนักงานในระบบ ให้แอดมินเพิ่มพนักงานก่อน'); return; }
   openModal(`
     <h3>ระบุตัวตนของคุณ</h3>
-    <div class="subtle" style="margin-bottom:14px;">เลือกชื่อของคุณเพื่อดูแต้มสะสมและใช้แลกของรางวัล</div>
+    <div class="subtle" style="margin-bottom:14px;">เลือกชื่อของคุณเพื่อดู Dashboard ของตัวเองและใช้แลกรางวัล</div>
     <div class="field">
       <label>เลือกชื่อของคุณ</label>
       <select id="eSelEmp">${state.employees.map(e=>`<option value="${e.id}">${escapeHtml(e.name)}</option>`).join('')}</select>
@@ -807,30 +815,44 @@ function renderTabs(){
   });
 }
 
-function renderDashboard(){
+/* ---------------- DASHBOARD LOGIC ---------------- */
+function renderDashboard() {
+  if (!isAdmin && currentEmployeeId) {
+    renderEmployeeDashboard();
+  } else {
+    renderAdminDashboard();
+  }
+}
+
+// 1) Dashboard สำหรับแอดมิน (หรือคนที่ยังไม่เข้าระบบพนักงาน)
+function renderAdminDashboard(){
   const allEarned = state.pointsLog.reduce((s,p)=>s+p.points,0);
   const allRedeemed = state.redemptions.filter(r=>!r.cancelled && r.status!=='rejected').reduce((s,r)=>s+r.pointsSpent,0);
   const allTimeTop = [...state.employees].map(e=>({e, pts:getAllTimeEarned(e.id)})).sort((a,b)=>b.pts-a.pts)[0];
-  document.getElementById('allTimeRow').innerHTML = `
-    <div class="stat-card">
-      <div class="label">แต้มที่แจกไปทั้งหมด</div>
-      <div class="value">${fmt(allEarned)}</div>
-      <div class="sub">ตั้งแต่เริ่มใช้งาน</div>
-    </div>
-    <div class="stat-card">
-      <div class="label">แต้มที่แลกไปทั้งหมด</div>
-      <div class="value neg">${fmt(allRedeemed)}</div>
-      <div class="sub">รวมทุกของรางวัล</div>
-    </div>
-    <div class="stat-card">
-      <div class="label">แต้มคงเหลือในระบบ</div>
-      <div class="value">${fmt(allEarned-allRedeemed)}</div>
-      <div class="sub">รวมทุกคน</div>
-    </div>
-    <div class="stat-card">
-      <div class="label">ผู้นำตลอดกาล</div>
-      <div class="value" style="font-size:16px;font-family:var(--font-body);">${allTimeTop && allTimeTop.pts>0 ? allTimeTop.e.name : '—'}</div>
-      <div class="sub">${allTimeTop && allTimeTop.pts>0 ? fmt(allTimeTop.pts)+' แต้มสะสม' : 'ยังไม่มีข้อมูล'}</div>
+  
+  let html = `
+    <h2 class="section-title">ภาพรวมแอดมินทั้งหมด (ตลอดกาล)</h2>
+    <div class="stat-row" id="allTimeRow">
+      <div class="stat-card">
+        <div class="label">แต้มที่แจกไปทั้งหมด</div>
+        <div class="value">${fmt(allEarned)}</div>
+        <div class="sub">ตั้งแต่เริ่มใช้งาน</div>
+      </div>
+      <div class="stat-card">
+        <div class="label">แต้มที่แลกไปทั้งหมด</div>
+        <div class="value neg">${fmt(allRedeemed)}</div>
+        <div class="sub">รวมทุกของรางวัล</div>
+      </div>
+      <div class="stat-card">
+        <div class="label">แต้มคงเหลือในระบบ</div>
+        <div class="value">${fmt(allEarned-allRedeemed)}</div>
+        <div class="sub">รวมทุกคน</div>
+      </div>
+      <div class="stat-card">
+        <div class="label">ผู้นำตลอดกาล</div>
+        <div class="value" style="font-size:16px;font-family:var(--font-body);">${allTimeTop && allTimeTop.pts>0 ? allTimeTop.e.name : '—'}</div>
+        <div class="sub">${allTimeTop && allTimeTop.pts>0 ? fmt(allTimeTop.pts)+' แต้มสะสม' : 'ยังไม่มีข้อมูล'}</div>
+      </div>
     </div>
   `;
 
@@ -840,51 +862,53 @@ function renderDashboard(){
     const d = new Date(r.date); return d.getFullYear()===selYear && d.getMonth()+1===selMonth;
   }).reduce((s,r)=>s+r.pointsSpent,0);
 
-  document.getElementById('statRow').innerHTML = `
-    <div class="stat-card">
-      <div class="label">แต้มที่แจกเดือนนี้</div>
-      <div class="value">${fmt(monthEarned)}</div>
-      <div class="sub">${MONTHS_TH[selMonth-1]} ${selYear}</div>
-    </div>
-    <div class="stat-card">
-      <div class="label">แต้มที่แลกไปเดือนนี้</div>
-      <div class="value neg">${fmt(monthRedeemed)}</div>
-      <div class="sub">รวมของรางวัลทั้งหมด</div>
-    </div>
-    <div class="stat-card">
-      <div class="label">จำนวนพนักงาน</div>
-      <div class="value">${state.employees.length}</div>
-      <div class="sub">คนในทีม</div>
+  html += `
+    <h2 class="section-title">ภาพรวมประจำเดือน</h2>
+    <div class="stat-row" id="statRow">
+      <div class="stat-card">
+        <div class="label">แต้มที่แจกเดือนนี้</div>
+        <div class="value">${fmt(monthEarned)}</div>
+        <div class="sub">${MONTHS_TH[selMonth-1]} ${selYear}</div>
+      </div>
+      <div class="stat-card">
+        <div class="label">แต้มที่แลกไปเดือนนี้</div>
+        <div class="value neg">${fmt(monthRedeemed)}</div>
+        <div class="sub">รวมของรางวัลทั้งหมด</div>
+      </div>
+      <div class="stat-card">
+        <div class="label">จำนวนพนักงาน</div>
+        <div class="value">${state.employees.length}</div>
+        <div class="sub">คนในทีม</div>
+      </div>
     </div>
   `;
 
   const ranked = [...state.employees].map(e=>({e, pts:getMonthlyEarned(e.id, selYear, selMonth)}))
     .sort((a,b)=>b.pts-a.pts);
-
   const top3 = ranked.slice(0,3).filter(r=>r.pts>0);
-  const top3Table = document.getElementById('top3Table');
+
+  html += `<h2 class="section-title">TOP 3 ประจำเดือน</h2><table class="top3-table" id="top3Table">`;
   if(top3.length===0){
-    top3Table.innerHTML = `<tr><td class="empty-state">ยังไม่มีใครได้แต้มในเดือนนี้</td></tr>`;
+    html += `<tr><td class="empty-state">ยังไม่มีใครได้แต้มในเดือนนี้</td></tr>`;
   } else {
-    top3Table.innerHTML = `
-      <tr><th>อันดับ</th><th>ชื่อ</th><th>แผนก</th><th style="text-align:right;">แต้มเดือนนี้</th></tr>
-      ${top3.map((r,i)=>`
+    html += `<tr><th>อันดับ</th><th>ชื่อ</th><th>แผนก</th><th style="text-align:right;">แต้มเดือนนี้</th></tr>` + 
+      top3.map((r,i)=>`
         <tr>
           <td><div class="rank-badge r${i+1}">${i+1}</div></td>
           <td><div class="top3-name"><div class="avatar" style="background:${colorFor(r.e.id)}">${initials(r.e.name)}</div>${escapeHtml(r.e.name)}</div></td>
           <td class="subtle">${escapeHtml(r.e.department||'—')}</td>
           <td class="top3-pts">${fmt(r.pts)}</td>
         </tr>
-      `).join('')}
-    `;
+      `).join('');
   }
+  html += `</table>`;
 
   const maxPts = Math.max(1, ...ranked.map(r=>r.pts));
-  const lb = document.getElementById('leaderboard');
+  html += `<h2 class="section-title">อันดับทั้งหมดประจำเดือน</h2><div class="leaderboard" id="leaderboard">`;
   if(state.employees.length===0){
-    lb.innerHTML = `<div class="empty-state">ยังไม่มีพนักงานในระบบ ไปที่แท็บ "ทีมงาน" เพื่อเพิ่มคนแรก</div>`;
+    html += `<div class="empty-state">ยังไม่มีพนักงานในระบบ ไปที่แท็บ "ทีมงาน" เพื่อเพิ่มคนแรก</div>`;
   } else {
-    lb.innerHTML = ranked.map((r,i)=>`
+    html += ranked.map((r,i)=>`
       <div class="lb-row">
         <div class="lb-rank">${i+1}</div>
         <div class="avatar" style="background:${colorFor(r.e.id)}">${initials(r.e.name)}</div>
@@ -894,23 +918,125 @@ function renderDashboard(){
       </div>
     `).join('');
   }
+  html += `</div>`;
 
-  document.getElementById('trendYearLabel').textContent = `รวมแต้มที่มอบให้ในปี ${selYear}`;
   const monthlyTotals = Array.from({length:12}, (_,i)=>{
     return state.pointsLog.filter(p=>p.year===selYear && p.month===i+1).reduce((s,p)=>s+p.points,0);
   });
   const maxM = Math.max(1, ...monthlyTotals);
-  document.getElementById('trendChart').innerHTML = monthlyTotals.map((v,i)=>`
-    <div class="trend-col ${i+1===selMonth?'cur':''}">
-      <div class="trend-bar" style="height:${Math.max(2, v/maxM*100)}%"></div>
-      <div class="trend-label">${MONTHS_TH[i]}</div>
+  
+  html += `
+    <h2 class="section-title">แนวโน้มแต้มทั้งปี</h2>
+    <div class="trend-card">
+      <div class="subtle">รวมแต้มที่มอบให้ในปี ${selYear}</div>
+      <div class="trend-chart">
+        ${monthlyTotals.map((v,i)=>`
+          <div class="trend-col ${i+1===selMonth?'cur':''}">
+            <div class="trend-bar" style="height:${Math.max(2, v/maxM*100)}%"></div>
+            <div class="trend-label">${MONTHS_TH[i]}</div>
+          </div>
+        `).join('')}
+      </div>
     </div>
-  `).join('');
+  `;
+
+  document.getElementById('panel-dashboard').innerHTML = html;
 }
 
+// 2) Dashboard แบบ Personal สำหรับพนักงาน
+function renderEmployeeDashboard(){
+  const emp = state.employees.find(e => e.id === currentEmployeeId);
+  if (!emp) return;
+
+  const balance = getBalance(emp.id);
+  const rankInfo = getRank(emp.streak);
+  
+  // Calculate Rank #
+  const ranked = [...state.employees]
+      .map(e => ({ id: e.id, name: e.name, pts: getMonthlyEarned(e.id, selYear, selMonth) }))
+      .sort((a,b) => b.pts - a.pts);
+  
+  const myRankIdx = ranked.findIndex(r => r.id === emp.id);
+  const myRank = myRankIdx >= 0 ? myRankIdx + 1 : '-';
+
+  // Target calculation
+  const targetStep = rankInfo.pts;
+  const currentLevel = Math.floor(balance / targetStep) + 1;
+  const currentProgressPts = balance % targetStep;
+  const progressPercent = (currentProgressPts / targetStep) * 100;
+
+  // Top 3
+  const top3 = ranked.slice(0, 3);
+  
+  // Team Clean Rate
+  const cleanCount = state.employees.filter(e => (e.streak || 0) > 0).length;
+  const totalEmp = state.employees.length || 1;
+  const cleanRate = Math.round((cleanCount / totalEmp) * 100);
+
+  const html = `
+      <div class="emp-dash-grid">
+          <div class="emp-stat-card">
+              <div class="emp-stat-title">MY NORMAL POINT</div>
+              <div class="emp-stat-value">${fmt(balance)} POINTS</div>
+              <div class="emp-stat-sub">Normal Point<br>🏆 My Rank #${myRank} · ${escapeHtml(emp.name)}</div>
+          </div>
+          <div class="emp-stat-card">
+              <div class="emp-stat-title">🔥 CLEAN STREAK</div>
+              <div class="emp-stat-value">${emp.streak || 0} MONTHS</div>
+              <div class="emp-stat-sub">${(emp.streak||0)>0 ? 'Great! อย่าหยุด Streak ของคุณ' : 'เริ่มสะสม Streak เพื่อรับโบนัสพิเศษ'}</div>
+          </div>
+      </div>
+
+      <div class="target-card">
+          <div class="target-header">
+              <span>🎯 CURRENT TARGET <span class="rank-badge-text ${rankInfo.class}">${rankInfo.name}</span></span>
+              <span>TARGET COMPLETED 🚀</span>
+          </div>
+          <div class="target-name">${rankInfo.name.toUpperCase()} ${currentLevel}</div>
+          <div class="target-pts">${fmt(currentProgressPts)} / ${fmt(targetStep)} POINTS</div>
+          <div class="progress-bar"><div class="progress-fill" style="width: ${progressPercent}%"></div></div>
+          <div style="font-size: 12.5px; color: var(--text-secondary); margin-bottom: 18px;">Tier rule: ${fmt(targetStep)} Point เพิ่มต่อ Target Level</div>
+          <div style="display:flex; gap:10px;">
+              <button class="btn primary" onclick="document.querySelector('[data-tab=\\'employees\\']').click()">VIEW RANKING</button>
+              <button class="btn ghost" style="border-color:var(--border-strong);" onclick="document.querySelector('[data-tab=\\'rewards\\']').click()">VIEW REWARDS</button>
+          </div>
+      </div>
+
+      <h2 class="section-title" style="font-family:var(--font-display); font-size:19px; margin-top:32px;">🏆 TOP 3 THIS MONTH</h2>
+      <div class="top3-cards">
+          ${top3.map((r, i) => {
+              const eData = state.employees.find(x => x.id === r.id);
+              return `
+              <div class="top3-card">
+                  <div class="top3-rank-icon">${i===0?'🥇':i===1?'🥈':'🥉'}</div>
+                  <div class="top3-name">${escapeHtml(r.name)}</div>
+                  <div class="top3-pts">${fmt(r.pts)}</div>
+                  <div class="top3-streak">🔥 ${eData.streak||0} MONTHS CLEAN</div>
+              </div>
+              `;
+          }).join('')}
+      </div>
+
+      <div class="target-card">
+          <div style="display:flex; justify-content:space-between; align-items:flex-end; margin-bottom:14px;">
+              <div>
+                  <div class="emp-stat-title" style="margin-bottom:4px;">👥 TEAM CLEAN RATE</div>
+                  <div style="font-size:12.5px; color:var(--text-secondary);">${cleanCount} / ${totalEmp} EMPLOYEES CLEAN</div>
+              </div>
+              <div style="font-size:36px; font-weight:600; color:var(--accent); font-family:var(--font-display); line-height:1;">${cleanRate}%</div>
+          </div>
+          <div class="progress-bar" style="margin-bottom:10px;"><div class="progress-fill" style="width: ${cleanRate}%"></div></div>
+          <div style="font-size:12.5px; color:var(--text-secondary);">อีกนิดเดียว ทีมเราจะไปถึงเป้าหมาย</div>
+      </div>
+  `;
+  document.getElementById('panel-dashboard').innerHTML = html;
+}
+
+/* ---------------- EMPLOYEES / RANKING TAB ---------------- */
 function renderEmployees(){
   const grid = document.getElementById('employeeGrid');
   grid.parentElement.querySelector('.empty-hint')?.remove();
+  
   if(state.employees.length===0){
     grid.innerHTML = '';
     grid.insertAdjacentHTML('afterend', `
@@ -921,8 +1047,14 @@ function renderEmployees(){
     return;
   }
   
-  grid.innerHTML = state.employees.map(e=>{
+  // เรียงลำดับตามคะแนนประจำเดือน สำหรับหน้า Ranking
+  const rankedEmps = [...state.employees].sort((a,b) => {
+    return getMonthlyEarned(b.id, selYear, selMonth) - getMonthlyEarned(a.id, selYear, selMonth);
+  });
+  
+  grid.innerHTML = rankedEmps.map((e, index)=>{
     const rank = getRank(e.streak || 0);
+    const monthPts = getMonthlyEarned(e.id, selYear, selMonth);
     return `
     <div class="emp-card" onclick="openEmployeeDetail('${e.id}')">
       <div class="emp-top">
@@ -932,11 +1064,13 @@ function renderEmployees(){
           <div class="d">${escapeHtml(e.department||'ไม่ระบุแผนก')}</div>
         </div>
       </div>
-      <div style="margin-bottom:12px;">
+      <div style="margin-bottom:12px; display:flex; justify-content:space-between; align-items:center;">
         <span class="rank-badge-text ${rank.class}">${rank.icon} ${rank.name} (Streak: ${e.streak||0})</span>
+        <span style="font-size:12px; font-weight:600; color:var(--text-muted);">อันดับ #${index+1}</span>
       </div>
       <div class="emp-balance">
-        <div><div class="num">${fmt(getBalance(e.id))}</div><div class="lbl">แต้มคงเหลือ</div></div>
+        <div><div class="num">${fmt(getBalance(e.id))}</div><div class="lbl">แต้มคงเหลือรวม</div></div>
+        <div style="text-align:right;"><div class="num" style="font-size:18px; color:var(--text-secondary);">${fmt(monthPts)}</div><div class="lbl">ได้เดือนนี้</div></div>
       </div>
       <div class="emp-actions admin-only" onclick="event.stopPropagation()">
         <button class="btn small primary" onclick="addStreak('${e.id}')">+ Streak</button>
@@ -960,7 +1094,7 @@ function addStreak(empId) {
     points: rankInfo.pts, 
     month: selMonth, 
     year: selYear, 
-    reason: `🔥 Target Streak วันที่ ${e.streak} (${rankInfo.name})`, 
+    reason: `🔥 Target Streak เดือนที่ ${e.streak} (${rankInfo.name})`, 
     date: new Date().toISOString()
   });
   
@@ -1305,7 +1439,7 @@ function openAddPointsModal(empId, type){
   const t = type === 'deduct' ? 'deduct' : 'add';
   openModal(`
     <h3>ปรับแต้มทั่วไป</h3>
-    <div class="subtle" style="margin-bottom:12px;">หากต้องการให้แต้มแบบต่อเนื่อง (Streak) ให้กดปุ่ม "+ Streak" ที่การ์ดพนักงานแทน</div>
+    <div class="subtle" style="margin-bottom:12px;">หากต้องการให้แต้มแบบต่อเนื่อง (Streak) ให้กดปุ่ม "+ Streak" ที่หน้า Ranking แทน</div>
     <div class="seg-toggle" id="pTypeToggle">
       <button type="button" class="add ${t==='add'?'active':''}" onclick="setPointsType('add')">+ เพิ่มแต้ม</button>
       <button type="button" class="deduct ${t==='deduct'?'active':''}" onclick="setPointsType('deduct')">− ลดแต้ม</button>
@@ -1315,7 +1449,7 @@ function openAddPointsModal(empId, type){
       <select id="pEmp">${state.employees.map(e=>`<option value="${e.id}" ${e.id===empId?'selected':''}>${escapeHtml(e.name)}</option>`).join('')}</select>
     </div>
     <div class="field-row">
-      <div class="field"><label>จำนวนแต้ม</label><input id="pPoints" type="number" step="0.1" min="0.1" value="1"></div>
+      <div class="field"><label>จำนวนแต้ม</label><input id="pPoints" type="number" step="0.5" min="0.5" value="1"></div>
       <div class="field"><label>เดือน / ปี</label>
         <select id="pMonth" style="margin-bottom:6px;">${MONTHS_TH.map((m,i)=>`<option value="${i+1}" ${i+1===selMonth?'selected':''}>${m}</option>`).join('')}</select>
       </div>
@@ -1357,7 +1491,7 @@ function openAddRewardModal(editId){
   openModal(`
     <h3>${editing?'แก้ไขของรางวัล':'เพิ่มของรางวัล'}</h3>
     <div class="field"><label>ชื่อของรางวัล</label><input id="rName" value="${editing?escapeHtml(editing.name):''}" placeholder="เช่น บัตรกำนัลร้านกาแฟ"></div>
-    <div class="field"><label>ใช้กี่แต้ม</label><input id="rCost" type="number" min="1" step="0.5" value="${editing?editing.cost:10}"></div>
+    <div class="field"><label>ใช้กี่แต้ม</label><input id="rCost" type="number" min="0.5" step="0.5" value="${editing?editing.cost:10}"></div>
     <div class="modal-error" id="mErr">กรุณากรอกชื่อและแต้มให้ถูกต้อง</div>
     <div class="modal-actions">
       <button class="btn ghost" onclick="closeModal()">ยกเลิก</button>
