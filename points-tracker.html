@@ -1,0 +1,1234 @@
+<!DOCTYPE html>
+<html lang="th">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+<meta name="theme-color" content="#faf9f6" id="themeColorMeta">
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="default">
+<title>สมุดพกแต้มทีม</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,500;9..144,600&family=Inter:wght@400;500;600&family=IBM+Plex+Mono:wght@500;600&display=swap" rel="stylesheet">
+<style>
+  :root{
+    --bg:#faf9f6;
+    --surface-1:#ffffff;
+    --surface-2:#f4f3ef;
+    --surface-3:#ebe9e3;
+    --border:#e6e4dd;
+    --border-strong:#d3d0c6;
+    --ink:#201f1c;
+    --text-secondary:#726f66;
+    --text-muted:#a19e93;
+    --accent:#3d5c4f;
+    --accent-soft:#557567;
+    --accent-bg:#e9efeb;
+    --positive:#3d5c4f;
+    --negative:#a8493f;
+    --negative-bg:#f6ece9;
+    --gold-1:#c9a227;
+    --gold-2:#9b7c1d;
+    --silver-1:#9a9a94;
+    --silver-2:#6f6f69;
+    --bronze-1:#b0764a;
+    --bronze-2:#82552f;
+    --radius-sm:6px;
+    --radius-md:10px;
+    --radius-lg:16px;
+    --font-display:'Fraunces', Georgia, serif;
+    --font-body:'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
+    --font-mono:'IBM Plex Mono', ui-monospace, Menlo, monospace;
+    --backdrop-color:rgba(32,31,28,.45);
+  }
+  body[data-theme="dark"]{
+    --bg:#14171a;
+    --surface-1:#1b1f23;
+    --surface-2:#22272c;
+    --surface-3:#2a3036;
+    --border:#333a40;
+    --border-strong:#454d54;
+    --ink:#eef0f0;
+    --text-secondary:#a3aab0;
+    --text-muted:#767d83;
+    --accent:#6fa38e;
+    --accent-soft:#87b9a4;
+    --accent-bg:#1f2e28;
+    --negative:#d3877a;
+    --negative-bg:#3a2320;
+    --backdrop-color:rgba(0,0,0,.6);
+  }
+  *{box-sizing:border-box;}
+  html,body{margin:0;padding:0;}
+  body{
+    background:var(--bg);
+    color:var(--ink);
+    font-family:var(--font-body);
+    font-size:15px;
+    line-height:1.5;
+    -webkit-font-smoothing:antialiased;
+    transition:background .15s ease, color .15s ease;
+  }
+  body:not(.is-admin) .admin-only{display:none !important;}
+  .app{max-width:1080px;margin:0 auto;padding:28px 24px 80px;}
+
+  /* ---------- header ---------- */
+  header.top{
+    display:flex;align-items:flex-start;justify-content:space-between;
+    gap:20px;flex-wrap:wrap;
+    padding-bottom:20px;border-bottom:1px solid var(--border);margin-bottom:16px;
+  }
+  .brand{display:flex;align-items:center;gap:14px;}
+  .brand h1{
+    font-family:var(--font-display);font-weight:600;font-size:25px;
+    margin:0 0 2px;letter-spacing:.2px;color:var(--ink);
+  }
+  .brand p{margin:0;color:var(--text-secondary);font-size:13.5px;}
+  .top-actions{display:flex;align-items:center;gap:10px;flex-wrap:wrap;}
+  select.period{
+    background:var(--surface-1);border:1px solid var(--border-strong);color:var(--ink);
+    font-family:var(--font-mono);font-size:13px;padding:9px 12px;border-radius:var(--radius-sm);
+    cursor:pointer;
+  }
+  select.period:focus{outline:none;border-color:var(--accent);}
+  .btn{
+    font-family:var(--font-body);font-weight:600;font-size:13.5px;
+    padding:10px 16px;border-radius:var(--radius-sm);border:1px solid var(--border-strong);
+    background:var(--surface-1);color:var(--ink);cursor:pointer;
+    display:inline-flex;align-items:center;gap:7px;white-space:nowrap;
+    transition:transform .08s ease, background .15s ease, border-color .15s ease;
+  }
+  .btn:hover{background:var(--surface-2);border-color:var(--accent);}
+  .btn:active{transform:scale(.97);}
+  .btn.primary{background:var(--accent);border-color:var(--accent);color:#fff;}
+  .btn.primary:hover{background:var(--accent-soft);}
+  .btn.ghost{background:transparent;}
+  .btn.danger{border-color:var(--negative);color:var(--negative);background:transparent;}
+  .btn.danger:hover{background:var(--negative-bg);}
+  .btn.small{padding:6px 11px;font-size:12.5px;}
+  .btn svg{width:14px;height:14px;flex:none;}
+  .btn:disabled{opacity:.45;cursor:not-allowed;}
+  .btn:disabled:hover{background:var(--surface-1);border-color:var(--border-strong);}
+
+  .admin-toggle{
+    display:flex;align-items:center;gap:8px;font-size:12.5px;color:var(--text-secondary);
+    border:1px solid var(--border-strong);border-radius:20px;padding:5px 6px 5px 12px;background:var(--surface-1);
+  }
+  .admin-toggle.on{border-color:var(--accent);color:var(--accent);background:var(--accent-bg);}
+  .admin-toggle button{
+    border:none;background:var(--ink);color:#fff;font-size:11.5px;font-weight:600;
+    padding:5px 10px;border-radius:14px;cursor:pointer;
+  }
+  .admin-toggle.on button{background:var(--accent);}
+  .admin-toggle svg{width:13px;height:13px;}
+  .theme-toggle{
+    width:36px;height:36px;border-radius:50%;border:1px solid var(--border-strong);
+    background:var(--surface-1);color:var(--ink);cursor:pointer;
+    display:flex;align-items:center;justify-content:center;flex:none;
+  }
+  .theme-toggle:hover{background:var(--surface-2);border-color:var(--accent);}
+  .theme-toggle svg{width:17px;height:17px;}
+  .viewer-banner{
+    display:flex;align-items:center;gap:8px;background:var(--surface-2);border:1px solid var(--border);
+    border-radius:var(--radius-sm);padding:9px 14px;font-size:12.5px;color:var(--text-secondary);margin-bottom:18px;
+  }
+  .viewer-banner.employee-active{border-color:var(--accent);background:var(--accent-bg);color:var(--accent);}
+  .viewer-banner svg{width:14px;height:14px;flex:none;}
+
+  /* ---------- tabs ---------- */
+  nav.tabs{display:flex;gap:4px;margin-bottom:26px;border-bottom:1px solid var(--border);}
+  nav.tabs button{
+    font-family:var(--font-body);font-weight:600;font-size:13.5px;
+    background:none;border:none;color:var(--text-muted);cursor:pointer;
+    padding:11px 16px;border-bottom:2px solid transparent;margin-bottom:-1px;
+    transition:color .15s ease;
+  }
+  nav.tabs button:hover{color:var(--ink);}
+  nav.tabs button.active{color:var(--accent);border-bottom-color:var(--accent);}
+
+  .tab-panel{display:none;}
+  .tab-panel.active{display:block;animation:fade .2s ease;}
+  @keyframes fade{from{opacity:0;transform:translateY(3px);}to{opacity:1;transform:translateY(0);}}
+
+  h2.section-title{
+    font-family:var(--font-display);font-weight:600;font-size:19px;margin:0 0 14px;color:var(--ink);
+  }
+  .subtle{color:var(--text-secondary);font-size:13px;}
+
+  /* ---------- stat cards ---------- */
+  .stat-row{display:grid;grid-template-columns:repeat(auto-fit,minmax(160px,1fr));gap:12px;margin-bottom:28px;}
+  .stat-card{
+    background:var(--surface-1);border:1px solid var(--border);border-radius:var(--radius-md);
+    padding:16px 18px;
+  }
+  .stat-card .label{font-size:12px;color:var(--text-secondary);margin-bottom:8px;text-transform:uppercase;letter-spacing:.4px;}
+  .stat-card .value{font-family:var(--font-mono);font-weight:600;font-size:25px;color:var(--accent);}
+  .stat-card .value.neg{color:var(--negative);}
+  .stat-card .sub{font-size:12px;color:var(--text-muted);margin-top:4px;}
+
+  /* ---------- top3 table ---------- */
+  .top3-table{width:100%;border-collapse:collapse;background:var(--surface-1);border:1px solid var(--border);border-radius:var(--radius-md);overflow:hidden;margin-bottom:28px;}
+  .top3-table th{
+    text-align:left;font-size:11.5px;text-transform:uppercase;letter-spacing:.4px;color:var(--text-muted);
+    font-weight:600;padding:10px 16px;border-bottom:1px solid var(--border);background:var(--surface-2);
+  }
+  .top3-table td{padding:12px 16px;border-bottom:1px solid var(--border);vertical-align:middle;}
+  .top3-table tr:last-child td{border-bottom:none;}
+  .rank-badge{
+    width:26px;height:26px;border-radius:50%;display:flex;align-items:center;justify-content:center;
+    font-family:var(--font-mono);font-weight:600;font-size:12px;color:#fff;
+  }
+  .rank-badge.r1{background:linear-gradient(180deg,var(--gold-1),var(--gold-2));}
+  .rank-badge.r2{background:linear-gradient(180deg,var(--silver-1),var(--silver-2));}
+  .rank-badge.r3{background:linear-gradient(180deg,var(--bronze-1),var(--bronze-2));}
+  .top3-name{display:flex;align-items:center;gap:10px;}
+  .top3-pts{font-family:var(--font-mono);font-weight:600;font-size:14.5px;color:var(--accent);text-align:right;}
+
+  /* ---------- leaderboard ---------- */
+  .leaderboard{background:var(--surface-1);border:1px solid var(--border);border-radius:var(--radius-md);overflow:hidden;margin-bottom:28px;}
+  .lb-row{display:flex;align-items:center;gap:14px;padding:12px 18px;border-bottom:1px solid var(--border);}
+  .lb-row:last-child{border-bottom:none;}
+  .lb-rank{font-family:var(--font-mono);font-size:13px;color:var(--text-muted);width:18px;flex:none;}
+  .avatar{
+    width:34px;height:34px;border-radius:50%;flex:none;
+    display:flex;align-items:center;justify-content:center;
+    font-family:var(--font-mono);font-weight:600;font-size:12px;color:#fff;
+  }
+  .lb-name{flex:1;min-width:0;}
+  .lb-name .n{font-weight:600;font-size:14px;}
+  .lb-name .d{font-size:12px;color:var(--text-muted);}
+  .lb-bar-wrap{width:110px;flex:none;height:5px;background:var(--surface-3);border-radius:3px;overflow:hidden;}
+  .lb-bar{height:100%;background:var(--accent);border-radius:3px;}
+  .lb-pts{font-family:var(--font-mono);font-weight:600;font-size:14px;color:var(--accent);width:56px;text-align:right;flex:none;}
+  .empty-state{padding:32px 18px;text-align:center;color:var(--text-muted);font-size:13.5px;}
+
+  /* ---------- year trend ---------- */
+  .trend-card{background:var(--surface-1);border:1px solid var(--border);border-radius:var(--radius-md);padding:18px 20px 14px;margin-bottom:8px;}
+  .trend-chart{display:flex;align-items:flex-end;gap:8px;height:120px;margin-top:10px;}
+  .trend-col{flex:1;display:flex;flex-direction:column;align-items:center;justify-content:flex-end;height:100%;gap:6px;}
+  .trend-bar{width:100%;max-width:26px;background:var(--surface-3);border-radius:3px 3px 0 0;min-height:2px;transition:background .15s;}
+  .trend-col.cur .trend-bar{background:var(--accent);}
+  .trend-label{font-size:10.5px;color:var(--text-muted);font-family:var(--font-mono);}
+
+  /* ---------- employee grid ---------- */
+  .grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(230px,1fr));gap:14px;}
+  .emp-card{
+    background:var(--surface-1);border:1px solid var(--border);border-radius:var(--radius-md);
+    padding:16px;cursor:pointer;transition:border-color .15s ease, transform .1s ease;
+    position:relative;
+  }
+  .emp-card:hover{border-color:var(--border-strong);transform:translateY(-1px);}
+  .emp-top{display:flex;align-items:center;gap:12px;margin-bottom:14px;}
+  .emp-top .avatar{width:42px;height:42px;font-size:13.5px;}
+  .emp-top .n{font-weight:600;font-size:14.5px;}
+  .emp-top .d{font-size:12px;color:var(--text-muted);}
+  .emp-balance{display:flex;align-items:baseline;justify-content:space-between;margin-bottom:12px;}
+  .emp-balance .num{font-family:var(--font-mono);font-weight:600;font-size:23px;color:var(--accent);}
+  .emp-balance .lbl{font-size:11px;color:var(--text-muted);text-transform:uppercase;letter-spacing:.4px;}
+  .emp-actions{display:flex;gap:6px;flex-wrap:wrap;}
+  .emp-actions .btn{flex:1;justify-content:center;min-width:72px;}
+
+  /* ---------- reward grid ---------- */
+  .rw-card{
+    background:var(--surface-1);border:1px solid var(--border);border-radius:var(--radius-md);
+    padding:16px;display:flex;flex-direction:column;gap:12px;
+  }
+  .rw-head{display:flex;align-items:flex-start;justify-content:space-between;gap:8px;}
+  .rw-icon{
+    width:38px;height:38px;border-radius:var(--radius-sm);background:var(--accent-bg);
+    display:flex;align-items:center;justify-content:center;color:var(--accent);flex:none;
+  }
+  .rw-icon svg{width:20px;height:20px;}
+  .rw-edit-actions{display:flex;gap:4px;}
+  .icon-btn{
+    background:none;border:none;color:var(--text-muted);cursor:pointer;padding:4px;
+    display:flex;border-radius:5px;
+  }
+  .icon-btn:hover{color:var(--ink);background:var(--surface-2);}
+  .icon-btn svg{width:15px;height:15px;}
+  .rw-name{font-weight:600;font-size:14.5px;}
+  .rw-cost{font-family:var(--font-mono);color:var(--accent);font-weight:600;font-size:15px;}
+
+  /* ---------- ledger ---------- */
+  .ledger-filters{display:flex;gap:8px;margin-bottom:16px;flex-wrap:wrap;}
+  .ledger-list{background:var(--surface-1);border:1px solid var(--border);border-radius:var(--radius-md);overflow:hidden;}
+  .led-row{display:flex;align-items:center;gap:14px;padding:12px 18px;border-bottom:1px solid var(--border);}
+  .led-row:last-child{border-bottom:none;}
+  .led-date{font-family:var(--font-mono);font-size:11.5px;color:var(--text-muted);width:74px;flex:none;}
+  .led-badge{
+    font-size:10.5px;font-weight:600;padding:3px 8px;border-radius:20px;flex:none;
+    text-transform:uppercase;letter-spacing:.3px;
+  }
+  .led-badge.earn{background:var(--accent-bg);color:var(--accent);}
+  .led-badge.redeem{background:var(--negative-bg);color:var(--negative);}
+  .led-emp{flex:1;min-width:0;}
+  .led-emp .n{font-weight:600;font-size:13.5px;}
+  .led-emp .note{font-size:12px;color:var(--text-muted);}
+  .led-pts{font-family:var(--font-mono);font-weight:600;font-size:14px;flex:none;width:64px;text-align:right;}
+  .led-pts.pos{color:var(--accent);}
+  .led-pts.neg{color:var(--negative);}
+
+  /* ---------- modal ---------- */
+  .modal-backdrop{
+    position:fixed;inset:0;background:var(--backdrop-color);
+    display:none;align-items:center;justify-content:center;z-index:100;padding:20px;
+  }
+  .modal-backdrop.open{display:flex;}
+  .modal{
+    background:var(--surface-1);border:1px solid var(--border-strong);border-radius:var(--radius-lg);
+    width:100%;max-width:420px;padding:22px;max-height:88vh;overflow-y:auto;
+  }
+  .modal h3{font-family:var(--font-display);font-weight:600;font-size:18px;margin:0 0 16px;color:var(--ink);}
+  .field{margin-bottom:14px;}
+  .field label{display:block;font-size:12.5px;color:var(--text-secondary);margin-bottom:6px;font-weight:500;}
+  .field input, .field select, .field textarea{
+    width:100%;background:var(--surface-1);border:1px solid var(--border-strong);color:var(--ink);
+    padding:10px 12px;border-radius:var(--radius-sm);font-family:var(--font-body);font-size:14px;
+  }
+  .field input:focus, .field select:focus, .field textarea:focus{outline:none;border-color:var(--accent);}
+  .field textarea{resize:vertical;min-height:60px;}
+  .field-row{display:flex;gap:10px;}
+  .field-row .field{flex:1;}
+  .modal-actions{display:flex;gap:10px;margin-top:18px;justify-content:flex-end;}
+  .modal-error{color:var(--negative);font-size:12.5px;margin-top:-6px;margin-bottom:10px;display:none;}
+  .seg-toggle{display:flex;border:1px solid var(--border-strong);border-radius:var(--radius-sm);overflow:hidden;margin-bottom:14px;}
+  .seg-toggle button{
+    flex:1;border:none;background:var(--surface-1);color:var(--text-secondary);font-family:var(--font-body);
+    font-weight:600;font-size:13.5px;padding:10px;cursor:pointer;transition:background .15s ease,color .15s ease;
+  }
+  .seg-toggle button + button{border-left:1px solid var(--border-strong);}
+  .seg-toggle button.active.add{background:var(--accent-bg);color:var(--accent);}
+  .seg-toggle button.active.deduct{background:var(--negative-bg);color:var(--negative);}
+
+  /* ---------- detail modal / history ---------- */
+  .detail-balance{
+    display:flex;align-items:center;justify-content:space-between;
+    background:var(--surface-2);border-radius:var(--radius-md);padding:14px 16px;margin-bottom:16px;
+  }
+  .detail-balance .num{font-family:var(--font-mono);font-size:27px;font-weight:600;color:var(--accent);}
+  .detail-history{max-height:280px;overflow-y:auto;}
+  .detail-history .led-row{padding:10px 4px;}
+
+  /* ---------- stamp signature ---------- */
+  .stamp-layer{
+    position:fixed;inset:0;pointer-events:none;z-index:200;
+    display:flex;align-items:center;justify-content:center;
+  }
+  .stamp-mark{
+    font-family:var(--font-display);font-weight:600;font-size:32px;color:var(--ink);
+    border:4px solid var(--ink);border-radius:14px;padding:10px 26px;
+    transform:rotate(-8deg) scale(0.4);opacity:0;
+    letter-spacing:2px;text-transform:uppercase;
+    transition:transform .38s cubic-bezier(.2,1.4,.4,1), opacity .38s ease;
+  }
+  .stamp-mark.show{transform:rotate(-8deg) scale(1);opacity:.85;}
+
+  .empty-hint{
+    border:1.5px dashed var(--border-strong);border-radius:var(--radius-md);
+    padding:40px 20px;text-align:center;color:var(--text-secondary);font-size:13.5px;
+  }
+  .empty-hint .btn{margin-top:14px;}
+
+  @media (max-width:600px){
+    .app{padding:16px 14px 60px;}
+    header.top{gap:12px;padding-bottom:16px;}
+    .brand h1{font-size:21px;}
+    .top-actions{width:100%;gap:8px;}
+    .top-actions select.period{flex:1 1 auto;min-width:0;}
+    #btnAddPoints{flex:1 1 100%;justify-content:center;order:3;}
+    .admin-toggle{font-size:12px;padding:4px 5px 4px 10px;}
+    .admin-toggle button{padding:5px 8px;}
+    .theme-toggle{width:34px;height:34px;}
+    .viewer-banner{font-size:12px;padding:8px 12px;}
+    nav.tabs{overflow-x:auto;-webkit-overflow-scrolling:touch;scrollbar-width:none;}
+    nav.tabs::-webkit-scrollbar{display:none;}
+    nav.tabs button{padding:10px 12px;white-space:nowrap;font-size:13px;}
+    .lb-bar-wrap{display:none;}
+    .field-row{flex-direction:column;gap:0;}
+    .top3-table th:nth-child(3), .top3-table td:nth-child(3){display:none;}
+    .stat-row{grid-template-columns:repeat(2,1fr);}
+    .grid{grid-template-columns:1fr;}
+    .modal{padding:18px;max-width:100%;}
+    .field input, .field select, .field textarea{font-size:16px;}
+    .icon-btn{padding:8px;}
+    .btn{padding:10px 14px;}
+    .emp-actions .btn, .modal-actions.admin-only .btn{min-width:0;font-size:12px;padding:8px 10px;}
+    .stamp-mark{font-size:24px;padding:8px 18px;border-width:3px;}
+    .led-row{gap:10px;padding:12px 14px;flex-wrap:wrap;}
+    .led-date{width:auto;order:1;}
+    .led-badge{order:2;}
+    .led-emp{order:4;flex-basis:100%;min-width:0;}
+    .led-pts{order:3;margin-left:auto;}
+  }
+</style>
+</head>
+<body>
+<div class="app">
+
+  <header class="top">
+    <div class="brand">
+      <div>
+        <h1>สมุดพกแต้มทีม</h1>
+        <p class="subtle">บันทึกแต้มสะสมและแลกของรางวัลของทีมงาน</p>
+      </div>
+    </div>
+    <div class="top-actions">
+      <select class="period" id="monthSelect"></select>
+      <select class="period" id="yearSelect"></select>
+      <button class="btn primary admin-only" id="btnAddPoints">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 5v14M5 12h14"/></svg>
+        ปรับแต้ม
+      </button>
+      <div class="admin-toggle" id="empToggle"></div>
+      <div class="admin-toggle" id="adminToggle"></div>
+      <button class="theme-toggle" id="themeToggle" title="สลับโหมดสว่าง/มืด" aria-label="สลับโหมดสว่าง/มืด"></button>
+    </div>
+  </header>
+
+  <div class="viewer-banner" id="viewerBanner">
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="11" width="18" height="10" rx="2"/><path d="M7 11V7a5 5 0 0 1 10 0v4"/></svg>
+    <span id="viewerBannerText">โหมดดูอย่างเดียว — เข้าสู่ระบบพนักงานเพื่อแลกของรางวัล หรือเข้าสู่ระบบแอดมินเพื่อแก้ไขข้อมูล</span>
+  </div>
+
+  <nav class="tabs">
+    <button class="tab-btn active" data-tab="dashboard">ภาพรวม</button>
+    <button class="tab-btn" data-tab="employees">ทีมงาน</button>
+    <button class="tab-btn" data-tab="rewards">ของรางวัล</button>
+    <button class="tab-btn" data-tab="ledger">ประวัติ</button>
+  </nav>
+
+  <!-- DASHBOARD -->
+  <section class="tab-panel active" id="panel-dashboard">
+    <h2 class="section-title">ภาพรวมทั้งหมด (ตลอดกาล)</h2>
+    <div class="stat-row" id="allTimeRow"></div>
+
+    <h2 class="section-title">ภาพรวมประจำเดือน</h2>
+    <div class="stat-row" id="statRow"></div>
+
+    <h2 class="section-title">TOP 3 ประจำเดือน</h2>
+    <table class="top3-table" id="top3Table"></table>
+
+    <h2 class="section-title">อันดับทั้งหมดประจำเดือน</h2>
+    <div class="leaderboard" id="leaderboard"></div>
+
+    <h2 class="section-title">แนวโน้มแต้มทั้งปี</h2>
+    <div class="trend-card">
+      <div class="subtle" id="trendYearLabel"></div>
+      <div class="trend-chart" id="trendChart"></div>
+    </div>
+  </section>
+
+  <!-- EMPLOYEES -->
+  <section class="tab-panel" id="panel-employees">
+    <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:16px;">
+      <h2 class="section-title" style="margin:0;">พนักงานทั้งหมด</h2>
+      <button class="btn admin-only" id="btnAddEmployee">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 5v14M5 12h14"/></svg>
+        เพิ่มพนักงาน
+      </button>
+    </div>
+    <div class="grid" id="employeeGrid"></div>
+  </section>
+
+  <!-- REWARDS -->
+  <section class="tab-panel" id="panel-rewards">
+    <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:16px;">
+      <h2 class="section-title" style="margin:0;">ของรางวัลที่แลกได้</h2>
+      <button class="btn admin-only" id="btnAddReward">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 5v14M5 12h14"/></svg>
+        เพิ่มของรางวัล
+      </button>
+    </div>
+    <div class="grid" id="rewardGrid"></div>
+  </section>
+
+  <!-- LEDGER -->
+  <section class="tab-panel" id="panel-ledger">
+    <h2 class="section-title">ประวัติทั้งหมด</h2>
+    <div class="ledger-filters">
+      <select class="period" id="filterEmployee"><option value="">พนักงานทั้งหมด</option></select>
+      <select class="period" id="filterType">
+        <option value="">ทุกประเภท</option>
+        <option value="earn">ได้รับแต้ม</option>
+        <option value="deduct">ถูกหักแต้ม</option>
+        <option value="redeem">แลกของรางวัล</option>
+      </select>
+    </div>
+    <div class="ledger-list" id="ledgerList"></div>
+  </section>
+
+</div>
+
+<div class="modal-backdrop" id="modalBackdrop">
+  <div class="modal" id="modalBody"></div>
+</div>
+
+<div class="stamp-layer" id="stampLayer"><div class="stamp-mark" id="stampMark">แลกแล้ว</div></div>
+
+<script>
+const STORAGE_KEY = 'team-points-tracker-v1';
+const MONTHS_TH = ['ม.ค.','ก.พ.','มี.ค.','เม.ย.','พ.ค.','มิ.ย.','ก.ค.','ส.ค.','ก.ย.','ต.ค.','พ.ย.','ธ.ค.'];
+const AVATAR_COLORS = ['#3d5c4f','#6b5b53','#a8493f','#557567','#7a6a4f','#4f5c6b'];
+
+let state = { employees: [], pointsLog: [], rewards: [], redemptions: [], adminPin: '' };
+let activeTab = 'dashboard';
+let isAdmin = false;
+let currentEmployeeId = null;
+const now = new Date();
+let selMonth = now.getMonth() + 1;
+let selYear = now.getFullYear();
+
+function uid(){ return Date.now().toString(36) + Math.random().toString(36).slice(2,8); }
+function initials(name){ return name.trim().split(/\s+/).map(w=>w[0]).slice(0,2).join('').toUpperCase(); }
+function colorFor(id){ let h=0; for(const c of id) h = (h*31 + c.charCodeAt(0)) % AVATAR_COLORS.length; return AVATAR_COLORS[Math.abs(h)]; }
+function fmt(n){ return new Intl.NumberFormat('th-TH').format(Math.round(n)); }
+
+async function loadData(){
+  try{
+    const res = await window.storage.get(STORAGE_KEY, true);
+    if(res && res.value){ state = Object.assign({employees:[],pointsLog:[],rewards:[],redemptions:[],adminPin:''}, JSON.parse(res.value)); }
+  }catch(e){ /* no data yet */ }
+  render();
+}
+async function saveData(){
+  try{ await window.storage.set(STORAGE_KEY, JSON.stringify(state), true); }
+  catch(e){ console.error('save failed', e); }
+}
+
+function getBalance(empId){
+  const earned = state.pointsLog.filter(p=>p.employeeId===empId).reduce((s,p)=>s+p.points,0);
+  const spent = state.redemptions.filter(r=>r.employeeId===empId).reduce((s,r)=>s+r.pointsSpent,0);
+  return earned - spent;
+}
+function getMonthlyEarned(empId, year, month){
+  return state.pointsLog.filter(p=>p.employeeId===empId && p.year===year && p.month===month).reduce((s,p)=>s+p.points,0);
+}
+function getYearlyEarned(empId, year){
+  return state.pointsLog.filter(p=>p.employeeId===empId && p.year===year).reduce((s,p)=>s+p.points,0);
+}
+function getAllTimeEarned(empId){
+  return state.pointsLog.filter(p=>p.employeeId===empId).reduce((s,p)=>s+p.points,0);
+}
+
+/* ---------------- render ---------------- */
+function render(){
+  renderAdminToggle();
+  renderEmpToggle();
+  renderBanner();
+  renderPeriodSelects();
+  renderTabs();
+  if(activeTab==='dashboard') renderDashboard();
+  if(activeTab==='employees') renderEmployees();
+  if(activeTab==='rewards') renderRewards();
+  if(activeTab==='ledger') renderLedger();
+}
+
+function renderBanner(){
+  const el = document.getElementById('viewerBanner');
+  const txt = document.getElementById('viewerBannerText');
+  if(isAdmin){ el.style.display = 'none'; return; }
+  el.style.display = 'flex';
+  if(currentEmployeeId){
+    const emp = state.employees.find(x=>x.id===currentEmployeeId);
+    el.classList.add('employee-active');
+    txt.textContent = emp ? `เข้าสู่ระบบในฐานะ ${emp.name} · แต้มคงเหลือ ${fmt(getBalance(emp.id))} แต้ม · แลกของรางวัลให้ตัวเองได้ที่แท็บ "ของรางวัล"` : 'เข้าสู่ระบบพนักงานแล้ว';
+  } else {
+    el.classList.remove('employee-active');
+    txt.textContent = 'โหมดดูอย่างเดียว — เข้าสู่ระบบพนักงานเพื่อแลกของรางวัล หรือเข้าสู่ระบบแอดมินเพื่อแก้ไขข้อมูล';
+  }
+}
+
+function renderAdminToggle(){
+  document.body.classList.toggle('is-admin', isAdmin);
+  const el = document.getElementById('adminToggle');
+  el.classList.toggle('on', isAdmin);
+  if(isAdmin){
+    el.innerHTML = `
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="11" width="18" height="10" rx="2"/><path d="M7 11V7a5 5 0 0 1 10 0v4"/><circle cx="12" cy="16" r="1.5"/></svg>
+      แอดมิน
+      <button onclick="logoutAdmin()">ออกจากระบบ</button>
+    `;
+  } else {
+    el.innerHTML = `
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="11" width="18" height="10" rx="2"/><path d="M7 11V7a5 5 0 0 1 10 0v4"/></svg>
+      ผู้ดู
+      <button onclick="openAdminLoginModal()">เข้าสู่ระบบ</button>
+    `;
+  }
+}
+function logoutAdmin(){ isAdmin = false; render(); }
+
+function openAdminLoginModal(){
+  if(!state.adminPin){
+    openModal(`
+      <h3>ตั้งรหัสผ่านแอดมิน</h3>
+      <div class="subtle" style="margin-bottom:14px;">ยังไม่มีการตั้งรหัสผ่านแอดมิน ตั้งรหัสผ่านครั้งแรกเพื่อเริ่มใช้งาน (ทีมสามารถใช้รหัสเดียวกันร่วมกันได้)</div>
+      <div class="field"><label>ตั้งรหัสผ่านใหม่</label><input id="pinNew" type="password" placeholder="อย่างน้อย 4 ตัวอักษร"></div>
+      <div class="field"><label>ยืนยันรหัสผ่าน</label><input id="pinConfirm" type="password"></div>
+      <div class="modal-error" id="mErr">รหัสผ่านไม่ตรงกันหรือสั้นเกินไป</div>
+      <div class="modal-actions">
+        <button class="btn ghost" onclick="closeModal()">ยกเลิก</button>
+        <button class="btn primary" onclick="setAdminPin()">ตั้งรหัสผ่านและเข้าสู่ระบบ</button>
+      </div>
+    `);
+  } else {
+    openModal(`
+      <h3>เข้าสู่ระบบแอดมิน</h3>
+      <div class="field"><label>รหัสผ่านแอดมิน</label><input id="pinEnter" type="password" placeholder="กรอกรหัสผ่าน"></div>
+      <div class="modal-error" id="mErr">รหัสผ่านไม่ถูกต้อง</div>
+      <div class="modal-actions">
+        <button class="btn ghost" onclick="closeModal()">ยกเลิก</button>
+        <button class="btn primary" onclick="checkAdminPin()">เข้าสู่ระบบ</button>
+      </div>
+    `);
+  }
+  setTimeout(()=>{ const f=document.getElementById('pinEnter')||document.getElementById('pinNew'); if(f) f.focus(); }, 30);
+}
+function setAdminPin(){
+  const a = document.getElementById('pinNew').value;
+  const b = document.getElementById('pinConfirm').value;
+  if(!a || a.length<4 || a!==b){ document.getElementById('mErr').style.display='block'; return; }
+  state.adminPin = a; saveData();
+  isAdmin = true; closeModal(); render();
+}
+function checkAdminPin(){
+  const v = document.getElementById('pinEnter').value;
+  if(v !== state.adminPin){ document.getElementById('mErr').style.display='block'; return; }
+  isAdmin = true; closeModal(); render();
+}
+
+/* ---------------- employee self-service login ---------------- */
+function renderEmpToggle(){
+  const el = document.getElementById('empToggle');
+  el.classList.toggle('on', !!currentEmployeeId);
+  if(currentEmployeeId){
+    const emp = state.employees.find(x=>x.id===currentEmployeeId);
+    el.innerHTML = `
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="8" r="3.5"/><path d="M5 20c0-3.5 3-6 7-6s7 2.5 7 6"/></svg>
+      ${emp ? escapeHtml(emp.name) : 'พนักงาน'}
+      <button onclick="logoutEmployee()">ออกจากระบบ</button>
+    `;
+  } else {
+    el.innerHTML = `
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="8" r="3.5"/><path d="M5 20c0-3.5 3-6 7-6s7 2.5 7 6"/></svg>
+      พนักงาน
+      <button onclick="openEmployeeLoginModal()">เข้าสู่ระบบ</button>
+    `;
+  }
+}
+function logoutEmployee(){ currentEmployeeId = null; render(); }
+function openEmployeeLoginModal(){
+  if(state.employees.length===0){ alert('ยังไม่มีพนักงานในระบบ ให้แอดมินเพิ่มพนักงานก่อน'); return; }
+  openModal(`
+    <h3>เข้าสู่ระบบพนักงาน</h3>
+    <div class="field">
+      <label>เลือกชื่อของคุณ</label>
+      <select id="eSelEmp" onchange="renderEmpPinField()">${state.employees.map(e=>`<option value="${e.id}">${escapeHtml(e.name)}</option>`).join('')}</select>
+    </div>
+    <div id="empPinFieldWrap"></div>
+    <div class="modal-error" id="mErr">รหัสผ่านไม่ถูกต้อง หรือกรอกไม่ครบ</div>
+    <div class="modal-actions">
+      <button class="btn ghost" onclick="closeModal()">ยกเลิก</button>
+      <button class="btn primary" id="empLoginBtn">เข้าสู่ระบบ</button>
+    </div>
+  `);
+  renderEmpPinField();
+}
+function renderEmpPinField(){
+  const empId = document.getElementById('eSelEmp').value;
+  const emp = state.employees.find(x=>x.id===empId);
+  const wrap = document.getElementById('empPinFieldWrap');
+  const btn = document.getElementById('empLoginBtn');
+  if(emp && emp.pin){
+    wrap.innerHTML = `<div class="field"><label>รหัสผ่านของคุณ</label><input id="eSelPin" type="password" placeholder="กรอกรหัสผ่าน"></div>`;
+    btn.textContent = 'เข้าสู่ระบบ';
+    btn.onclick = submitEmployeeLogin;
+  } else {
+    wrap.innerHTML = `
+      <div class="subtle" style="margin-bottom:10px;">คุณยังไม่เคยตั้งรหัสผ่าน ตั้งรหัสผ่านของตัวเองครั้งแรก</div>
+      <div class="field"><label>ตั้งรหัสผ่านใหม่</label><input id="eSelPinNew" type="password" placeholder="อย่างน้อย 4 ตัวอักษร"></div>
+      <div class="field"><label>ยืนยันรหัสผ่าน</label><input id="eSelPinConfirm" type="password"></div>
+    `;
+    btn.textContent = 'ตั้งรหัสผ่านและเข้าสู่ระบบ';
+    btn.onclick = submitEmployeeSetPin;
+  }
+  document.getElementById('mErr').style.display = 'none';
+}
+function submitEmployeeLogin(){
+  const empId = document.getElementById('eSelEmp').value;
+  const emp = state.employees.find(x=>x.id===empId);
+  const pin = document.getElementById('eSelPin').value;
+  if(!emp || pin !== emp.pin){ document.getElementById('mErr').style.display='block'; return; }
+  currentEmployeeId = empId; closeModal(); render();
+}
+function submitEmployeeSetPin(){
+  const empId = document.getElementById('eSelEmp').value;
+  const emp = state.employees.find(x=>x.id===empId);
+  const a = document.getElementById('eSelPinNew').value;
+  const b = document.getElementById('eSelPinConfirm').value;
+  if(!emp || !a || a.length<4 || a!==b){ document.getElementById('mErr').style.display='block'; return; }
+  emp.pin = a; saveData();
+  currentEmployeeId = empId; closeModal(); render();
+}
+function resetEmployeePin(id){
+  if(!isAdmin) return;
+  const e = state.employees.find(x=>x.id===id);
+  if(!e) return;
+  if(!confirm(`รีเซ็ตรหัสผ่านของ ${e.name}? เขาจะต้องตั้งรหัสผ่านใหม่ตอนเข้าสู่ระบบครั้งถัดไป`)) return;
+  delete e.pin; saveData();
+  openEmployeeDetail(id);
+}
+
+function renderPeriodSelects(){
+  const ms = document.getElementById('monthSelect');
+  const ys = document.getElementById('yearSelect');
+  if(!ms.options.length){
+    ms.innerHTML = MONTHS_TH.map((m,i)=>`<option value="${i+1}">${m}</option>`).join('');
+    ms.value = selMonth;
+    ms.onchange = ()=>{ selMonth = Number(ms.value); render(); };
+  }
+  if(!ys.options.length){
+    const years = new Set([now.getFullYear()-1, now.getFullYear(), now.getFullYear()+1]);
+    for(let y=2026; y<=2030; y++) years.add(y);
+    state.pointsLog.forEach(p=>years.add(p.year));
+    const sorted = [...years].sort((a,b)=>a-b);
+    ys.innerHTML = sorted.map(y=>`<option value="${y}">ปี ${y}</option>`).join('');
+    ys.value = selYear;
+    ys.onchange = ()=>{ selYear = Number(ys.value); render(); };
+  }
+}
+
+function renderTabs(){
+  document.querySelectorAll('.tab-btn').forEach(b=>{
+    b.classList.toggle('active', b.dataset.tab===activeTab);
+  });
+  document.querySelectorAll('.tab-panel').forEach(p=>{
+    p.classList.toggle('active', p.id === 'panel-'+activeTab);
+  });
+}
+
+function renderDashboard(){
+  const allEarned = state.pointsLog.reduce((s,p)=>s+p.points,0);
+  const allRedeemed = state.redemptions.reduce((s,r)=>s+r.pointsSpent,0);
+  const allTimeTop = [...state.employees].map(e=>({e, pts:getAllTimeEarned(e.id)})).sort((a,b)=>b.pts-a.pts)[0];
+  document.getElementById('allTimeRow').innerHTML = `
+    <div class="stat-card">
+      <div class="label">แต้มที่แจกไปทั้งหมด</div>
+      <div class="value">${fmt(allEarned)}</div>
+      <div class="sub">ตั้งแต่เริ่มใช้งาน</div>
+    </div>
+    <div class="stat-card">
+      <div class="label">แต้มที่แลกไปทั้งหมด</div>
+      <div class="value neg">${fmt(allRedeemed)}</div>
+      <div class="sub">รวมทุกของรางวัล</div>
+    </div>
+    <div class="stat-card">
+      <div class="label">แต้มคงเหลือในระบบ</div>
+      <div class="value">${fmt(allEarned-allRedeemed)}</div>
+      <div class="sub">รวมทุกคน</div>
+    </div>
+    <div class="stat-card">
+      <div class="label">ผู้นำตลอดกาล</div>
+      <div class="value" style="font-size:16px;font-family:var(--font-body);">${allTimeTop && allTimeTop.pts>0 ? allTimeTop.e.name : '—'}</div>
+      <div class="sub">${allTimeTop && allTimeTop.pts>0 ? fmt(allTimeTop.pts)+' แต้มสะสม' : 'ยังไม่มีข้อมูล'}</div>
+    </div>
+  `;
+
+  const monthEarned = state.pointsLog.filter(p=>p.year===selYear && p.month===selMonth).reduce((s,p)=>s+p.points,0);
+  const monthRedeemed = state.redemptions.filter(r=>{
+    const d = new Date(r.date); return d.getFullYear()===selYear && d.getMonth()+1===selMonth;
+  }).reduce((s,r)=>s+r.pointsSpent,0);
+
+  document.getElementById('statRow').innerHTML = `
+    <div class="stat-card">
+      <div class="label">แต้มที่แจกเดือนนี้</div>
+      <div class="value">${fmt(monthEarned)}</div>
+      <div class="sub">${MONTHS_TH[selMonth-1]} ${selYear}</div>
+    </div>
+    <div class="stat-card">
+      <div class="label">แต้มที่แลกไปเดือนนี้</div>
+      <div class="value neg">${fmt(monthRedeemed)}</div>
+      <div class="sub">รวมของรางวัลทั้งหมด</div>
+    </div>
+    <div class="stat-card">
+      <div class="label">จำนวนพนักงาน</div>
+      <div class="value">${state.employees.length}</div>
+      <div class="sub">คนในทีม</div>
+    </div>
+  `;
+
+  const ranked = [...state.employees].map(e=>({e, pts:getMonthlyEarned(e.id, selYear, selMonth)}))
+    .sort((a,b)=>b.pts-a.pts);
+
+  const top3 = ranked.slice(0,3).filter(r=>r.pts>0);
+  const top3Table = document.getElementById('top3Table');
+  if(top3.length===0){
+    top3Table.innerHTML = `<tr><td class="empty-state">ยังไม่มีใครได้แต้มในเดือนนี้</td></tr>`;
+  } else {
+    top3Table.innerHTML = `
+      <tr><th>อันดับ</th><th>ชื่อ</th><th>แผนก</th><th style="text-align:right;">แต้มเดือนนี้</th></tr>
+      ${top3.map((r,i)=>`
+        <tr>
+          <td><div class="rank-badge r${i+1}">${i+1}</div></td>
+          <td><div class="top3-name"><div class="avatar" style="background:${colorFor(r.e.id)}">${initials(r.e.name)}</div>${escapeHtml(r.e.name)}</div></td>
+          <td class="subtle">${escapeHtml(r.e.department||'—')}</td>
+          <td class="top3-pts">${fmt(r.pts)}</td>
+        </tr>
+      `).join('')}
+    `;
+  }
+
+  const maxPts = Math.max(1, ...ranked.map(r=>r.pts));
+  const lb = document.getElementById('leaderboard');
+  if(state.employees.length===0){
+    lb.innerHTML = `<div class="empty-state">ยังไม่มีพนักงานในระบบ ไปที่แท็บ "ทีมงาน" เพื่อเพิ่มคนแรก</div>`;
+  } else {
+    lb.innerHTML = ranked.map((r,i)=>`
+      <div class="lb-row">
+        <div class="lb-rank">${i+1}</div>
+        <div class="avatar" style="background:${colorFor(r.e.id)}">${initials(r.e.name)}</div>
+        <div class="lb-name"><div class="n">${escapeHtml(r.e.name)}</div><div class="d">${escapeHtml(r.e.department||'')}</div></div>
+        <div class="lb-bar-wrap"><div class="lb-bar" style="width:${(r.pts/maxPts*100)}%"></div></div>
+        <div class="lb-pts">${fmt(r.pts)}</div>
+      </div>
+    `).join('');
+  }
+
+  document.getElementById('trendYearLabel').textContent = `รวมแต้มที่มอบให้ในปี ${selYear}`;
+  const monthlyTotals = Array.from({length:12}, (_,i)=>{
+    return state.pointsLog.filter(p=>p.year===selYear && p.month===i+1).reduce((s,p)=>s+p.points,0);
+  });
+  const maxM = Math.max(1, ...monthlyTotals);
+  document.getElementById('trendChart').innerHTML = monthlyTotals.map((v,i)=>`
+    <div class="trend-col ${i+1===selMonth?'cur':''}">
+      <div class="trend-bar" style="height:${Math.max(2, v/maxM*100)}%"></div>
+      <div class="trend-label">${MONTHS_TH[i]}</div>
+    </div>
+  `).join('');
+}
+
+function renderEmployees(){
+  const grid = document.getElementById('employeeGrid');
+  grid.parentElement.querySelector('.empty-hint')?.remove();
+  if(state.employees.length===0){
+    grid.innerHTML = '';
+    grid.insertAdjacentHTML('afterend', `
+      <div class="empty-hint">
+        เริ่มต้นเพิ่มพนักงานคนแรกเพื่อเริ่มสะสมแต้ม
+        <div class="admin-only"><button class="btn primary" onclick="document.getElementById('btnAddEmployee').click()">เพิ่มพนักงาน</button></div>
+      </div>`);
+    return;
+  }
+  grid.innerHTML = state.employees.map(e=>`
+    <div class="emp-card" onclick="openEmployeeDetail('${e.id}')">
+      <div class="emp-top">
+        <div class="avatar" style="background:${colorFor(e.id)}">${initials(e.name)}</div>
+        <div><div class="n">${escapeHtml(e.name)}</div><div class="d">${escapeHtml(e.department||'ไม่ระบุแผนก')}</div></div>
+      </div>
+      <div class="emp-balance">
+        <div><div class="num">${fmt(getBalance(e.id))}</div><div class="lbl">แต้มคงเหลือ</div></div>
+      </div>
+      <div class="emp-actions admin-only" onclick="event.stopPropagation()">
+        <button class="btn small" onclick="openAddPointsModal('${e.id}','add')">ให้แต้ม</button>
+        <button class="btn small" onclick="openAddPointsModal('${e.id}','deduct')">ลดแต้ม</button>
+        <button class="btn small" onclick="openRedeemModal(null,'${e.id}')">แลกรางวัล</button>
+      </div>
+    </div>
+  `).join('');
+}
+
+function rewardIconSvg(){
+  return `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M20 12v9H4v-9M2 7h20v5H2V7zM12 22V7M12 7c-1.5-3-6-4-6-1s4 1 6 1zM12 7c1.5-3 6-4 6-1s-4 1-6 1z"/></svg>`;
+}
+
+function renderRewards(){
+  const grid = document.getElementById('rewardGrid');
+  grid.parentElement.querySelector('.empty-hint')?.remove();
+  if(state.rewards.length===0){
+    grid.innerHTML = '';
+    grid.insertAdjacentHTML('afterend', `
+      <div class="empty-hint">
+        ยังไม่มีของรางวัลให้แลก เพิ่มของรางวัลแรกของทีม
+        <div class="admin-only"><button class="btn primary" onclick="document.getElementById('btnAddReward').click()">เพิ่มของรางวัล</button></div>
+      </div>`);
+    return;
+  }
+  grid.innerHTML = state.rewards.map(r=>`
+    <div class="rw-card">
+      <div class="rw-head">
+        <div class="rw-icon">${rewardIconSvg()}</div>
+        <div class="rw-edit-actions admin-only">
+          <button class="icon-btn" title="แก้ไข" onclick="openAddRewardModal('${r.id}')">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 20h9M16.5 3.5a2.12 2.12 0 0 1 3 3L7 19l-4 1 1-4 12.5-12.5z"/></svg>
+          </button>
+          <button class="icon-btn" title="ลบ" onclick="deleteReward('${r.id}')">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M3 6h18M8 6V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2m3 0-1 14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2L4 6h16z"/></svg>
+          </button>
+        </div>
+      </div>
+      <div>
+        <div class="rw-name">${escapeHtml(r.name)}</div>
+        <div class="rw-cost">${fmt(r.cost)} แต้ม</div>
+      </div>
+      <button class="btn small admin-only" onclick="openRedeemModal('${r.id}',null)">แลกให้พนักงาน</button>
+      ${currentEmployeeId ? `<button class="btn small primary" ${getBalance(currentEmployeeId) < r.cost ? 'disabled' : ''} onclick="redeemSelf('${r.id}')">แลกให้ตัวเอง (${fmt(getBalance(currentEmployeeId))} แต้ม)</button>` : ''}
+    </div>
+  `).join('');
+}
+
+function renderLedger(){
+  const empFilter = document.getElementById('filterEmployee');
+  if(empFilter.options.length<=1){
+    empFilter.innerHTML = '<option value="">พนักงานทั้งหมด</option>' +
+      state.employees.map(e=>`<option value="${e.id}">${escapeHtml(e.name)}</option>`).join('');
+    empFilter.onchange = renderLedger;
+    document.getElementById('filterType').onchange = renderLedger;
+  }
+  const empVal = empFilter.value;
+  const typeVal = document.getElementById('filterType').value;
+
+  let rows = [];
+  state.pointsLog.forEach(p=>{
+    const isDeduct = p.points < 0;
+    rows.push({type: isDeduct ? 'deduct' : 'earn', date:p.date, employeeId:p.employeeId, points:p.points, note:p.reason||(isDeduct?'หักแต้ม':'ให้แต้ม')});
+  });
+  state.redemptions.forEach(r=>{
+    const rw = state.rewards.find(x=>x.id===r.rewardId);
+    rows.push({type:'redeem', date:r.date, employeeId:r.employeeId, points:-r.pointsSpent, note: rw ? rw.name : 'ของรางวัล (ถูกลบแล้ว)'});
+  });
+  rows.sort((a,b)=> new Date(b.date) - new Date(a.date));
+  if(empVal) rows = rows.filter(r=>r.employeeId===empVal);
+  if(typeVal) rows = rows.filter(r=>r.type===typeVal);
+
+  const list = document.getElementById('ledgerList');
+  if(rows.length===0){
+    list.innerHTML = `<div class="empty-state">ไม่พบรายการ</div>`;
+    return;
+  }
+  const badgeLabel = {earn:'ได้รับแต้ม', deduct:'ถูกหักแต้ม', redeem:'แลกรางวัล'};
+  list.innerHTML = rows.map(r=>{
+    const emp = state.employees.find(e=>e.id===r.employeeId);
+    const d = new Date(r.date);
+    const dateStr = `${String(d.getDate()).padStart(2,'0')}/${String(d.getMonth()+1).padStart(2,'0')}/${d.getFullYear()}`;
+    return `
+      <div class="led-row">
+        <div class="led-date">${dateStr}</div>
+        <div class="led-badge ${r.type==='earn'?'earn':'redeem'}">${badgeLabel[r.type]}</div>
+        <div class="led-emp">
+          <div class="n">${emp ? escapeHtml(emp.name) : 'พนักงาน (ถูกลบแล้ว)'}</div>
+          <div class="note">${escapeHtml(r.note)}</div>
+        </div>
+        <div class="led-pts ${r.points>=0?'pos':'neg'}">${r.points>=0?'+':''}${fmt(r.points)}</div>
+      </div>
+    `;
+  }).join('');
+}
+
+function escapeHtml(s){
+  return String(s ?? '').replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+}
+
+/* ---------------- modal helpers ---------------- */
+function openModal(html){
+  document.getElementById('modalBody').innerHTML = html;
+  document.getElementById('modalBackdrop').classList.add('open');
+}
+function closeModal(){
+  document.getElementById('modalBackdrop').classList.remove('open');
+}
+document.getElementById('modalBackdrop').addEventListener('click', e=>{
+  if(e.target.id==='modalBackdrop') closeModal();
+});
+
+/* ---------------- add employee ---------------- */
+document.getElementById('btnAddEmployee').addEventListener('click', ()=>{ if(isAdmin) openEmployeeModal(); });
+function openEmployeeModal(editId){
+  if(!isAdmin) return;
+  const editing = editId ? state.employees.find(e=>e.id===editId) : null;
+  openModal(`
+    <h3>${editing?'แก้ไขพนักงาน':'เพิ่มพนักงาน'}</h3>
+    <div class="field"><label>ชื่อ-นามสกุล</label><input id="fName" value="${editing?escapeHtml(editing.name):''}" placeholder="เช่น สมชาย ใจดี"></div>
+    <div class="field"><label>แผนก / ตำแหน่ง</label><input id="fDept" value="${editing?escapeHtml(editing.department||''):''}" placeholder="เช่น ฝ่ายขาย"></div>
+    <div class="modal-error" id="mErr">กรุณากรอกชื่อพนักงาน</div>
+    <div class="modal-actions">
+      <button class="btn ghost" onclick="closeModal()">ยกเลิก</button>
+      <button class="btn primary" onclick="saveEmployee('${editId||''}')">${editing?'บันทึก':'เพิ่มพนักงาน'}</button>
+    </div>
+  `);
+}
+function saveEmployee(id){
+  if(!isAdmin) return;
+  const name = document.getElementById('fName').value.trim();
+  const dept = document.getElementById('fDept').value.trim();
+  if(!name){ document.getElementById('mErr').style.display='block'; return; }
+  if(id){
+    const e = state.employees.find(x=>x.id===id);
+    e.name=name; e.department=dept;
+  } else {
+    state.employees.push({id:uid(), name, department:dept});
+  }
+  saveData(); closeModal(); render();
+}
+function openEmployeeDetail(empId){
+  const e = state.employees.find(x=>x.id===empId);
+  if(!e) return;
+  let rows = [];
+  state.pointsLog.filter(p=>p.employeeId===empId).forEach(p=>{
+    const isDeduct = p.points < 0;
+    rows.push({type: isDeduct?'deduct':'earn', date:p.date, points:p.points, note:p.reason||(isDeduct?'หักแต้ม':'ให้แต้ม')});
+  });
+  state.redemptions.filter(r=>r.employeeId===empId).forEach(r=>{
+    const rw = state.rewards.find(x=>x.id===r.rewardId);
+    rows.push({type:'redeem',date:r.date,points:-r.pointsSpent,note:rw?rw.name:'ของรางวัล (ถูกลบแล้ว)'});
+  });
+  rows.sort((a,b)=>new Date(b.date)-new Date(a.date));
+  const yearly = getYearlyEarned(empId, selYear);
+  openModal(`
+    <h3>${escapeHtml(e.name)}</h3>
+    <div class="subtle" style="margin-bottom:14px;">${escapeHtml(e.department||'')}</div>
+    <div class="detail-balance">
+      <div><div class="num">${fmt(getBalance(empId))}</div><div class="lbl subtle">แต้มคงเหลือ</div></div>
+      <div style="text-align:right"><div class="num" style="font-size:19px;color:var(--text-secondary)">${fmt(yearly)}</div><div class="lbl subtle">รวมปี ${selYear}</div></div>
+    </div>
+    <div class="modal-actions admin-only" style="justify-content:flex-start;margin-top:0;margin-bottom:10px;">
+      <button class="btn small primary" onclick="closeModal();openAddPointsModal('${empId}','add')">ให้แต้ม</button>
+      <button class="btn small" onclick="closeModal();openAddPointsModal('${empId}','deduct')">ลดแต้ม</button>
+      <button class="btn small" onclick="closeModal();openRedeemModal(null,'${empId}')">แลกรางวัล</button>
+      <button class="btn small" onclick="openEmployeeModal('${empId}')">แก้ไข</button>
+      <button class="btn small danger" onclick="deleteEmployee('${empId}')">ลบ</button>
+    </div>
+    <div class="admin-only subtle" style="margin-bottom:16px;display:flex;align-items:center;gap:8px;">
+      บัญชีล็อกอิน: ${e.pin ? 'ตั้งรหัสผ่านแล้ว' : 'ยังไม่ได้ตั้งรหัสผ่าน'}
+      ${e.pin ? `<button class="btn small ghost" onclick="resetEmployeePin('${empId}')">รีเซ็ตรหัสผ่าน</button>` : ''}
+    </div>
+    <div class="subtle" style="margin-bottom:8px;">ประวัติล่าสุด</div>
+    <div class="detail-history">
+      ${rows.length===0 ? '<div class="empty-state">ยังไม่มีประวัติ</div>' : rows.map(r=>{
+        const d=new Date(r.date);
+        const dateStr = `${String(d.getDate()).padStart(2,'0')}/${String(d.getMonth()+1).padStart(2,'0')}/${d.getFullYear()}`;
+        const lbl = {earn:'ได้รับ', deduct:'ถูกหัก', redeem:'แลก'}[r.type];
+        return `<div class="led-row"><div class="led-date">${dateStr}</div>
+          <div class="led-badge ${r.type==='earn'?'earn':'redeem'}">${lbl}</div>
+          <div class="led-emp"><div class="note">${escapeHtml(r.note)}</div></div>
+          <div class="led-pts ${r.points>=0?'pos':'neg'}">${r.points>=0?'+':''}${fmt(r.points)}</div></div>`;
+      }).join('')}
+    </div>
+  `);
+}
+function deleteEmployee(id){
+  if(!isAdmin) return;
+  if(!confirm('ลบพนักงานคนนี้และประวัติทั้งหมด?')) return;
+  state.employees = state.employees.filter(e=>e.id!==id);
+  state.pointsLog = state.pointsLog.filter(p=>p.employeeId!==id);
+  state.redemptions = state.redemptions.filter(r=>r.employeeId!==id);
+  saveData(); closeModal(); render();
+}
+
+/* ---------------- add points ---------------- */
+document.getElementById('btnAddPoints').addEventListener('click', ()=>{ if(isAdmin) openAddPointsModal(); });
+function openAddPointsModal(empId, type){
+  if(!isAdmin) return;
+  if(state.employees.length===0){ alert('กรุณาเพิ่มพนักงานก่อน'); return; }
+  const t = type === 'deduct' ? 'deduct' : 'add';
+  openModal(`
+    <h3>ปรับแต้มพนักงาน</h3>
+    <div class="seg-toggle" id="pTypeToggle">
+      <button type="button" class="add ${t==='add'?'active':''}" onclick="setPointsType('add')">+ เพิ่มแต้ม</button>
+      <button type="button" class="deduct ${t==='deduct'?'active':''}" onclick="setPointsType('deduct')">− ลดแต้ม</button>
+    </div>
+    <div class="field">
+      <label>พนักงาน</label>
+      <select id="pEmp">${state.employees.map(e=>`<option value="${e.id}" ${e.id===empId?'selected':''}>${escapeHtml(e.name)}</option>`).join('')}</select>
+    </div>
+    <div class="field-row">
+      <div class="field"><label>จำนวนแต้ม</label><input id="pPoints" type="number" min="1" value="10"></div>
+      <div class="field"><label>เดือน / ปี</label>
+        <select id="pMonth" style="margin-bottom:6px;">${MONTHS_TH.map((m,i)=>`<option value="${i+1}" ${i+1===selMonth?'selected':''}>${m}</option>`).join('')}</select>
+      </div>
+    </div>
+    <div class="field"><label>เหตุผล / หมายเหตุ</label><input id="pReason" placeholder="เช่น ทำงานดีเกินเป้า หรือ มาสายบ่อย"></div>
+    <div class="modal-error" id="mErr">กรุณากรอกจำนวนแต้มให้ถูกต้อง</div>
+    <div class="modal-actions">
+      <button class="btn ghost" onclick="closeModal()">ยกเลิก</button>
+      <button class="btn primary" id="pSaveBtn" onclick="saveAddPoints()">${t==='deduct'?'ลดแต้ม':'เพิ่มแต้ม'}</button>
+    </div>
+  `);
+}
+function setPointsType(t){
+  document.querySelectorAll('#pTypeToggle button').forEach(b=>{
+    b.classList.toggle('active', b.classList.contains(t));
+  });
+  document.getElementById('pSaveBtn').textContent = t==='deduct' ? 'ลดแต้ม' : 'เพิ่มแต้ม';
+  document.getElementById('pSaveBtn').dataset.type = t;
+}
+function saveAddPoints(){
+  if(!isAdmin) return;
+  const activeBtn = document.querySelector('#pTypeToggle button.active');
+  const type = activeBtn && activeBtn.classList.contains('deduct') ? 'deduct' : 'add';
+  const employeeId = document.getElementById('pEmp').value;
+  const amount = Number(document.getElementById('pPoints').value);
+  const month = Number(document.getElementById('pMonth').value);
+  const reason = document.getElementById('pReason').value.trim();
+  if(!amount || amount<=0){ document.getElementById('mErr').style.display='block'; return; }
+  const points = type==='deduct' ? -amount : amount;
+  state.pointsLog.push({id:uid(), employeeId, points, month, year:selYear, reason, date:new Date().toISOString()});
+  saveData(); closeModal(); render();
+}
+
+/* ---------------- rewards ---------------- */
+document.getElementById('btnAddReward').addEventListener('click', ()=>{ if(isAdmin) openAddRewardModal(); });
+function openAddRewardModal(editId){
+  if(!isAdmin) return;
+  const editing = editId ? state.rewards.find(r=>r.id===editId) : null;
+  openModal(`
+    <h3>${editing?'แก้ไขของรางวัล':'เพิ่มของรางวัล'}</h3>
+    <div class="field"><label>ชื่อของรางวัล</label><input id="rName" value="${editing?escapeHtml(editing.name):''}" placeholder="เช่น บัตรกำนัลร้านกาแฟ"></div>
+    <div class="field"><label>ใช้กี่แต้ม</label><input id="rCost" type="number" min="1" value="${editing?editing.cost:100}"></div>
+    <div class="modal-error" id="mErr">กรุณากรอกชื่อและแต้มให้ถูกต้อง</div>
+    <div class="modal-actions">
+      <button class="btn ghost" onclick="closeModal()">ยกเลิก</button>
+      <button class="btn primary" onclick="saveReward('${editId||''}')">${editing?'บันทึก':'เพิ่มของรางวัล'}</button>
+    </div>
+  `);
+}
+function saveReward(id){
+  if(!isAdmin) return;
+  const name = document.getElementById('rName').value.trim();
+  const cost = Number(document.getElementById('rCost').value);
+  if(!name || !cost || cost<=0){ document.getElementById('mErr').style.display='block'; return; }
+  if(id){
+    const r = state.rewards.find(x=>x.id===id);
+    r.name=name; r.cost=cost;
+  } else {
+    state.rewards.push({id:uid(), name, cost});
+  }
+  saveData(); closeModal(); render();
+}
+function deleteReward(id){
+  if(!isAdmin) return;
+  if(!confirm('ลบของรางวัลนี้?')) return;
+  state.rewards = state.rewards.filter(r=>r.id!==id);
+  saveData(); render();
+}
+
+/* ---------------- redeem ---------------- */
+function openRedeemModal(rewardId, empId){
+  if(!isAdmin) return;
+  if(state.employees.length===0){ alert('กรุณาเพิ่มพนักงานก่อน'); return; }
+  if(state.rewards.length===0){ alert('กรุณาเพิ่มของรางวัลก่อน'); return; }
+  openModal(`
+    <h3>แลกของรางวัล</h3>
+    <div class="field">
+      <label>พนักงาน</label>
+      <select id="xEmp" onchange="updateRedeemBalance()">${state.employees.map(e=>`<option value="${e.id}" ${e.id===empId?'selected':''}>${escapeHtml(e.name)} (${fmt(getBalance(e.id))} แต้ม)</option>`).join('')}</select>
+    </div>
+    <div class="field">
+      <label>ของรางวัล</label>
+      <select id="xReward" onchange="updateRedeemBalance()">${state.rewards.map(r=>`<option value="${r.id}" ${r.id===rewardId?'selected':''}>${escapeHtml(r.name)} — ${fmt(r.cost)} แต้ม</option>`).join('')}</select>
+    </div>
+    <div class="subtle" id="xBalanceInfo" style="margin-bottom:10px;"></div>
+    <div class="modal-error" id="mErr">แต้มคงเหลือไม่พอสำหรับของรางวัลนี้</div>
+    <div class="modal-actions">
+      <button class="btn ghost" onclick="closeModal()">ยกเลิก</button>
+      <button class="btn primary" onclick="confirmRedeem()">ยืนยันแลก</button>
+    </div>
+  `);
+  updateRedeemBalance();
+}
+function updateRedeemBalance(){
+  const empId = document.getElementById('xEmp').value;
+  const rewardId = document.getElementById('xReward').value;
+  const bal = getBalance(empId);
+  const reward = state.rewards.find(r=>r.id===rewardId);
+  const after = bal - (reward?reward.cost:0);
+  document.getElementById('xBalanceInfo').innerHTML =
+    `แต้มคงเหลือ <strong style="color:var(--accent)">${fmt(bal)}</strong> → หลังแลก <strong style="color:${after<0?'var(--negative)':'var(--accent)'}">${fmt(after)}</strong>`;
+}
+function confirmRedeem(){
+  if(!isAdmin) return;
+  const employeeId = document.getElementById('xEmp').value;
+  const rewardId = document.getElementById('xReward').value;
+  const reward = state.rewards.find(r=>r.id===rewardId);
+  const bal = getBalance(employeeId);
+  if(!reward || bal < reward.cost){ document.getElementById('mErr').style.display='block'; return; }
+  state.redemptions.push({id:uid(), employeeId, rewardId, pointsSpent:reward.cost, date:new Date().toISOString()});
+  saveData(); closeModal(); render();
+  showStamp();
+}
+function redeemSelf(rewardId){
+  if(!currentEmployeeId) return;
+  const reward = state.rewards.find(r=>r.id===rewardId);
+  if(!reward) return;
+  const bal = getBalance(currentEmployeeId);
+  if(bal < reward.cost){ alert('แต้มคงเหลือของคุณไม่พอสำหรับของรางวัลนี้'); return; }
+  if(!confirm(`ยืนยันแลก "${reward.name}" ด้วย ${fmt(reward.cost)} แต้ม?\nแต้มคงเหลือหลังแลก: ${fmt(bal-reward.cost)} แต้ม`)) return;
+  state.redemptions.push({id:uid(), employeeId:currentEmployeeId, rewardId, pointsSpent:reward.cost, date:new Date().toISOString()});
+  saveData(); render();
+  showStamp();
+}
+function showStamp(){
+  const el = document.getElementById('stampMark');
+  el.classList.remove('show'); void el.offsetWidth;
+  el.classList.add('show');
+  setTimeout(()=>el.classList.remove('show'), 1100);
+}
+
+/* ---------------- theme ---------------- */
+const sunIcon = `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="4.5"/><path d="M12 2.5v2.5M12 19v2.5M4.6 4.6l1.8 1.8M17.6 17.6l1.8 1.8M2.5 12h2.5M19 12h2.5M4.6 19.4l1.8-1.8M17.6 6.4l1.8-1.8"/></svg>`;
+const moonIcon = `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M20 14.5A8.5 8.5 0 1 1 9.5 4a7 7 0 0 0 10.5 10.5z"/></svg>`;
+function applyTheme(mode){
+  document.body.setAttribute('data-theme', mode);
+  document.getElementById('themeToggle').innerHTML = mode==='dark' ? sunIcon : moonIcon;
+  const meta = document.getElementById('themeColorMeta');
+  if(meta) meta.setAttribute('content', mode==='dark' ? '#14171a' : '#faf9f6');
+}
+async function initTheme(){
+  let mode = null;
+  try{
+    const res = await window.storage.get('theme-preference', false);
+    if(res && res.value) mode = res.value;
+  }catch(e){ /* no preference saved yet */ }
+  if(!mode){
+    mode = window.matchMedia && window.matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light';
+  }
+  applyTheme(mode);
+}
+document.getElementById('themeToggle').addEventListener('click', async ()=>{
+  const current = document.body.getAttribute('data-theme') === 'dark' ? 'dark' : 'light';
+  const next = current === 'dark' ? 'light' : 'dark';
+  applyTheme(next);
+  try{ await window.storage.set('theme-preference', next, false); }catch(e){ console.error('theme save failed', e); }
+});
+
+/* ---------------- tabs & init ---------------- */
+document.querySelectorAll('.tab-btn').forEach(b=>{
+  b.addEventListener('click', ()=>{ activeTab = b.dataset.tab; render(); });
+});
+
+initTheme();
+loadData();
+// Import the functions you need from the SDKs you need
+import { initializeApp } from "firebase/app";
+import { getAnalytics } from "firebase/analytics";
+// TODO: Add SDKs for Firebase products that you want to use
+// https://firebase.google.com/docs/web/setup#available-libraries
+
+// Your web app's Firebase configuration
+// For Firebase JS SDK v7.20.0 and later, measurementId is optional
+const firebaseConfig = {
+  apiKey: "AIzaSyAUiuOs0Hg1bT8PvYy3M42zj9VL84yrxts",
+  authDomain: "cenolmal.firebaseapp.com",
+  projectId: "cenolmal",
+  storageBucket: "cenolmal.firebasestorage.app",
+  messagingSenderId: "736326565007",
+  appId: "1:736326565007:web:3ba5f4969a1405891584fa",
+  measurementId: "G-5VR9N4XBD7"
+};
+
+// Initialize Firebase
+const app = initializeApp(firebaseConfig);
+const analytics = getAnalytics(app);
+</script>
+</body>
+</html>
