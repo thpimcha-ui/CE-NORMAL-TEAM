@@ -37,7 +37,6 @@ a{color:inherit;}
 ::-webkit-scrollbar{width:8px; height:8px;}
 ::-webkit-scrollbar-thumb{background:var(--border); border-radius:8px;}
 
-/* ---------- utility ---------- */
 .hidden{display:none !important;}
 .btn{
   border:1px solid var(--border); background:var(--card-2); color:var(--text);
@@ -69,6 +68,12 @@ a{color:inherit;}
 .toast.err{border-left-color:var(--danger);}
 @keyframes slidein{from{opacity:0; transform:translateX(20px);} to{opacity:1; transform:translateX(0);}}
 
+/* boot / loading */
+#bootScreen{min-height:100vh; display:flex; align-items:center; justify-content:center; flex-direction:column; gap:14px;}
+.spinner{width:34px; height:34px; border-radius:50%; border:3px solid var(--border); border-top-color:var(--accent); animation:spin .8s linear infinite;}
+@keyframes spin{to{transform:rotate(360deg);}}
+#bootScreen .lbl{color:var(--text-dim); font-size:13px;}
+
 /* ---------- AUTH SCREEN ---------- */
 #authScreen{min-height:100vh; display:flex;}
 .auth-side{
@@ -94,6 +99,7 @@ a{color:inherit;}
 .auth-error{color:var(--danger); font-size:13px; margin-bottom:14px; min-height:16px;}
 .demo-note{margin-top:22px; padding:12px 14px; background:var(--card-2); border:1px dashed var(--border); border-radius:8px; font-size:12px; color:var(--text-faint); line-height:1.6;}
 .demo-note b{color:var(--text-dim);}
+.owner-setup-badge{display:inline-flex; align-items:center; gap:6px; background:var(--accent-dim); color:var(--accent); padding:4px 10px; border-radius:99px; font-size:11.5px; font-weight:700; margin-bottom:16px;}
 
 /* ---------- APP SHELL ---------- */
 #app{min-height:100vh; display:none;}
@@ -132,7 +138,6 @@ main{max-width:1180px; margin:0 auto; padding:28px 26px 80px;}
 .page-head h1{font-size:24px;}
 .page-head .sub{color:var(--text-dim); font-size:13.5px; margin-top:3px;}
 
-/* ---------- cards / grid ---------- */
 .grid{display:grid; gap:16px;}
 .g-2{grid-template-columns:1fr 1fr;}
 .g-3{grid-template-columns:repeat(3,1fr);}
@@ -141,21 +146,18 @@ main{max-width:1180px; margin:0 auto; padding:28px 26px 80px;}
 .card-title{font-size:11.5px; font-weight:700; color:var(--text-dim); text-transform:uppercase; letter-spacing:.07em; margin-bottom:10px; display:flex; align-items:center; gap:7px;}
 .stat-num{font-family:'Rajdhani',sans-serif; font-size:34px; font-weight:700;}
 
-/* hero point card */
 .hero-point{background:linear-gradient(135deg, var(--card) 0%, var(--card-2) 100%); border:1px solid var(--border); border-radius:16px; padding:26px 28px; display:flex; justify-content:space-between; align-items:center; margin-bottom:16px;}
 .hero-point .num{font-family:'Rajdhani',sans-serif; font-weight:700; font-size:56px; line-height:1; color:var(--accent);}
 .hero-point .lbl{font-size:12px; color:var(--text-dim); text-transform:uppercase; letter-spacing:.08em; font-weight:700; margin-top:6px;}
 .hero-point .rank{text-align:right; font-size:13px; color:var(--text-dim);}
 .hero-point .rank b{color:var(--text); font-size:20px; font-family:'Rajdhani',sans-serif;}
 
-/* streak */
 .streak-card{display:flex; align-items:center; justify-content:space-between; gap:16px;}
 .streak-flame{font-size:30px;}
 .streak-months{font-family:'Rajdhani',sans-serif; font-size:30px; font-weight:700;}
 .streak-msg{font-size:12.5px; color:var(--accent); font-weight:600; margin-top:4px;}
 .streak-best{font-size:11.5px; color:var(--text-faint); margin-top:2px;}
 
-/* tier badge (hex insignia) */
 .hex{
   width:64px; height:64px; position:relative; display:flex; align-items:center; justify-content:center; font-size:26px;
   clip-path:polygon(50% 0%, 100% 25%, 100% 75%, 50% 100%, 0% 75%, 0% 25%);
@@ -170,12 +172,10 @@ main{max-width:1180px; margin:0 auto; padding:28px 26px 80px;}
 .target-next{font-size:12px; color:var(--text-faint); margin-top:8px;}
 .completed-tag{display:inline-flex; align-items:center; gap:5px; background:var(--accent-dim); color:var(--accent); padding:3px 10px; border-radius:99px; font-size:11px; font-weight:700; margin-top:8px;}
 
-/* reward */
 .reward-card{display:flex; align-items:center; gap:16px;}
 .reward-icon{font-size:34px;}
 .reward-need{font-size:12.5px; color:var(--text-dim); margin-top:6px;}
 
-/* leaderboard */
 .lb-row{display:flex; align-items:center; gap:12px; padding:10px 12px; border-radius:10px;}
 .lb-row.me{background:var(--accent-dim); border:1px solid var(--accent);}
 .lb-rank{width:26px; font-family:'Rajdhani',sans-serif; font-weight:700; font-size:15px; color:var(--text-dim); text-align:center;}
@@ -183,10 +183,15 @@ main{max-width:1180px; margin:0 auto; padding:28px 26px 80px;}
 .lb-pts{font-family:'JetBrains Mono',monospace; font-size:13px; color:var(--accent); font-weight:600;}
 .lb-tier-dot{width:8px; height:8px; border-radius:50%;}
 
-/* team clean rate */
 .rate-ring{width:56px; height:56px; border-radius:50%; display:flex; align-items:center; justify-content:center; font-family:'Rajdhani',sans-serif; font-weight:700; font-size:14px;}
 
-/* tables */
+.bar-chart{display:flex; align-items:flex-end; gap:8px; height:170px; padding-top:14px; overflow-x:auto;}
+.bar-col{flex:1; min-width:34px; display:flex; flex-direction:column; align-items:center; justify-content:flex-end; gap:6px; height:100%;}
+.bar-count{font-size:11px; font-weight:700; color:var(--text-dim); font-family:'JetBrains Mono',monospace;}
+.bar{width:100%; max-width:30px; border-radius:6px 6px 2px 2px; background:linear-gradient(180deg, var(--danger), var(--danger-dim)); transition:height .4s ease; min-height:3px;}
+.bar.zero{background:var(--border);}
+.bar-label{font-size:10px; color:var(--text-faint); white-space:nowrap;}
+
 table{width:100%; border-collapse:collapse; font-size:13.5px;}
 th{text-align:left; padding:10px 12px; color:var(--text-faint); font-weight:600; font-size:11px; text-transform:uppercase; letter-spacing:.05em; border-bottom:1px solid var(--border);}
 td{padding:12px; border-bottom:1px solid var(--border-soft);}
@@ -197,7 +202,6 @@ tr:last-child td{border-bottom:none;}
 .empty-state{text-align:center; padding:50px 20px; color:var(--text-faint); font-size:13.5px;}
 .empty-state .ic{font-size:30px; margin-bottom:10px;}
 
-/* modal */
 .modal-bg{position:fixed; inset:0; background:rgba(4,6,10,.6); backdrop-filter:blur(3px); z-index:200; display:flex; align-items:center; justify-content:center; padding:20px;}
 .modal{background:var(--card); border:1px solid var(--border); border-radius:14px; padding:24px; width:100%; max-width:420px; box-shadow:var(--shadow);}
 .modal h3{font-size:18px; margin-bottom:4px;}
@@ -223,8 +227,14 @@ tr:last-child td{border-bottom:none;}
 
 <div class="toast-wrap" id="toastWrap"></div>
 
+<!-- ============ BOOT / LOADING ============ -->
+<div id="bootScreen">
+  <div class="spinner"></div>
+  <div class="lbl">Connecting to Firebase…</div>
+</div>
+
 <!-- ============ AUTH SCREEN ============ -->
-<div id="authScreen">
+<div id="authScreen" class="hidden">
   <div class="auth-side">
     <div class="brand">CE · Normal Point System</div>
     <h1>Keep clean.<br>Build your streak.<br>Rank up.</h1>
@@ -233,35 +243,44 @@ tr:last-child td{border-bottom:none;}
   </div>
   <div class="auth-form-wrap">
     <div class="auth-form">
-      <div class="auth-toggle">
-        <button id="tabLogin" class="active">เข้าสู่ระบบ</button>
-        <button id="tabSignup">สมัครสมาชิก</button>
+
+      <!-- OWNER BOOTSTRAP (shown only if no owner exists yet in Firestore) -->
+      <div id="ownerSetupPane" class="hidden">
+        <div class="owner-setup-badge">⚡ First-time setup</div>
+        <h2>สร้างบัญชี Owner</h2>
+        <div class="sub">ยังไม่มีบัญชี Owner ในระบบ — สร้างบัญชีนี้ครั้งเดียวเพื่อเริ่มใช้งาน (Owner จะแต่งตั้งใครก็ได้เป็น Admin ได้ในภายหลัง)</div>
+        <div class="field"><label>Owner Name</label><input id="osName" value="Phakin"></div>
+        <div class="field"><label>Username</label><input id="osUser" value="thpimcha"></div>
+        <div class="field"><label>Password</label><input id="osPass" type="password" value="admin123"></div>
+        <div class="auth-error" id="ownerSetupErr"></div>
+        <button class="btn btn-primary" style="width:100%" id="ownerSetupBtn" onclick="window.createOwnerAccount()">Create Owner Account</button>
       </div>
 
-      <!-- LOGIN -->
-      <div id="loginPane">
-        <h2>ยินดีต้อนรับกลับ</h2>
-        <div class="sub">เข้าสู่ระบบด้วยบัญชีของคุณ</div>
-        <div class="field"><label>Username</label><input id="loginUser" placeholder="เช่น pond"></div>
-        <div class="field"><label>Password</label><input id="loginPass" type="password" placeholder="••••••••"></div>
-        <div class="auth-error" id="loginErr"></div>
-        <button class="btn btn-primary" style="width:100%" onclick="doLogin()">เข้าสู่ระบบ</button>
-        <div class="demo-note">
-          <b>บัญชีทดลอง</b><br>
-          Owner/Admin: <b class="mono">phakin</b> / <b class="mono">admin123</b><br>
-          Employee: <b class="mono">pond</b> / <b class="mono">1234</b>
+      <!-- LOGIN / SIGNUP -->
+      <div id="authPanes">
+        <div class="auth-toggle">
+          <button id="tabLogin" class="active">เข้าสู่ระบบ</button>
+          <button id="tabSignup">สมัครสมาชิก</button>
         </div>
-      </div>
 
-      <!-- SIGNUP -->
-      <div id="signupPane" class="hidden">
-        <h2>สร้างบัญชีใหม่</h2>
-        <div class="sub">สมัครเป็นพนักงาน — สิทธิ์ Admin จะถูกแต่งตั้งโดย Owner เท่านั้น</div>
-        <div class="field"><label>ชื่อ-นามสกุล</label><input id="suName" placeholder="เช่น สมชาย ใจดี"></div>
-        <div class="field"><label>Username</label><input id="suUser" placeholder="เช่น somchai"></div>
-        <div class="field"><label>Password</label><input id="suPass" type="password" placeholder="••••••••"></div>
-        <div class="auth-error" id="signupErr"></div>
-        <button class="btn btn-primary" style="width:100%" onclick="doSignup()">สมัครสมาชิก</button>
+        <div id="loginPane">
+          <h2>ยินดีต้อนรับกลับ</h2>
+          <div class="sub">เข้าสู่ระบบด้วยบัญชีของคุณ</div>
+          <div class="field"><label>Username</label><input id="loginUser" placeholder="เช่น thpimcha"></div>
+          <div class="field"><label>Password</label><input id="loginPass" type="password" placeholder="••••••••"></div>
+          <div class="auth-error" id="loginErr"></div>
+          <button class="btn btn-primary" style="width:100%" id="loginBtn" onclick="window.doLogin()">เข้าสู่ระบบ</button>
+        </div>
+
+        <div id="signupPane" class="hidden">
+          <h2>สร้างบัญชีใหม่</h2>
+          <div class="sub">สมัครเป็นพนักงาน — สิทธิ์ Admin จะถูกแต่งตั้งโดย Owner/Admin เท่านั้น</div>
+          <div class="field"><label>ชื่อ-นามสกุล</label><input id="suName" placeholder="เช่น สมชาย ใจดี"></div>
+          <div class="field"><label>Username</label><input id="suUser" placeholder="เช่น somchai"></div>
+          <div class="field"><label>Password</label><input id="suPass" type="password" placeholder="อย่างน้อย 6 ตัวอักษร"></div>
+          <div class="auth-error" id="signupErr"></div>
+          <button class="btn btn-primary" style="width:100%" id="signupBtn" onclick="window.doSignup()">สมัครสมาชิก</button>
+        </div>
       </div>
     </div>
   </div>
@@ -275,20 +294,20 @@ tr:last-child td{border-bottom:none;}
       <div class="nav-tabs" id="navTabs"></div>
     </div>
     <div class="tb-right">
-      <button class="icon-btn" id="themeBtn" onclick="toggleTheme()">🌙</button>
-      <button class="icon-btn" id="bellBtn" onclick="toggleDropdown('notif')">🔔<span class="badge-dot hidden" id="notifBadge">0</span></button>
-      <div class="role-chip" onclick="toggleDropdown('user')">
+      <button class="icon-btn" id="themeBtn" onclick="window.toggleTheme()">🌙</button>
+      <button class="icon-btn" id="bellBtn" onclick="window.toggleDropdown('notif')">🔔<span class="badge-dot hidden" id="notifBadge">0</span></button>
+      <div class="role-chip" onclick="window.toggleDropdown('user')">
         <span class="avatar" id="chipAvatar">?</span>
         <span id="chipName">—</span>
       </div>
       <div id="notifDropdown" class="dropdown hidden">
-        <div class="dropdown-head"><span id="notifTitle">Notifications</span><button class="btn btn-ghost btn-sm" onclick="markAllRead()">Mark all read</button></div>
+        <div class="dropdown-head"><span id="notifTitle">Notifications</span><button class="btn btn-ghost btn-sm" onclick="window.markAllRead()">Mark all read</button></div>
         <div id="notifList"></div>
       </div>
       <div id="userDropdown" class="dropdown hidden">
         <div class="dropdown-head">บัญชีของฉัน</div>
         <div class="user-menu-item" id="userInfoLine"></div>
-        <div class="user-menu-item" style="cursor:pointer;color:var(--danger)" onclick="logout()">⏻ ออกจากระบบ</div>
+        <div class="user-menu-item" style="cursor:pointer;color:var(--danger)" onclick="window.logout()">⏻ ออกจากระบบ</div>
       </div>
     </div>
   </header>
@@ -354,7 +373,7 @@ tr:last-child td{border-bottom:none;}
 
     <!-- ============ EMPLOYEE: REWARDS ============ -->
     <div class="page" id="page-emp-rewards">
-      <div class="page-head"><div><h1>🎁 Rewards</h1><div class="sub">แลก Reward ด้วย Normal Point ของคุณ</div></div></div>
+      <div class="page-head"><div><h1>🎁 Rewards</h1><div class="sub">แลก Reward ด้วย Normal Point — ระบบหักแต้มทันทีตอนขอแลก และคืนแต้มอัตโนมัติถ้าคำขอถูก Reject</div></div></div>
       <div class="grid g-3" id="empRewardGrid"></div>
     </div>
 
@@ -390,27 +409,50 @@ tr:last-child td{border-bottom:none;}
           <div style="font-size:12.5px; color:var(--text-dim); margin-top:6px;" id="adTeamStreakSub"></div>
         </div>
       </div>
+      <div class="card" style="margin-top:16px;">
+        <div class="card-title">📊 Investigations by Month</div>
+        <div id="adInvChart"></div>
+      </div>
     </div>
 
     <!-- ============ ADMIN: EMPLOYEES ============ -->
     <div class="page" id="page-admin-employees">
       <div class="section-toolbar">
         <div><h1>Employees</h1><div class="sub">จัดการพนักงานและสิทธิ์ Admin</div></div>
-        <button class="btn btn-primary" onclick="openAddEmployee()">+ Add Employee</button>
+        <button class="btn btn-primary" onclick="window.openAddEmployee()">+ Add Employee</button>
       </div>
+      <div class="card-title" style="margin:4px 0 8px;">👑 Owner &amp; Admin</div>
+      <div class="card table-wrap" style="margin-bottom:22px;"><table id="adminTable"></table></div>
+      <div class="card-title" style="margin:4px 0 8px;">🧑‍💼 Employees</div>
       <div class="card table-wrap"><table id="empTable"></table></div>
     </div>
 
     <!-- ============ ADMIN: POINTS ============ -->
     <div class="page" id="page-admin-points">
-      <div class="page-head"><div><h1>Points</h1><div class="sub">Add / Deduct Point — ต้องระบุเหตุผลทุกครั้ง</div></div></div>
-      <div class="card" style="max-width:520px;">
-        <div class="field"><label>Employee</label><select id="ptUser"></select></div>
-        <div class="field"><label>Amount</label><input id="ptAmount" type="number" step="0.5" placeholder="เช่น 1"></div>
-        <div class="field"><label>Reason (required)</label><input id="ptReason" placeholder="เช่น No investigation this month"></div>
-        <div class="action-row">
-          <button class="btn btn-primary" onclick="submitPoint(1)">+ Add Point</button>
-          <button class="btn btn-danger" onclick="submitPoint(-1)">− Deduct Point</button>
+      <div class="page-head"><div><h1>Points</h1><div class="sub">Add / Deduct Point และตั้งค่า Clean Streak — ต้องระบุเหตุผลทุกครั้ง (บันทึกลง Firestore แบบ Atomic)</div></div></div>
+      <div class="grid g-2">
+        <div class="card">
+          <div class="card-title">💰 Normal Point</div>
+          <div class="field"><label>Employee</label><select id="ptUser"></select></div>
+          <div class="field"><label>Amount</label><input id="ptAmount" type="number" step="0.5" placeholder="เช่น 1"></div>
+          <div class="field"><label>Reason (required)</label><input id="ptReason" placeholder="เช่น No investigation this month"></div>
+          <div class="action-row">
+            <button class="btn btn-primary" id="ptAddBtn" onclick="window.submitPoint(1)">+ Add Point</button>
+            <button class="btn btn-danger" id="ptDeductBtn" onclick="window.submitPoint(-1)">− Deduct Point</button>
+          </div>
+        </div>
+        <div class="card">
+          <div class="card-title">🔥 Clean Streak</div>
+          <div class="sub" style="margin:-2px 0 14px; font-size:12.5px; color:var(--text-dim);">ใช้ Employee เดียวกับช่องซ้าย — ตั้งจำนวนเดือน Clean Streak ปัจจุบันของพนักงาน</div>
+          <div class="field"><label>Current Streak (months)</label><input id="stMonths" type="number" min="0" step="1" placeholder="เช่น 5"></div>
+          <div class="field"><label>Reason (required)</label><input id="stReason" placeholder="เช่น Monthly streak update"></div>
+          <div class="action-row">
+            <button class="btn btn-primary" id="stSetBtn" onclick="window.submitStreak()">Set Streak</button>
+          </div>
+          <div style="margin-top:14px; padding-top:14px; border-top:1px dashed var(--border);">
+            <button class="btn btn-danger" style="width:100%" id="invBtn" onclick="window.recordInvestigation()">🚨 Record Investigation (resets Streak to 0)</button>
+            <div style="font-size:11.5px; color:var(--text-faint); margin-top:6px;">ใช้ Reason ด้านบนช่องเดียวกัน — ระบบจะบันทึกลงกราฟ Investigations by Month ในหน้า Dashboard ให้อัตโนมัติ</div>
+          </div>
         </div>
       </div>
     </div>
@@ -419,14 +461,14 @@ tr:last-child td{border-bottom:none;}
     <div class="page" id="page-admin-rewards">
       <div class="section-toolbar">
         <div><h1>Rewards</h1><div class="sub">จัดการรายการ Reward</div></div>
-        <button class="btn btn-primary" onclick="openAddReward()">+ Add Reward</button>
+        <button class="btn btn-primary" onclick="window.openAddReward()">+ Add Reward</button>
       </div>
       <div class="grid g-3" id="adRewardGrid"></div>
     </div>
 
     <!-- ============ ADMIN: REDEMPTION REQUESTS ============ -->
     <div class="page" id="page-admin-redemptions">
-      <div class="page-head"><div><h1>Redemption Requests</h1><div class="sub">อนุมัติ / ปฏิเสธคำขอแลก Reward</div></div></div>
+      <div class="page-head"><div><h1>Redemption Requests</h1><div class="sub">อนุมัติ / ปฏิเสธคำขอแลก Reward — Reject จะคืนแต้มให้พนักงานอัตโนมัติ</div></div></div>
       <div id="adRedemptionList"></div>
     </div>
 
@@ -440,37 +482,37 @@ tr:last-child td{border-bottom:none;}
 
 <div id="modalRoot"></div>
 
-<script>
+<script type="module">
+import { initializeApp, deleteApp } from "https://www.gstatic.com/firebasejs/10.13.0/firebase-app.js";
+import {
+  getAuth, onAuthStateChanged, signInWithEmailAndPassword, createUserWithEmailAndPassword, signOut
+} from "https://www.gstatic.com/firebasejs/10.13.0/firebase-auth.js";
+import {
+  getFirestore, doc, getDoc, setDoc, updateDoc, deleteDoc, addDoc, collection,
+  query, where, orderBy, limit, onSnapshot, getDocs, runTransaction, serverTimestamp, increment, writeBatch
+} from "https://www.gstatic.com/firebasejs/10.13.0/firebase-firestore.js";
+
 /* =========================================================
-   MOCK DATA STORE  (in-memory only — no localStorage,
-   so this resets on reload. Swap for Firebase later.)
+   FIREBASE INIT
 ========================================================= */
-let uid = 100;
-const nextId = (p)=> p + (uid++);
+const firebaseConfig = {
+  apiKey: "AIzaSyAUiuOs0Hg1bT8PvYy3M42zj9VL84yrxts",
+  authDomain: "cenolmal.firebaseapp.com",
+  projectId: "cenolmal",
+  storageBucket: "cenolmal.firebasestorage.app",
+  messagingSenderId: "736326565007",
+  appId: "1:736326565007:web:3ba5f4969a1405891584fa"
+};
+const fbApp = initializeApp(firebaseConfig);
+const auth = getAuth(fbApp);
+const db = getFirestore(fbApp);
 
-let users = [
-  {id:'u1', username:'phakin', password:'admin123', name:'Phakin', role:'admin', owner:true, points:9, tierPoints:4, streakMonths:5, bestStreak:6, joined:'2025-06-01'},
-  {id:'u2', username:'pond',   password:'1234', name:'POND', role:'employee', owner:false, points:12, tierPoints:6, streakMonths:5, bestStreak:5, joined:'2025-07-12'},
-  {id:'u3', username:'aan',    password:'1234', name:'AAN',  role:'employee', owner:false, points:8,  tierPoints:3, streakMonths:3, bestStreak:3, joined:'2025-08-03'},
-  {id:'u4', username:'som',    password:'1234', name:'SOM',  role:'employee', owner:false, points:7,  tierPoints:5, streakMonths:2, bestStreak:4, joined:'2025-09-01'},
-  {id:'u5', username:'nam',    password:'1234', name:'NAM',  role:'employee', owner:false, points:5,  tierPoints:0, streakMonths:0, bestStreak:2, joined:'2025-09-20'},
-  {id:'u6', username:'kai',    password:'1234', name:'KAI',  role:'employee', owner:false, points:3,  tierPoints:3, streakMonths:1, bestStreak:1, joined:'2025-10-10'},
-];
+const EMAIL_DOMAIN = "cenolmal.app"; // username -> synthetic email for Firebase Auth
+const usernameToEmail = (u) => `${u.trim().toLowerCase()}@${EMAIL_DOMAIN}`;
 
-let rewards = [
-  {id:'r1', name:'Coffee Voucher', icon:'☕', cost:10},
-  {id:'r2', name:'Lunch Voucher', icon:'🍱', cost:20},
-  {id:'r3', name:'Half-day Leave', icon:'🌴', cost:40},
-];
-
-let redemptions = []; // {id,userId,rewardId,status,reason,requestedAt,resolvedAt,resolvedBy}
-let notifications = []; // {id,userId('admin' = broadcast to admins),text,time,read,type}
-let history = []; // {id,userId,action,points,reason,performedBy,status,time}
-
-let currentUser = null;
-let currentPage = null;
-
-/* ---------- TIER CONFIG ---------- */
+/* =========================================================
+   TIER CONFIG
+========================================================= */
 const TIERS = [
   {key:'SILVER',   label:'Silver',   min:0, max:2,        inc:1,   color:'var(--silver)',   icon:'🛡'},
   {key:'GOLD',     label:'Gold',     min:3, max:4,        inc:1.5, color:'var(--gold)',     icon:'★'},
@@ -480,20 +522,37 @@ const TIERS = [
 ];
 function tierForStreak(m){ return TIERS.find(t=>m>=t.min && m<=t.max) || TIERS[0]; }
 function romanish(n){ const r=['I','II','III','IV','V','VI','VII','VIII','IX','X']; return r[n-1] || n; }
-function fmtPts(n){ return (Math.round(n*10)/10).toString().replace(/\.0$/,''); }
-
+function fmtPts(n){ return (Math.round((n||0)*10)/10).toString().replace(/\.0$/,''); }
 function targetInfo(user){
-  const tier = tierForStreak(user.streakMonths);
+  const tier = tierForStreak(user.streakMonths||0);
   const inc = tier.inc;
-  const level = Math.floor((user.tierPoints + 1e-9) / inc) + 1;
+  const tp = user.tierPoints||0;
+  const level = Math.floor((tp + 1e-9) / inc) + 1;
   const floorPts = inc*(level-1);
-  const target = inc*level;
-  const current = user.tierPoints - floorPts;
-  const completed = current >= target-floorPts-1e-9 ? false : false;
-  const pct = Math.min(100, Math.round((current/(target-floorPts))*100));
-  const isComplete = user.tierPoints >= target - 1e-9;
-  return {tier, level, target: inc*level, current: user.tierPoints - floorPts, need: inc, pct: Math.min(100,Math.round(((user.tierPoints-floorPts)/inc)*100)), remaining: Math.max(0, inc - (user.tierPoints-floorPts)), nextLevel: level+1, nextTarget: inc*(level+1)};
+  return {
+    tier, level,
+    target: inc*level,
+    current: tp - floorPts,
+    need: inc,
+    pct: Math.min(100, Math.round(((tp-floorPts)/inc)*100)),
+    remaining: Math.max(0, inc - (tp-floorPts)),
+    nextLevel: level+1,
+    nextTarget: inc*(level+1)
+  };
 }
+
+/* =========================================================
+   STATE
+========================================================= */
+let currentUser = null;   // merged {uid, username, name, role, owner, points, tierPoints, streakMonths, bestStreak, joined}
+let currentPage = null;
+let users = [];
+let rewards = [];
+let redemptions = [];
+let notifications = [];
+let history = [];
+let investigations = [];
+let liveUnsubs = [];
 
 /* =========================================================
    TOAST
@@ -504,11 +563,79 @@ function toast(msg, isErr){
   el.className = 'toast' + (isErr?' err':'');
   el.textContent = msg;
   wrap.appendChild(el);
-  setTimeout(()=>{ el.style.opacity='0'; el.style.transition='opacity .3s'; setTimeout(()=>el.remove(),300); }, 3200);
+  setTimeout(()=>{ el.style.opacity='0'; el.style.transition='opacity .3s'; setTimeout(()=>el.remove(),300); }, 3500);
+}
+function friendlyAuthError(err){
+  const c = err && err.code || '';
+  if(c.includes('wrong-password') || c.includes('invalid-credential') || c.includes('user-not-found')) return 'Username หรือ Password ไม่ถูกต้อง';
+  if(c.includes('email-already-in-use')) return 'Username นี้ถูกใช้แล้ว';
+  if(c.includes('weak-password')) return 'Password ต้องมีอย่างน้อย 6 ตัวอักษร';
+  if(c.includes('network-request-failed')) return 'เชื่อมต่อ Firebase ไม่ได้ ตรวจสอบอินเทอร์เน็ต';
+  return err && err.message ? err.message : 'เกิดข้อผิดพลาด กรุณาลองใหม่';
 }
 
 /* =========================================================
-   AUTH
+   BOOTSTRAP — check if an Owner exists yet
+========================================================= */
+async function checkBootstrap(){
+  document.getElementById('bootScreen').classList.add('hidden');
+  onAuthStateChanged(auth, async (fbUser)=>{
+    if(fbUser){
+      await hydrateCurrentUser(fbUser.uid);
+      if(currentUser){ enterApp(); return; }
+    }
+    // no logged-in user (or profile missing) -> show auth flow
+    document.getElementById('authScreen').classList.remove('hidden');
+    document.getElementById('app').classList.remove('active');
+    await refreshOwnerSetupVisibility();
+  });
+}
+
+async function refreshOwnerSetupVisibility(){
+  try{
+    const q = query(collection(db,'users'), where('owner','==', true), limit(1));
+    const snap = await getDocs(q);
+    if(snap.empty){
+      document.getElementById('ownerSetupPane').classList.remove('hidden');
+      document.getElementById('authPanes').classList.add('hidden');
+    } else {
+      document.getElementById('ownerSetupPane').classList.add('hidden');
+      document.getElementById('authPanes').classList.remove('hidden');
+    }
+  }catch(e){
+    // Firestore rules may not be configured yet — fall back to normal login screen
+    document.getElementById('authPanes').classList.remove('hidden');
+    document.getElementById('ownerSetupPane').classList.add('hidden');
+    console.warn('Could not check owner bootstrap state:', e);
+  }
+}
+
+window.createOwnerAccount = async function(){
+  const btn = document.getElementById('ownerSetupBtn');
+  const name = document.getElementById('osName').value.trim();
+  const uname = document.getElementById('osUser').value.trim();
+  const pass = document.getElementById('osPass').value;
+  const err = document.getElementById('ownerSetupErr');
+  err.textContent='';
+  if(!name || !uname || !pass){ err.textContent='กรอกข้อมูลให้ครบ'; return; }
+  btn.disabled = true; btn.textContent = 'Creating…';
+  try{
+    const cred = await createUserWithEmailAndPassword(auth, usernameToEmail(uname), pass);
+    await setDoc(doc(db,'users',cred.user.uid), {
+      username: uname.toLowerCase(), name, role:'admin', owner:true,
+      points:0, tierPoints:0, streakMonths:0, bestStreak:0,
+      joined: serverTimestamp(), createdAt: serverTimestamp()
+    });
+    toast('สร้างบัญชี Owner สำเร็จ');
+    // onAuthStateChanged will pick this up and enter the app
+  }catch(e){
+    err.textContent = friendlyAuthError(e);
+    btn.disabled = false; btn.textContent = 'Create Owner Account';
+  }
+};
+
+/* =========================================================
+   AUTH — LOGIN / SIGNUP / LOGOUT
 ========================================================= */
 document.getElementById('tabLogin').onclick = ()=>{
   document.getElementById('tabLogin').classList.add('active');
@@ -523,38 +650,67 @@ document.getElementById('tabSignup').onclick = ()=>{
   document.getElementById('loginPane').classList.add('hidden');
 };
 
-function doLogin(){
+window.doLogin = async function(){
   const u = document.getElementById('loginUser').value.trim();
   const p = document.getElementById('loginPass').value;
   const err = document.getElementById('loginErr');
-  const found = users.find(x=>x.username.toLowerCase()===u.toLowerCase() && x.password===p);
-  if(!found){ err.textContent='Username หรือ Password ไม่ถูกต้อง'; return; }
+  const btn = document.getElementById('loginBtn');
   err.textContent='';
-  currentUser = found;
-  enterApp();
-}
+  if(!u || !p){ err.textContent='กรอก Username และ Password'; return; }
+  btn.disabled = true; btn.textContent='Signing in…';
+  try{
+    await signInWithEmailAndPassword(auth, usernameToEmail(u), p);
+    // onAuthStateChanged handles the rest
+  }catch(e){
+    err.textContent = friendlyAuthError(e);
+  }finally{
+    btn.disabled = false; btn.textContent='เข้าสู่ระบบ';
+  }
+};
 
-function doSignup(){
+window.doSignup = async function(){
   const name = document.getElementById('suName').value.trim();
   const u = document.getElementById('suUser').value.trim();
   const p = document.getElementById('suPass').value;
   const err = document.getElementById('signupErr');
-  if(!name || !u || !p){ err.textContent='กรอกข้อมูลให้ครบทุกช่อง'; return; }
-  if(users.find(x=>x.username.toLowerCase()===u.toLowerCase())){ err.textContent='Username นี้ถูกใช้แล้ว'; return; }
-  const nu = {id:nextId('u'), username:u, password:p, name, role:'employee', owner:false, points:0, tierPoints:0, streakMonths:0, bestStreak:0, joined:new Date().toISOString().slice(0,10)};
-  users.push(nu);
+  const btn = document.getElementById('signupBtn');
   err.textContent='';
-  toast('สมัครสมาชิกสำเร็จ! เข้าสู่ระบบในฐานะ Employee');
-  currentUser = nu;
-  enterApp();
-}
+  if(!name || !u || !p){ err.textContent='กรอกข้อมูลให้ครบทุกช่อง'; return; }
+  btn.disabled = true; btn.textContent='Creating…';
+  try{
+    const cred = await createUserWithEmailAndPassword(auth, usernameToEmail(u), p);
+    await setDoc(doc(db,'users',cred.user.uid), {
+      username: u.toLowerCase(), name, role:'employee', owner:false,
+      points:0, tierPoints:0, streakMonths:0, bestStreak:0,
+      joined: serverTimestamp(), createdAt: serverTimestamp()
+    });
+    toast('สมัครสมาชิกสำเร็จ! เข้าสู่ระบบในฐานะ Employee');
+    document.getElementById('suName').value='';
+    document.getElementById('suUser').value='';
+    document.getElementById('suPass').value='';
+  }catch(e){
+    err.textContent = friendlyAuthError(e);
+  }finally{
+    btn.disabled = false; btn.textContent='สมัครสมาชิก';
+  }
+};
 
-function logout(){
+window.logout = async function(){
+  liveUnsubs.forEach(fn=>fn && fn());
+  liveUnsubs = [];
+  await signOut(auth);
   currentUser = null;
   document.getElementById('app').classList.remove('active');
-  document.getElementById('authScreen').style.display = 'flex';
+  document.getElementById('authScreen').classList.remove('hidden');
   document.getElementById('loginUser').value=''; document.getElementById('loginPass').value='';
   closeDropdowns();
+  await refreshOwnerSetupVisibility();
+};
+
+async function hydrateCurrentUser(uid){
+  const snap = await getDoc(doc(db,'users',uid));
+  if(!snap.exists()){ currentUser = null; return; }
+  currentUser = { uid, id: uid, ...snap.data() };
 }
 
 /* =========================================================
@@ -576,12 +732,12 @@ const ADMIN_TABS = [
 ];
 
 function enterApp(){
-  document.getElementById('authScreen').style.display = 'none';
+  document.getElementById('authScreen').classList.add('hidden');
   document.getElementById('app').classList.add('active');
   buildNav();
-  goto(currentUser.role==='admin' ? 'admin-dashboard' : 'emp-dashboard');
   renderShell();
-  renderAll();
+  attachLiveListeners();
+  goto(currentUser.role==='admin' ? 'admin-dashboard' : 'emp-dashboard');
 }
 
 function buildNav(){
@@ -597,7 +753,7 @@ function buildNav(){
   });
 }
 
-function goto(key){
+window.goto = function(key){
   currentPage = key;
   document.querySelectorAll('.page').forEach(p=>p.classList.remove('active'));
   const el = document.getElementById('page-'+key);
@@ -607,21 +763,21 @@ function goto(key){
   });
   closeDropdowns();
   renderAll();
-}
+};
+function goto(key){ window.goto(key); }
 
 function renderShell(){
-  document.getElementById('chipAvatar').textContent = currentUser.name.charAt(0).toUpperCase();
+  document.getElementById('chipAvatar').textContent = (currentUser.name||'?').charAt(0).toUpperCase();
   document.getElementById('chipName').textContent = currentUser.name + (currentUser.owner ? ' · Owner' : currentUser.role==='admin' ? ' · Admin' : '');
   document.getElementById('userInfoLine').innerHTML = `<b>${currentUser.name}</b>&nbsp; <span style="color:var(--text-dim)">(@${currentUser.username})</span>`;
 }
 
-/* ---------- dropdowns ---------- */
-function toggleDropdown(which){
+window.toggleDropdown = function(which){
   const notif = document.getElementById('notifDropdown');
   const user = document.getElementById('userDropdown');
   if(which==='notif'){ user.classList.add('hidden'); notif.classList.toggle('hidden'); renderNotifPanel(); }
   else { notif.classList.add('hidden'); user.classList.toggle('hidden'); }
-}
+};
 function closeDropdowns(){
   document.getElementById('notifDropdown').classList.add('hidden');
   document.getElementById('userDropdown').classList.add('hidden');
@@ -631,63 +787,118 @@ document.addEventListener('click', (e)=>{
   if(!e.target.closest('.role-chip') && !e.target.closest('#userDropdown')) document.getElementById('userDropdown').classList.add('hidden');
 });
 
-/* =========================================================
-   THEME
-========================================================= */
-function toggleTheme(){
+window.toggleTheme = function(){
   const html = document.documentElement;
   const next = html.dataset.theme==='dark' ? 'light' : 'dark';
   html.dataset.theme = next;
   document.getElementById('themeBtn').textContent = next==='dark' ? '🌙' : '☀️';
+};
+
+/* =========================================================
+   LIVE FIRESTORE LISTENERS
+========================================================= */
+function attachLiveListeners(){
+  liveUnsubs.forEach(fn=>fn && fn());
+  liveUnsubs = [];
+
+  // users (all — needed for leaderboard/team stats everywhere)
+  liveUnsubs.push(onSnapshot(collection(db,'users'), (snap)=>{
+    users = snap.docs.map(d=>({id:d.id, uid:d.id, ...d.data()}));
+    const me = users.find(u=>u.id===currentUser.uid);
+    if(me) currentUser = me;
+    renderAll();
+  }, (e)=> console.warn('users listener error', e)));
+
+  // rewards
+  liveUnsubs.push(onSnapshot(collection(db,'rewards'), (snap)=>{
+    rewards = snap.docs.map(d=>({id:d.id, ...d.data()})).sort((a,b)=>(a.cost||0)-(b.cost||0));
+    renderAll();
+  }, (e)=> console.warn('rewards listener error', e)));
+
+  // redemptions (admin: all, employee: own)
+  const redemQ = currentUser.role==='admin'
+    ? query(collection(db,'redemptions'), orderBy('requestedAt','desc'), limit(100))
+    : query(collection(db,'redemptions'), where('userId','==',currentUser.uid), orderBy('requestedAt','desc'), limit(50));
+  liveUnsubs.push(onSnapshot(redemQ, (snap)=>{
+    redemptions = snap.docs.map(d=>({id:d.id, ...d.data()}));
+    renderAll();
+  }, (e)=> console.warn('redemptions listener error', e)));
+
+  // notifications
+  const notifQ = currentUser.role==='admin'
+    ? query(collection(db,'notifications'), where('userId','==','admin'), orderBy('createdAt','desc'), limit(30))
+    : query(collection(db,'notifications'), where('userId','==',currentUser.uid), orderBy('createdAt','desc'), limit(30));
+  liveUnsubs.push(onSnapshot(notifQ, (snap)=>{
+    notifications = snap.docs.map(d=>({id:d.id, ...d.data()}));
+    renderNotifBadge(); renderNotifPanel();
+  }, (e)=> console.warn('notifications listener error', e)));
+
+  // history
+  const histQ = currentUser.role==='admin'
+    ? query(collection(db,'history'), orderBy('createdAt','desc'), limit(150))
+    : query(collection(db,'history'), where('userId','==',currentUser.uid), orderBy('createdAt','desc'), limit(100));
+  liveUnsubs.push(onSnapshot(histQ, (snap)=>{
+    history = snap.docs.map(d=>({id:d.id, ...d.data()}));
+    renderAll();
+  }, (e)=> console.warn('history listener error', e)));
+
+  // investigations (admin only — feeds the "Investigations by Month" chart)
+  if(currentUser.role==='admin'){
+    liveUnsubs.push(onSnapshot(query(collection(db,'investigations'), orderBy('createdAt','desc'), limit(1000)), (snap)=>{
+      investigations = snap.docs.map(d=>({id:d.id, ...d.data()}));
+      renderAll();
+    }, (e)=> console.warn('investigations listener error', e)));
+  }
 }
 
 /* =========================================================
-   NOTIFICATIONS
+   NOTIFICATIONS (write helpers)
 ========================================================= */
-function notifyUser(userId, text, type){
-  notifications.unshift({id:nextId('n'), userId, text, type, time:new Date(), read:false});
+async function notifyUser(userId, text, type){
+  await addDoc(collection(db,'notifications'), {userId, text, type, read:false, createdAt: serverTimestamp()});
 }
-function notifyAdmins(text, type){
-  notifications.unshift({id:nextId('n'), userId:'admin', text, type, time:new Date(), read:false});
+async function notifyAdmins(text, type){
+  await addDoc(collection(db,'notifications'), {userId:'admin', text, type, read:false, createdAt: serverTimestamp()});
 }
-function myNotifications(){
-  if(currentUser.role==='admin') return notifications.filter(n=>n.userId==='admin');
-  return notifications.filter(n=>n.userId===currentUser.id);
-}
-function timeAgo(d){
+function timeAgo(ts){
+  if(!ts) return 'เมื่อสักครู่';
+  const d = ts.toDate ? ts.toDate() : new Date(ts);
   const diff = Math.floor((Date.now()-d.getTime())/1000);
   if(diff<60) return 'เมื่อสักครู่';
   if(diff<3600) return Math.floor(diff/60)+' นาทีที่แล้ว';
   if(diff<86400) return Math.floor(diff/3600)+' ชม.ที่แล้ว';
   return d.toLocaleDateString('en-GB',{day:'2-digit',month:'short',year:'numeric'});
 }
+function fmtDT(ts){
+  if(!ts) return '—';
+  const d = ts.toDate ? ts.toDate() : new Date(ts);
+  return d.toLocaleDateString('en-GB',{day:'2-digit',month:'short',year:'numeric'}) + ' ' + d.toLocaleTimeString('en-GB',{hour:'2-digit',minute:'2-digit'});
+}
 function renderNotifBadge(){
-  const mine = myNotifications();
-  const unread = mine.filter(n=>!n.read).length;
+  const unread = notifications.filter(n=>!n.read).length;
   const badge = document.getElementById('notifBadge');
   if(unread>0){ badge.textContent = unread; badge.classList.remove('hidden'); } else badge.classList.add('hidden');
 }
 function renderNotifPanel(){
-  const mine = myNotifications();
   const list = document.getElementById('notifList');
   document.getElementById('notifTitle').textContent = currentUser.role==='admin' ? 'Redemption Notifications' : 'Notifications';
-  if(mine.length===0){ list.innerHTML = '<div class="notif-empty">ยังไม่มีการแจ้งเตือน</div>'; return; }
-  list.innerHTML = mine.slice(0,12).map(n=>`
+  if(notifications.length===0){ list.innerHTML = '<div class="notif-empty">ยังไม่มีการแจ้งเตือน</div>'; return; }
+  list.innerHTML = notifications.slice(0,12).map(n=>`
     <div class="notif-item">
       <div class="t">${n.text}</div>
-      <div class="time">${timeAgo(n.time)}</div>
+      <div class="time">${timeAgo(n.createdAt)}</div>
     </div>`).join('');
 }
-function markAllRead(){
-  myNotifications().forEach(n=>n.read=true);
-  renderNotifBadge(); renderNotifPanel();
-}
+window.markAllRead = async function(){
+  const unread = notifications.filter(n=>!n.read);
+  await Promise.all(unread.map(n=> updateDoc(doc(db,'notifications',n.id), {read:true})));
+};
 
 /* =========================================================
-   HISTORY LOG
+   HISTORY LOG (write helper)
 ========================================================= */
-function logHistory(userId, action, points, reason, performedBy, status){
-  history.unshift({id:nextId('h'), userId, action, points, reason, performedBy, status, time:new Date()});
+async function logHistory(userId, action, points, reason, performedBy, status){
+  await addDoc(collection(db,'history'), {userId, action, points, reason: reason||null, performedBy, status, createdAt: serverTimestamp()});
 }
 function historyRowsHtml(rows, showUser){
   if(rows.length===0) return `<tr><td colspan="6"><div class="empty-state"><div class="ic">📭</div>ยังไม่มีประวัติ</div></td></tr>`;
@@ -701,7 +912,7 @@ function historyRowsHtml(rows, showUser){
       <td class="mono" style="color:${ptsColor}; font-weight:600;">${ptsTxt}</td>
       <td style="color:var(--text-dim)">${r.reason||'—'}</td>
       <td style="color:var(--text-dim)">${r.performedBy}</td>
-      <td style="color:var(--text-faint); white-space:nowrap;">${r.time.toLocaleDateString('en-GB',{day:'2-digit',month:'short',year:'numeric'})} ${r.time.toLocaleTimeString('en-GB',{hour:'2-digit',minute:'2-digit'})}</td>
+      <td style="color:var(--text-faint); white-space:nowrap;">${fmtDT(r.createdAt)}</td>
     </tr>`;
   }).join('');
 }
@@ -715,14 +926,53 @@ function renderAll(){
   if(currentUser.role==='admin') renderAdmin(); else renderEmployee();
 }
 
-/* ---------- EMPLOYEE VIEWS ---------- */
+function teamMembers(){
+  // Owner/Admin are excluded from all "team" stats (Clean Rate, Team Streak, etc.) — those reflect Employees only.
+  return users.filter(u=>u.role!=='admin');
+}
 function teamCleanRate(){
-  const total = users.filter(u=>u.role!=='admin' || true).length; // all users
-  const clean = users.filter(u=>u.streakMonths>0).length;
+  const team = teamMembers();
+  const total = team.length;
+  const clean = team.filter(u=>(u.streakMonths||0)>0).length;
   return total ? Math.round((clean/total)*100) : 0;
 }
+function displayTier(u){
+  // Owner/Admin always display as Predator, regardless of their actual streak.
+  if(u.role==='admin') return TIERS[TIERS.length-1];
+  return tierForStreak(u.streakMonths||0);
+}
+
+/* ---- monthly investigation chart helpers ---- */
+function monthKey(d){ return d.getFullYear()+'-'+String(d.getMonth()+1).padStart(2,'0'); }
+function monthLabel(d){ return d.toLocaleDateString('en-GB',{month:'short', year:'2-digit'}); }
+function lastNMonths(n){
+  const out = [];
+  const now = new Date();
+  for(let i=n-1; i>=0; i--){
+    const d = new Date(now.getFullYear(), now.getMonth()-i, 1);
+    out.push({key: monthKey(d), label: monthLabel(d)});
+  }
+  return out;
+}
+function renderInvestigationChart(){
+  const el = document.getElementById('adInvChart');
+  if(!el) return;
+  const months = lastNMonths(12);
+  const counts = months.map(m => investigations.filter(iv => iv.month===m.key).length);
+  const max = Math.max(1, ...counts);
+  el.innerHTML = `<div class="bar-chart">${months.map((m,i)=>{
+    const c = counts[i];
+    const h = c>0 ? Math.round((c/max)*140)+10 : 4;
+    return `<div class="bar-col">
+      <div class="bar-count">${c||''}</div>
+      <div class="bar ${c===0?'zero':''}" style="height:${h}px" title="${m.label}: ${c} investigation(s)"></div>
+      <div class="bar-label">${m.label}</div>
+    </div>`;
+  }).join('')}</div>`;
+}
 function leaderboardSorted(){
-  return [...users].sort((a,b)=>b.points-a.points);
+  // Owner/Admin accounts are not part of the ranking pool — only Employees show up in My Rank / Ranking / Top 3.
+  return users.filter(u=>u.role!=='admin').sort((a,b)=>(b.points||0)-(a.points||0));
 }
 
 function renderEmployee(){
@@ -732,13 +982,13 @@ function renderEmployee(){
   if(currentPage==='emp-dashboard'){
     document.getElementById('empPoints').textContent = fmtPts(u.points);
     const board = leaderboardSorted();
-    const rank = board.findIndex(x=>x.id===u.id)+1;
-    document.getElementById('empRankNum').textContent = '#'+rank;
+    const rank = board.findIndex(x=>x.id===u.uid)+1;
+    document.getElementById('empRankNum').textContent = rank ? '#'+rank : '#—';
 
-    document.getElementById('empStreak').textContent = u.streakMonths + (u.streakMonths===1?' MONTH':' MONTHS');
-    const t = tierForStreak(u.streakMonths);
+    document.getElementById('empStreak').textContent = (u.streakMonths||0) + ((u.streakMonths||0)===1?' MONTH':' MONTHS');
+    const t = tierForStreak(u.streakMonths||0);
     const nextTier = TIERS[TIERS.indexOf(t)+1];
-    document.getElementById('empStreakMsg').textContent = u.streakMonths===0 ? 'เริ่ม Streak ใหม่วันนี้ 💪' : (nextTier ? `อีก ${nextTier.min-u.streakMonths} เดือน → ${nextTier.label}` : 'ถึงระดับสูงสุดแล้ว 🏆');
+    document.getElementById('empStreakMsg').textContent = !u.streakMonths ? 'เริ่ม Streak ใหม่วันนี้ 💪' : (nextTier ? `อีก ${nextTier.min-u.streakMonths} เดือน → ${nextTier.label}` : 'ถึงระดับสูงสุดแล้ว 🏆');
     document.getElementById('empBestStreak').textContent = 'Previous best: ' + (u.bestStreak||0) + ' months';
 
     const ti = targetInfo(u);
@@ -759,29 +1009,27 @@ function renderEmployee(){
       tail.innerHTML = `<div class="target-next">อีก ${fmtPts(ti.remaining)} POINT → ${ti.tier.label} ${romanish(ti.level)}</div>`;
     }
 
-    // mini leaderboard (top 5 + me)
     const lbHtml = board.slice(0,5).map((x,i)=>{
-      const xt = tierForStreak(x.streakMonths);
-      return `<div class="lb-row ${x.id===u.id?'me':''}">
+      const xt = tierForStreak(x.streakMonths||0);
+      return `<div class="lb-row ${x.id===u.uid?'me':''}">
         <div class="lb-rank">${i===0?'🥇':i===1?'🥈':i===2?'🥉':'#'+(i+1)}</div>
         <div class="lb-tier-dot" style="background:${xt.color}"></div>
-        <div class="lb-name">${x.name}${x.id===u.id?' (คุณ)':''}</div>
+        <div class="lb-name">${x.name}${x.id===u.uid?' (คุณ)':''}</div>
         <div class="lb-pts">${fmtPts(x.points)}</div>
       </div>`;
     }).join('');
-    document.getElementById('empLeaderboard').innerHTML = lbHtml;
+    document.getElementById('empLeaderboard').innerHTML = lbHtml || `<div class="empty-state" style="padding:10px 0">No data</div>`;
 
-    // next reward
     const affordable = [...rewards].sort((a,b)=>a.cost-b.cost);
-    const next = affordable.find(r=>r.cost>u.points) || affordable[affordable.length-1];
+    const next = affordable.find(r=>r.cost>(u.points||0)) || affordable[affordable.length-1];
     if(next){
-      const remaining = Math.max(0, next.cost - u.points);
+      const remaining = Math.max(0, next.cost - (u.points||0));
       document.getElementById('empNextReward').innerHTML = `
         <div style="display:flex; align-items:center; gap:12px; margin-bottom:8px;">
           <div class="reward-icon">${next.icon}</div>
           <div><div style="font-weight:700">${next.name}</div><div style="font-size:12px; color:var(--text-dim)">${next.cost} POINTS</div></div>
         </div>
-        <div class="progress-bar"><div class="progress-fill" style="width:${Math.min(100,(u.points/next.cost)*100)}%; background:var(--accent)"></div></div>
+        <div class="progress-bar"><div class="progress-fill" style="width:${Math.min(100,((u.points||0)/next.cost)*100)}%; background:var(--accent)"></div></div>
         <div class="reward-need">${remaining>0 ? `You have ${fmtPts(u.points)} points · อีก ${fmtPts(remaining)} point` : 'พร้อมแลกได้เลย! 🎉'}</div>`;
     } else {
       document.getElementById('empNextReward').innerHTML = `<div class="empty-state" style="padding:10px 0"><div class="ic">🎁</div>ยังไม่มี Reward ในระบบ</div>`;
@@ -792,64 +1040,50 @@ function renderEmployee(){
     ring.textContent = rate+'%';
     ring.style.background = `conic-gradient(var(--accent) ${rate*3.6}deg, var(--bg-soft) 0deg)`;
     ring.style.color = 'var(--text)';
-    document.getElementById('empTeamRateSub').textContent = `${users.filter(x=>x.streakMonths>0).length} / ${users.length} คนกำลัง Clean อยู่`;
+    document.getElementById('empTeamRateSub').textContent = `${users.filter(x=>(x.streakMonths||0)>0).length} / ${users.length} คนกำลัง Clean อยู่`;
   }
 
   if(currentPage==='emp-rewards'){
     document.getElementById('empRewardGrid').innerHTML = rewards.map(r=>{
-      const can = u.points >= r.cost;
-      const pending = redemptions.find(rq=>rq.userId===u.id && rq.rewardId===r.id && rq.status==='PENDING');
+      const can = (u.points||0) >= r.cost;
+      const pending = redemptions.find(rq=>rq.userId===u.uid && rq.rewardId===r.id && rq.status==='PENDING');
       return `<div class="card">
         <div class="reward-icon">${r.icon}</div>
         <div style="font-weight:700; font-size:16px; margin:8px 0 2px;">${r.name}</div>
         <div style="color:var(--text-dim); font-size:13px; margin-bottom:14px;">Required: ${r.cost} points · You have ${fmtPts(u.points)}</div>
         ${pending
           ? `<span class="pill pill-pending">Pending Approval</span>`
-          : `<button class="btn ${can?'btn-primary':''}" style="width:100%" ${can?'':'disabled'} onclick="requestRedeem('${r.id}')">${can?'Request Redemption':'Not enough points'}</button>`}
+          : `<button class="btn ${can?'btn-primary':''}" style="width:100%" ${can?'':'disabled'} onclick="window.requestRedeem('${r.id}', this)">${can?'Request Redemption':'Not enough points'}</button>`}
       </div>`;
-    }).join('');
+    }).join('') || `<div class="empty-state"><div class="ic">🎁</div>ยังไม่มี Reward</div>`;
   }
 
   if(currentPage==='emp-history'){
-    const rows = history.filter(h=>h.userId===u.id);
     document.getElementById('empHistoryTable').innerHTML = `
       <thead><tr><th>Action</th><th>Point</th><th>Reason</th><th>By</th><th>Date</th></tr></thead>
-      <tbody>${historyRowsHtml(rows,false)}</tbody>`;
+      <tbody>${historyRowsHtml(history,false)}</tbody>`;
   }
 
   if(currentPage==='emp-ranking'){
     const board = leaderboardSorted();
     document.getElementById('empRankingFull').innerHTML = board.map((x,i)=>{
-      const xt = tierForStreak(x.streakMonths);
-      return `<div class="lb-row ${x.id===u.id?'me':''}" style="margin-bottom:4px;">
+      const xt = tierForStreak(x.streakMonths||0);
+      return `<div class="lb-row ${x.id===u.uid?'me':''}" style="margin-bottom:4px;">
         <div class="lb-rank">${i===0?'🥇':i===1?'🥈':i===2?'🥉':'#'+(i+1)}</div>
         <div class="hex" style="width:34px;height:34px;font-size:14px;background:${xt.color};color:#04120A;box-shadow:0 0 10px ${xt.color}">${xt.icon}</div>
-        <div class="lb-name">${x.name}${x.id===u.id?' (คุณ)':''} <span style="color:var(--text-faint); font-weight:400;">· 🔥 ${x.streakMonths}mo</span></div>
+        <div class="lb-name">${x.name}${x.id===u.uid?' (คุณ)':''} <span style="color:var(--text-faint); font-weight:400;">· 🔥 ${x.streakMonths||0}mo</span></div>
         <div class="lb-pts">${fmtPts(x.points)} pts</div>
       </div>`;
-    }).join('');
+    }).join('') || `<div class="empty-state">No data</div>`;
   }
 }
 
-function requestRedeem(rewardId){
-  const u = currentUser;
-  const r = rewards.find(x=>x.id===rewardId);
-  if(u.points < r.cost){ toast('คะแนนไม่พอ', true); return; }
-  const rq = {id:nextId('rq'), userId:u.id, rewardId, status:'PENDING', reason:null, requestedAt:new Date(), resolvedAt:null, resolvedBy:null};
-  redemptions.push(rq);
-  logHistory(u.id, 'REDEEM REQUEST', 0, r.name, u.name, 'PENDING');
-  notifyAdmins(`${u.name} requested ${r.icon} ${r.name} (${r.cost} pts)`, 'redeem');
-  toast('ส่งคำขอแลก Reward แล้ว รอ Admin อนุมัติ');
-  renderAll();
-}
-
-/* ---------- ADMIN VIEWS ---------- */
 function renderAdmin(){
   if(currentPage==='admin-dashboard'){
     const rate = teamCleanRate();
     document.getElementById('adTeamRate').textContent = rate+'%';
     document.getElementById('adTotalEmp').textContent = users.filter(u=>u.role==='employee').length;
-    document.getElementById('adTotalPts').textContent = fmtPts(users.reduce((s,u)=>s+u.points,0));
+    document.getElementById('adTotalPts').textContent = fmtPts(users.reduce((s,u)=>s+(u.points||0),0));
     document.getElementById('adPending').textContent = redemptions.filter(r=>r.status==='PENDING').length;
     const top3 = leaderboardSorted().slice(0,3);
     document.getElementById('adTop3').innerHTML = top3.map((x,i)=>`
@@ -858,39 +1092,49 @@ function renderAdmin(){
         <div class="lb-name">${x.name}</div>
         <div class="lb-pts">${fmtPts(x.points)}</div>
       </div>`).join('') || `<div class="empty-state" style="padding:10px 0">No data</div>`;
-    const avgStreak = users.length ? (users.reduce((s,u)=>s+u.streakMonths,0)/users.length) : 0;
+    const avgStreak = teamMembers().length ? (teamMembers().reduce((s,u)=>s+(u.streakMonths||0),0)/teamMembers().length) : 0;
     document.getElementById('adTeamStreak').textContent = (Math.round(avgStreak*10)/10);
-    document.getElementById('adTeamStreakSub').textContent = `Longest current streak: ${Math.max(...users.map(u=>u.streakMonths),0)} months`;
+    document.getElementById('adTeamStreakSub').textContent = `Longest current streak: ${Math.max(...teamMembers().map(u=>u.streakMonths||0),0)} months`;
+    renderInvestigationChart();
   }
 
   if(currentPage==='admin-employees'){
-    document.getElementById('empTable').innerHTML = `
-      <thead><tr><th>Employee</th><th>Points</th><th>Streak</th><th>Tier</th><th>Role</th><th>Actions</th></tr></thead>
-      <tbody>${users.map(u=>{
-        const t = tierForStreak(u.streakMonths);
-        return `<tr>
+    const rowHtml = (u)=>{
+      const t = displayTier(u);
+      return `<tr>
           <td class="name-cell"><span class="avatar">${u.name.charAt(0)}</span>${u.name} <span style="color:var(--text-faint); font-size:12px;">@${u.username}</span></td>
           <td class="mono">${fmtPts(u.points)}</td>
-          <td>🔥 ${u.streakMonths}mo</td>
+          <td>🔥 ${u.streakMonths||0}mo</td>
           <td><span style="color:${t.color}">${t.icon} ${t.label}</span></td>
           <td>${u.owner ? '<span class="tag-role tag-owner">Owner</span>' : u.role==='admin' ? '<span class="tag-role tag-admin">Admin</span>' : '<span class="tag-role tag-employee">Employee</span>'}</td>
           <td>
             <div class="action-row">
-              <button class="btn btn-ghost btn-sm" onclick="openEditEmployee('${u.id}')">Edit</button>
-              ${!u.owner ? `<button class="btn btn-ghost btn-sm" onclick="toggleAdmin('${u.id}')">${u.role==='admin'?'Revoke Admin':'Make Admin'}</button>` : ''}
-              ${!u.owner ? `<button class="btn btn-danger btn-sm" onclick="deleteEmployee('${u.id}')">Delete</button>` : ''}
+              <button class="btn btn-ghost btn-sm" onclick="window.openEditEmployee('${u.id}')">Edit</button>
+              ${!u.owner ? `<button class="btn btn-ghost btn-sm" onclick="window.toggleAdmin('${u.id}')">${u.role==='admin'?'Revoke Admin':'Make Admin'}</button>` : ''}
+              ${!u.owner ? `<button class="btn btn-danger btn-sm" onclick="window.deleteEmployee('${u.id}')">Delete</button>` : ''}
             </div>
           </td>
         </tr>`;
-      }).join('')}</tbody>`;
+    };
+    const head = `<thead><tr><th>Name</th><th>Points</th><th>Streak</th><th>Tier</th><th>Role</th><th>Actions</th></tr></thead>`;
+    const adminRows = users.filter(u=>u.role==='admin');
+    const empRows = users.filter(u=>u.role==='employee');
+    document.getElementById('adminTable').innerHTML = head + `<tbody>${
+      adminRows.length ? adminRows.map(rowHtml).join('') : `<tr><td colspan="6"><div class="empty-state" style="padding:22px 0"><div class="ic">👑</div>ยังไม่มี Admin เพิ่มเติม</div></td></tr>`
+    }</tbody>`;
+    document.getElementById('empTable').innerHTML = head + `<tbody>${
+      empRows.length ? empRows.map(rowHtml).join('') : `<tr><td colspan="6"><div class="empty-state" style="padding:22px 0"><div class="ic">🧑‍💼</div>ยังไม่มีพนักงาน</div></td></tr>`
+    }</tbody>`;
   }
 
   if(currentPage==='admin-points'){
     const sel = document.getElementById('ptUser');
-    if(sel.dataset.built!=='1'){
-      sel.innerHTML = users.map(u=>`<option value="${u.id}">${u.name} (${fmtPts(u.points)} pts)</option>`).join('');
-      sel.dataset.built='1';
-    }
+    const prevVal = sel.value;
+    const employeesOnly = users.filter(u=>u.role==='employee'); // Owner/Admin never appear here
+    sel.innerHTML = employeesOnly.length
+      ? employeesOnly.map(u=>`<option value="${u.id}">${u.name} (${fmtPts(u.points)} pts)</option>`).join('')
+      : `<option value="">— No employees yet —</option>`;
+    if(prevVal && employeesOnly.find(u=>u.id===prevVal)) sel.value = prevVal;
   }
 
   if(currentPage==='admin-rewards'){
@@ -900,32 +1144,31 @@ function renderAdmin(){
         <div style="font-weight:700; font-size:16px; margin:8px 0 2px;">${r.name}</div>
         <div style="color:var(--text-dim); font-size:13px; margin-bottom:14px;">${r.cost} points</div>
         <div class="action-row">
-          <button class="btn btn-ghost btn-sm" onclick="openEditReward('${r.id}')">Edit</button>
-          <button class="btn btn-danger btn-sm" onclick="deleteReward('${r.id}')">Delete</button>
+          <button class="btn btn-ghost btn-sm" onclick="window.openEditReward('${r.id}')">Edit</button>
+          <button class="btn btn-danger btn-sm" onclick="window.deleteReward('${r.id}')">Delete</button>
         </div>
-      </div>`).join('');
+      </div>`).join('') || `<div class="empty-state"><div class="ic">🎁</div>ยังไม่มี Reward — กด + Add Reward</div>`;
   }
 
   if(currentPage==='admin-redemptions'){
-    const list = [...redemptions].sort((a,b)=>b.requestedAt-a.requestedAt);
+    const list = [...redemptions];
     if(list.length===0){
       document.getElementById('adRedemptionList').innerHTML = `<div class="card"><div class="empty-state"><div class="ic">📭</div>ยังไม่มีคำขอแลก Reward</div></div>`;
     } else {
       document.getElementById('adRedemptionList').innerHTML = list.map(rq=>{
         const u = users.find(x=>x.id===rq.userId);
-        const r = rewards.find(x=>x.id===rq.rewardId);
         const pill = rq.status==='PENDING' ? '<span class="pill pill-pending">Pending</span>' : rq.status==='APPROVED' ? '<span class="pill pill-approved">Approved</span>' : '<span class="pill pill-rejected">Rejected</span>';
         return `<div class="card" style="margin-bottom:12px; display:flex; align-items:center; gap:16px;">
-          <div class="reward-icon">${r?r.icon:'🎁'}</div>
+          <div class="reward-icon">${rq.rewardIcon||'🎁'}</div>
           <div style="flex:1;">
-            <div style="font-weight:700;">${u?u.name:'—'} <span style="font-weight:400; color:var(--text-dim);">requested</span> ${r?r.name:'—'}</div>
-            <div style="font-size:12.5px; color:var(--text-dim); margin-top:2px;">${r?r.cost:0} points · Requested ${rq.requestedAt.toLocaleDateString('en-GB',{day:'2-digit',month:'short',year:'numeric'})} ${rq.requestedAt.toLocaleTimeString('en-GB',{hour:'2-digit',minute:'2-digit'})}</div>
+            <div style="font-weight:700;">${u?u.name:(rq.userName||'—')} <span style="font-weight:400; color:var(--text-dim);">requested</span> ${rq.rewardName}</div>
+            <div style="font-size:12.5px; color:var(--text-dim); margin-top:2px;">${rq.rewardCost} points (held) · Requested ${fmtDT(rq.requestedAt)}</div>
             ${rq.reason ? `<div style="font-size:12.5px; color:var(--danger); margin-top:4px;">Reason: ${rq.reason}</div>` : ''}
           </div>
           ${pill}
           ${rq.status==='PENDING' ? `<div class="action-row">
-            <button class="btn btn-primary btn-sm" onclick="approveRedemption('${rq.id}', this)">Approve</button>
-            <button class="btn btn-danger btn-sm" onclick="openRejectModal('${rq.id}')">Reject</button>
+            <button class="btn btn-primary btn-sm" onclick="window.approveRedemption('${rq.id}', this)">Approve</button>
+            <button class="btn btn-danger btn-sm" onclick="window.openRejectModal('${rq.id}')">Reject</button>
           </div>` : ''}
         </div>`;
       }).join('');
@@ -939,162 +1182,368 @@ function renderAdmin(){
   }
 }
 
-/* ---------- ADMIN: POINTS ---------- */
-function submitPoint(sign){
+/* =========================================================
+   ADMIN: POINTS — atomic add/deduct
+========================================================= */
+window.submitPoint = async function(sign){
   const userId = document.getElementById('ptUser').value;
-  let amount = parseFloat(document.getElementById('ptAmount').value);
+  const amount = parseFloat(document.getElementById('ptAmount').value);
   const reason = document.getElementById('ptReason').value.trim();
+  if(!userId){ toast('เลือกพนักงานก่อน', true); return; }
   if(!amount || amount<=0){ toast('กรอกจำนวน Point ให้ถูกต้อง', true); return; }
   if(!reason){ toast('ต้องระบุเหตุผล (Reason) ทุกครั้ง', true); return; }
-  const u = users.find(x=>x.id===userId);
-  const delta = sign*amount;
-  u.points = Math.max(0, u.points + delta);
-  u.tierPoints = Math.max(0, u.tierPoints + delta);
-  logHistory(u.id, sign>0?'ADMIN ADJUSTMENT (ADD)':'ADMIN ADJUSTMENT (DEDUCT)', delta, reason, currentUser.name, 'DONE');
-  notifyUser(u.id, `Admin ${sign>0?'added':'deducted'} ${fmtPts(amount)} point — ${reason}`, 'point');
-  document.getElementById('ptAmount').value=''; document.getElementById('ptReason').value='';
-  document.getElementById('ptUser').dataset.built='0';
-  toast(`${sign>0?'Added':'Deducted'} ${fmtPts(amount)} point to ${u.name}`);
-  renderAll();
-}
 
-/* ---------- ADMIN: REDEMPTIONS ---------- */
-function approveRedemption(rqId, btnEl){
-  const rq = redemptions.find(x=>x.id===rqId);
-  if(!rq || rq.status!=='PENDING'){ toast('คำขอนี้ถูกดำเนินการแล้ว', true); return; } // prevents double-click / double approve
-  if(btnEl) btnEl.disabled = true;
-  const u = users.find(x=>x.id===rq.userId);
-  const r = rewards.find(x=>x.id===rq.rewardId);
-  if(u.points < r.cost){
-    rq.status='REJECTED'; rq.reason='Insufficient points at approval time'; rq.resolvedAt=new Date(); rq.resolvedBy=currentUser.name;
-    toast('คะแนนของพนักงานไม่พอแล้ว — Auto Rejected', true);
-    renderAll(); return;
+  document.getElementById('ptAddBtn').disabled = true;
+  document.getElementById('ptDeductBtn').disabled = true;
+  try{
+    const delta = sign*amount;
+    const uRef = doc(db,'users',userId);
+    let finalDelta = delta;
+    await runTransaction(db, async (tx)=>{
+      const uSnap = await tx.get(uRef);
+      if(!uSnap.exists()) throw new Error('ไม่พบพนักงานนี้');
+      const cur = uSnap.data();
+      const newPoints = Math.max(0, (cur.points||0) + delta);
+      const appliedDelta = newPoints - (cur.points||0);
+      const newTierPoints = Math.max(0, (cur.tierPoints||0) + appliedDelta);
+      finalDelta = appliedDelta;
+      tx.update(uRef, { points:newPoints, tierPoints:newTierPoints });
+    });
+    const uData = users.find(x=>x.id===userId);
+    await logHistory(userId, sign>0?'ADMIN ADJUSTMENT (ADD)':'ADMIN ADJUSTMENT (DEDUCT)', finalDelta, reason, currentUser.name, 'DONE');
+    await notifyUser(userId, `Admin ${sign>0?'added':'deducted'} ${fmtPts(Math.abs(finalDelta))} point — ${reason}`, 'point');
+    document.getElementById('ptAmount').value=''; document.getElementById('ptReason').value='';
+    toast(`${sign>0?'Added':'Deducted'} ${fmtPts(Math.abs(finalDelta))} point ${uData?('to '+uData.name):''}`);
+  }catch(e){
+    toast(friendlyAuthError(e) || 'บันทึกไม่สำเร็จ', true);
+  }finally{
+    document.getElementById('ptAddBtn').disabled = false;
+    document.getElementById('ptDeductBtn').disabled = false;
   }
-  u.points -= r.cost; u.tierPoints = Math.max(0, u.tierPoints - r.cost);
-  rq.status='APPROVED'; rq.resolvedAt=new Date(); rq.resolvedBy=currentUser.name;
-  logHistory(u.id, 'REDEEM APPROVED', -r.cost, r.name, currentUser.name, 'APPROVED');
-  notifyUser(u.id, `🎉 Redemption Approved — ${r.icon} ${r.name} (-${r.cost} pts)`, 'redeem');
-  toast(`อนุมัติ ${r.name} ให้ ${u.name} แล้ว`);
-  renderAll();
-}
+};
 
-function openRejectModal(rqId){
+window.submitStreak = async function(){
+  const userId = document.getElementById('ptUser').value;
+  const months = parseInt(document.getElementById('stMonths').value);
+  const reason = document.getElementById('stReason').value.trim();
+  if(!userId){ toast('เลือกพนักงานก่อน', true); return; }
+  if(isNaN(months) || months<0){ toast('กรอกจำนวนเดือน Streak ให้ถูกต้อง', true); return; }
+  if(!reason){ toast('ต้องระบุเหตุผล (Reason) ทุกครั้ง', true); return; }
+
+  const btn = document.getElementById('stSetBtn');
+  btn.disabled = true;
+  try{
+    const uRef = doc(db,'users',userId);
+    let oldMonths = 0;
+    await runTransaction(db, async (tx)=>{
+      const uSnap = await tx.get(uRef);
+      if(!uSnap.exists()) throw new Error('ไม่พบพนักงานนี้');
+      const cur = uSnap.data();
+      oldMonths = cur.streakMonths||0;
+      const patch = { streakMonths: months };
+      if(months !== oldMonths){
+        patch.bestStreak = Math.max(cur.bestStreak||0, oldMonths);
+        patch.tierPoints = 0; // tier progress resets when streak/tier context is manually changed
+      }
+      tx.update(uRef, patch);
+    });
+    const uData = users.find(x=>x.id===userId);
+    await logHistory(userId, 'ADMIN SET STREAK', 0, reason, currentUser.name, 'DONE');
+    await notifyUser(userId, `Admin updated your Clean Streak: ${oldMonths} → ${months} months — ${reason}`, 'streak');
+    document.getElementById('stMonths').value=''; document.getElementById('stReason').value='';
+    toast(`ตั้ง Streak ของ ${uData?uData.name:''} เป็น ${months} เดือนแล้ว`);
+  }catch(e){
+    toast(friendlyAuthError(e) || 'บันทึกไม่สำเร็จ', true);
+  }finally{
+    btn.disabled = false;
+  }
+};
+
+window.recordInvestigation = async function(){
+  const userId = document.getElementById('ptUser').value;
+  const reason = document.getElementById('stReason').value.trim();
+  if(!userId){ toast('เลือกพนักงานก่อน', true); return; }
+  if(!reason){ toast('ต้องระบุเหตุผล (Reason) ทุกครั้ง', true); return; }
+  if(!confirm('ยืนยันบันทึก Investigation? Streak ของพนักงานจะถูกรีเซ็ตเป็น 0 ทันที')) return;
+
+  const btn = document.getElementById('invBtn');
+  btn.disabled = true;
+  try{
+    const uRef = doc(db,'users',userId);
+    let oldMonths = 0;
+    await runTransaction(db, async (tx)=>{
+      const uSnap = await tx.get(uRef);
+      if(!uSnap.exists()) throw new Error('ไม่พบพนักงานนี้');
+      const cur = uSnap.data();
+      oldMonths = cur.streakMonths||0;
+      tx.update(uRef, {
+        streakMonths: 0,
+        tierPoints: 0,
+        bestStreak: Math.max(cur.bestStreak||0, oldMonths)
+      });
+    });
+    const uData = users.find(x=>x.id===userId);
+    const now = new Date();
+    await addDoc(collection(db,'investigations'), {
+      userId, userName: uData?uData.name:'', month: monthKey(now), reason, createdAt: serverTimestamp()
+    });
+    await logHistory(userId, 'INVESTIGATION', 0, reason, currentUser.name, 'DONE');
+    await notifyUser(userId, `⚠️ Investigation recorded — Clean Streak reset to 0. Reason: ${reason}`, 'investigation');
+    document.getElementById('stReason').value='';
+    toast(`บันทึก Investigation ของ ${uData?uData.name:''} แล้ว — Streak รีเซ็ตเป็น 0`);
+  }catch(e){
+    toast(friendlyAuthError(e) || 'บันทึกไม่สำเร็จ', true);
+  }finally{
+    btn.disabled = false;
+  }
+};
+
+/* =========================================================
+   REDEMPTION FLOW — deduct on request (hold), refund on reject,
+   finalize (no extra change) on approve.
+========================================================= */
+window.requestRedeem = async function(rewardId, btnEl){
+  const u = currentUser;
+  const r = rewards.find(x=>x.id===rewardId);
+  if(!r){ toast('ไม่พบ Reward นี้', true); return; }
+  if(btnEl) btnEl.disabled = true;
+  try{
+    const uRef = doc(db,'users',u.uid);
+    await runTransaction(db, async (tx)=>{
+      const uSnap = await tx.get(uRef);
+      const cur = uSnap.data();
+      if((cur.points||0) < r.cost) throw new Error('คะแนนไม่พอ');
+      tx.update(uRef, {
+        points: (cur.points||0) - r.cost,
+        tierPoints: Math.max(0, (cur.tierPoints||0) - r.cost)
+      });
+    });
+    await addDoc(collection(db,'redemptions'), {
+      userId:u.uid, userName:u.name, rewardId, rewardName:r.name, rewardIcon:r.icon, rewardCost:r.cost,
+      status:'PENDING', reason:null, requestedAt: serverTimestamp(), resolvedAt:null, resolvedBy:null
+    });
+    await logHistory(u.uid, 'REDEEM REQUEST (points held)', -r.cost, r.name, u.name, 'PENDING');
+    await notifyAdmins(`${u.name} requested ${r.icon} ${r.name} (${r.cost} pts)`, 'redeem');
+    toast('ส่งคำขอแลก Reward แล้ว — หักแต้มไว้ชั่วคราว รอ Admin อนุมัติ');
+  }catch(e){
+    toast(e.message==='คะแนนไม่พอ' ? 'คะแนนไม่พอ' : (friendlyAuthError(e)||'ส่งคำขอไม่สำเร็จ'), true);
+  }finally{
+    if(btnEl) btnEl.disabled = false;
+  }
+};
+
+window.approveRedemption = async function(rqId, btnEl){
+  if(btnEl) btnEl.disabled = true;
+  try{
+    const rqRef = doc(db,'redemptions',rqId);
+    let rqData = null;
+    await runTransaction(db, async (tx)=>{
+      const rqSnap = await tx.get(rqRef);
+      if(!rqSnap.exists()) throw new Error('ไม่พบคำขอนี้');
+      rqData = rqSnap.data();
+      if(rqData.status !== 'PENDING') throw new Error('DUPLICATE'); // blocks double-approve / double-click
+      tx.update(rqRef, { status:'APPROVED', resolvedAt: serverTimestamp(), resolvedBy: currentUser.name });
+    });
+    await logHistory(rqData.userId, 'REDEEM APPROVED', -rqData.rewardCost, rqData.rewardName, currentUser.name, 'APPROVED');
+    await notifyUser(rqData.userId, `🎉 Redemption Approved — ${rqData.rewardIcon||''} ${rqData.rewardName} (-${rqData.rewardCost} pts)`, 'redeem');
+    toast(`อนุมัติ ${rqData.rewardName} ให้ ${rqData.userName} แล้ว`);
+  }catch(e){
+    if(e.message==='DUPLICATE') toast('คำขอนี้ถูกดำเนินการไปแล้ว', true);
+    else toast(friendlyAuthError(e) || 'อนุมัติไม่สำเร็จ', true);
+  }finally{
+    if(btnEl) btnEl.disabled = false;
+  }
+};
+
+window.openRejectModal = function(rqId){
   const rq = redemptions.find(x=>x.id===rqId);
-  const u = users.find(x=>x.id===rq.userId);
-  const r = rewards.find(x=>x.id===rq.rewardId);
+  if(!rq) return;
   showModal(`
     <h3>Reject Redemption</h3>
-    <div class="sub">${u.name} · ${r.name} (${r.cost} pts)</div>
+    <div class="sub">${rq.userName} · ${rq.rewardName} (${rq.rewardCost} pts) — แต้มจะถูกคืนให้พนักงานอัตโนมัติ</div>
     <div class="field"><label>Reason (required)</label><input id="rejectReason" placeholder="เช่น Reward unavailable"></div>
     <div class="modal-actions">
-      <button class="btn" onclick="closeModal()">Cancel</button>
-      <button class="btn btn-danger" onclick="confirmReject('${rqId}')">Reject Request</button>
+      <button class="btn" onclick="window.closeModal()">Cancel</button>
+      <button class="btn btn-danger" id="rejectConfirmBtn" onclick="window.confirmReject('${rqId}')">Reject & Refund</button>
     </div>
   `);
-}
-function confirmReject(rqId){
+};
+window.confirmReject = async function(rqId){
   const reason = document.getElementById('rejectReason').value.trim();
   if(!reason){ toast('ต้องระบุ Reason', true); return; }
-  const rq = redemptions.find(x=>x.id===rqId);
-  if(!rq || rq.status!=='PENDING'){ toast('คำขอนี้ถูกดำเนินการแล้ว', true); closeModal(); return; }
-  rq.status='REJECTED'; rq.reason=reason; rq.resolvedAt=new Date(); rq.resolvedBy=currentUser.name;
-  const u = users.find(x=>x.id===rq.userId);
-  const r = rewards.find(x=>x.id===rq.rewardId);
-  logHistory(u.id, 'REDEMPTION REJECTED', 0, reason, currentUser.name, 'REJECTED');
-  notifyUser(u.id, `Redemption Rejected — ${r.name}. Reason: ${reason}`, 'redeem');
-  toast('ปฏิเสธคำขอแล้ว');
-  closeModal();
-  renderAll();
-}
+  const btn = document.getElementById('rejectConfirmBtn');
+  if(btn) btn.disabled = true;
+  try{
+    const rqRef = doc(db,'redemptions',rqId);
+    let rqData = null;
+    await runTransaction(db, async (tx)=>{
+      const rqSnap = await tx.get(rqRef);
+      if(!rqSnap.exists()) throw new Error('ไม่พบคำขอนี้');
+      rqData = rqSnap.data();
+      if(rqData.status !== 'PENDING') throw new Error('DUPLICATE');
+      const uRef = doc(db,'users', rqData.userId);
+      const uSnap = await tx.get(uRef);
+      const cur = uSnap.data();
+      tx.update(uRef, {
+        points: (cur.points||0) + rqData.rewardCost,
+        tierPoints: (cur.tierPoints||0) + rqData.rewardCost
+      });
+      tx.update(rqRef, { status:'REJECTED', reason, resolvedAt: serverTimestamp(), resolvedBy: currentUser.name });
+    });
+    await logHistory(rqData.userId, 'REDEMPTION REJECTED (points refunded)', rqData.rewardCost, reason, currentUser.name, 'REJECTED');
+    await notifyUser(rqData.userId, `Redemption Rejected — ${rqData.rewardName}. Points refunded. Reason: ${reason}`, 'redeem');
+    toast('ปฏิเสธคำขอและคืนแต้มแล้ว');
+    window.closeModal();
+  }catch(e){
+    if(e.message==='DUPLICATE'){ toast('คำขอนี้ถูกดำเนินการไปแล้ว', true); window.closeModal(); }
+    else toast(friendlyAuthError(e) || 'ดำเนินการไม่สำเร็จ', true);
+    if(btn) btn.disabled = false;
+  }
+};
 
-/* ---------- ADMIN: EMPLOYEES CRUD ---------- */
-function toggleAdmin(userId){
+/* =========================================================
+   ADMIN: EMPLOYEES CRUD
+========================================================= */
+window.toggleAdmin = async function(userId){
   const u = users.find(x=>x.id===userId);
-  u.role = u.role==='admin' ? 'employee' : 'admin';
-  toast(`${u.name} is now ${u.role==='admin'?'an Admin':'an Employee'}`);
-  renderAll();
-}
-function deleteEmployee(userId){
+  if(!u || u.owner) return;
+  const newRole = u.role==='admin' ? 'employee' : 'admin';
+  try{
+    await updateDoc(doc(db,'users',userId), { role:newRole });
+    toast(`${u.name} is now ${newRole==='admin'?'an Admin':'an Employee'}`);
+  }catch(e){ toast('เปลี่ยนสิทธิ์ไม่สำเร็จ', true); }
+};
+window.deleteEmployee = async function(userId){
   const u = users.find(x=>x.id===userId);
-  if(!confirm(`ลบ ${u.name} ออกจากระบบ?`)) return;
-  users = users.filter(x=>x.id!==userId);
-  toast(`Deleted ${u.name}`);
-  document.getElementById('ptUser').dataset.built='0';
-  renderAll();
+  if(!u || u.owner) return;
+  if(!confirm(`ลบ ${u.name} และข้อมูลที่เกี่ยวข้องทั้งหมด (Redemption, Notification, History, Investigation) ออกจาก Firestore?\n\n(บัญชี Login ใน Firebase Auth จะยังอยู่ แต่ล็อกอินเข้ามาแล้วจะไม่พบข้อมูลใด ๆ ในระบบอีก)`)) return;
+  try{
+    await deleteUserCascade(userId);
+    toast(`ลบ ${u.name} และข้อมูลที่เกี่ยวข้องแล้ว`);
+  }catch(e){ toast('ลบไม่สำเร็จ', true); console.error(e); }
+};
+
+// Deletes a user doc plus every document across other collections that
+// references them (redemptions, notifications, history, investigations),
+// so nothing orphaned is left behind in Firestore.
+async function deleteUserCascade(userId){
+  const relatedCollections = ['redemptions','notifications','history','investigations'];
+  const refsToDelete = [];
+  for(const colName of relatedCollections){
+    const snap = await getDocs(query(collection(db,colName), where('userId','==',userId)));
+    snap.forEach(d => refsToDelete.push(d.ref));
+  }
+  // Firestore batches cap at 500 writes — chunk just in case.
+  for(let i=0; i<refsToDelete.length; i+=450){
+    const batch = writeBatch(db);
+    refsToDelete.slice(i, i+450).forEach(ref => batch.delete(ref));
+    await batch.commit();
+  }
+  await deleteDoc(doc(db,'users',userId));
 }
-function openAddEmployee(){
+window.openAddEmployee = function(){
   showModal(`
     <h3>Add Employee</h3>
-    <div class="sub">สร้างบัญชีพนักงานใหม่</div>
+    <div class="sub">สร้างบัญชีพนักงานใหม่ (สร้าง Login จริงใน Firebase)</div>
     <div class="field"><label>Name</label><input id="neName"></div>
     <div class="field"><label>Username</label><input id="neUser"></div>
-    <div class="field"><label>Password</label><input id="nePass" type="password"></div>
+    <div class="field"><label>Password</label><input id="nePass" type="password" placeholder="อย่างน้อย 6 ตัวอักษร"></div>
     <div class="modal-actions">
-      <button class="btn" onclick="closeModal()">Cancel</button>
-      <button class="btn btn-primary" onclick="confirmAddEmployee()">Add Employee</button>
+      <button class="btn" onclick="window.closeModal()">Cancel</button>
+      <button class="btn btn-primary" id="addEmpBtn" onclick="window.confirmAddEmployee()">Add Employee</button>
     </div>
   `);
-}
-function confirmAddEmployee(){
+};
+window.confirmAddEmployee = async function(){
   const name = document.getElementById('neName').value.trim();
   const uname = document.getElementById('neUser').value.trim();
   const pass = document.getElementById('nePass').value;
   if(!name||!uname||!pass){ toast('กรอกข้อมูลให้ครบ', true); return; }
-  if(users.find(x=>x.username.toLowerCase()===uname.toLowerCase())){ toast('Username ซ้ำ', true); return; }
-  users.push({id:nextId('u'), username:uname, password:pass, name, role:'employee', owner:false, points:0, tierPoints:0, streakMonths:0, bestStreak:0, joined:new Date().toISOString().slice(0,10)});
-  toast('เพิ่มพนักงานแล้ว');
-  document.getElementById('ptUser').dataset.built='0';
-  closeModal(); renderAll();
-}
-function openEditEmployee(userId){
+  const btn = document.getElementById('addEmpBtn');
+  btn.disabled = true;
+  // Creating a user via the primary `auth` instance would switch the active
+  // session to the new employee and bounce the admin over to the employee
+  // dashboard. To avoid that, spin up a short-lived secondary Firebase app
+  // just for this one signup, then tear it down — the admin's own session
+  // (on `auth`) is never touched and they stay exactly where they are.
+  const secondaryApp = initializeApp(firebaseConfig, 'employee-creator-' + Date.now());
+  const secondaryAuth = getAuth(secondaryApp);
+  try{
+    const cred = await createUserWithEmailAndPassword(secondaryAuth, usernameToEmail(uname), pass);
+    await setDoc(doc(db,'users',cred.user.uid), {
+      username: uname.toLowerCase(), name, role:'employee', owner:false,
+      points:0, tierPoints:0, streakMonths:0, bestStreak:0,
+      joined: serverTimestamp(), createdAt: serverTimestamp()
+    });
+    toast(`เพิ่มพนักงาน ${name} แล้ว`);
+    document.getElementById('neName').value='';
+    document.getElementById('neUser').value='';
+    document.getElementById('nePass').value='';
+    window.closeModal();
+  }catch(e){
+    toast(friendlyAuthError(e), true);
+  }finally{
+    try{ await signOut(secondaryAuth); }catch(_){}
+    try{ await deleteApp(secondaryApp); }catch(_){}
+    btn.disabled = false;
+  }
+};
+window.openEditEmployee = function(userId){
   const u = users.find(x=>x.id===userId);
   showModal(`
     <h3>Edit Employee</h3>
     <div class="sub">@${u.username}</div>
     <div class="field"><label>Name</label><input id="eeName" value="${u.name}"></div>
-    <div class="field"><label>Streak (months)</label><input id="eeStreak" type="number" min="0" value="${u.streakMonths}"></div>
+    <div class="field"><label>Streak (months)</label><input id="eeStreak" type="number" min="0" value="${u.streakMonths||0}"></div>
     <div class="modal-actions">
-      <button class="btn" onclick="closeModal()">Cancel</button>
-      <button class="btn btn-primary" onclick="confirmEditEmployee('${userId}')">Save</button>
+      <button class="btn" onclick="window.closeModal()">Cancel</button>
+      <button class="btn btn-primary" onclick="window.confirmEditEmployee('${userId}')">Save</button>
     </div>
   `);
-}
-function confirmEditEmployee(userId){
+};
+window.confirmEditEmployee = async function(userId){
   const u = users.find(x=>x.id===userId);
   const name = document.getElementById('eeName').value.trim();
   const streak = parseInt(document.getElementById('eeStreak').value)||0;
   if(!name){ toast('กรอกชื่อ', true); return; }
-  u.name = name;
-  if(streak !== u.streakMonths){
-    u.bestStreak = Math.max(u.bestStreak, u.streakMonths);
-    u.tierPoints = 0; // tier progress resets when tier context changes via manual edit
-    u.streakMonths = streak;
-  }
-  toast('บันทึกแล้ว'); closeModal(); renderAll();
-}
+  try{
+    const patch = { name };
+    if(streak !== (u.streakMonths||0)){
+      patch.bestStreak = Math.max(u.bestStreak||0, u.streakMonths||0);
+      patch.tierPoints = 0;
+      patch.streakMonths = streak;
+    }
+    await updateDoc(doc(db,'users',userId), patch);
+    toast('บันทึกแล้ว'); window.closeModal();
+  }catch(e){ toast('บันทึกไม่สำเร็จ', true); }
+};
 
-/* ---------- ADMIN: REWARDS CRUD ---------- */
-function openAddReward(){
+/* =========================================================
+   ADMIN: REWARDS CRUD
+========================================================= */
+window.openAddReward = function(){
   showModal(`
     <h3>Add Reward</h3>
     <div class="field"><label>Name</label><input id="nrName" placeholder="เช่น Coffee Voucher"></div>
     <div class="field"><label>Icon (emoji)</label><input id="nrIcon" placeholder="☕" value="🎁"></div>
     <div class="field"><label>Cost (points)</label><input id="nrCost" type="number" min="1"></div>
     <div class="modal-actions">
-      <button class="btn" onclick="closeModal()">Cancel</button>
-      <button class="btn btn-primary" onclick="confirmAddReward()">Add Reward</button>
+      <button class="btn" onclick="window.closeModal()">Cancel</button>
+      <button class="btn btn-primary" onclick="window.confirmAddReward()">Add Reward</button>
     </div>
   `);
-}
-function confirmAddReward(){
+};
+window.confirmAddReward = async function(){
   const name = document.getElementById('nrName').value.trim();
   const icon = document.getElementById('nrIcon').value.trim() || '🎁';
   const cost = parseFloat(document.getElementById('nrCost').value);
   if(!name || !cost || cost<=0){ toast('กรอกข้อมูลให้ครบ', true); return; }
-  rewards.push({id:nextId('r'), name, icon, cost});
-  toast('เพิ่ม Reward แล้ว'); closeModal(); renderAll();
-}
-function openEditReward(rewardId){
+  try{
+    await addDoc(collection(db,'rewards'), { name, icon, cost });
+    toast('เพิ่ม Reward แล้ว'); window.closeModal();
+  }catch(e){ toast('เพิ่มไม่สำเร็จ', true); }
+};
+window.openEditReward = function(rewardId){
   const r = rewards.find(x=>x.id===rewardId);
   showModal(`
     <h3>Edit Reward</h3>
@@ -1102,41 +1551,54 @@ function openEditReward(rewardId){
     <div class="field"><label>Icon</label><input id="erIcon" value="${r.icon}"></div>
     <div class="field"><label>Cost</label><input id="erCost" type="number" value="${r.cost}"></div>
     <div class="modal-actions">
-      <button class="btn" onclick="closeModal()">Cancel</button>
-      <button class="btn btn-primary" onclick="confirmEditReward('${rewardId}')">Save</button>
+      <button class="btn" onclick="window.closeModal()">Cancel</button>
+      <button class="btn btn-primary" onclick="window.confirmEditReward('${rewardId}')">Save</button>
     </div>
   `);
-}
-function confirmEditReward(rewardId){
+};
+window.confirmEditReward = async function(rewardId){
   const r = rewards.find(x=>x.id===rewardId);
-  r.name = document.getElementById('erName').value.trim() || r.name;
-  r.icon = document.getElementById('erIcon').value.trim() || r.icon;
-  r.cost = parseFloat(document.getElementById('erCost').value) || r.cost;
-  toast('บันทึกแล้ว'); closeModal(); renderAll();
-}
-function deleteReward(rewardId){
+  const name = document.getElementById('erName').value.trim() || r.name;
+  const icon = document.getElementById('erIcon').value.trim() || r.icon;
+  const cost = parseFloat(document.getElementById('erCost').value) || r.cost;
+  try{
+    await updateDoc(doc(db,'rewards',rewardId), { name, icon, cost });
+    toast('บันทึกแล้ว'); window.closeModal();
+  }catch(e){ toast('บันทึกไม่สำเร็จ', true); }
+};
+window.deleteReward = async function(rewardId){
   const r = rewards.find(x=>x.id===rewardId);
-  if(!confirm(`ลบ ${r.name}?`)) return;
-  rewards = rewards.filter(x=>x.id!==rewardId);
-  toast('ลบ Reward แล้ว'); renderAll();
-}
+  if(!r) return;
+  try{
+    const pendingSnap = await getDocs(query(collection(db,'redemptions'), where('rewardId','==',rewardId), where('status','==','PENDING')));
+    if(!pendingSnap.empty){
+      toast(`ลบไม่ได้ — มีคำขอแลก "${r.name}" ที่ยัง Pending อยู่ ${pendingSnap.size} รายการ กรุณา Approve/Reject ให้เสร็จก่อน`, true);
+      return;
+    }
+  }catch(e){ toast('ตรวจสอบคำขอค้างไม่สำเร็จ', true); return; }
+  if(!confirm(`ลบ ${r.name}? (ประวัติการแลกที่เคย Approve/Reject ไปแล้วจะยังเก็บไว้ใน History เหมือนเดิม)`)) return;
+  try{
+    await deleteDoc(doc(db,'rewards',rewardId));
+    toast('ลบ Reward แล้ว');
+  }catch(e){ toast('ลบไม่สำเร็จ', true); }
+};
 
 /* =========================================================
    MODAL
 ========================================================= */
 function showModal(html){
-  document.getElementById('modalRoot').innerHTML = `<div class="modal-bg" onclick="if(event.target===this) closeModal()"><div class="modal">${html}</div></div>`;
+  document.getElementById('modalRoot').innerHTML = `<div class="modal-bg" onclick="if(event.target===this) window.closeModal()"><div class="modal">${html}</div></div>`;
 }
-function closeModal(){ document.getElementById('modalRoot').innerHTML=''; }
+window.closeModal = function(){ document.getElementById('modalRoot').innerHTML=''; };
 
 /* =========================================================
    INIT
 ========================================================= */
-(function initTierStrip(){
-  document.getElementById('tierStrip').innerHTML = TIERS.map(t=>`
-    <div class="tier-chip"><span class="dot" style="background:${t.color}"></span>${t.icon} ${t.label}</div>
-  `).join('');
-})();
+document.getElementById('tierStrip').innerHTML = TIERS.map(t=>`
+  <div class="tier-chip"><span class="dot" style="background:${t.color}"></span>${t.icon} ${t.label}</div>
+`).join('');
+
+checkBootstrap();
 </script>
 </body>
 </html>
