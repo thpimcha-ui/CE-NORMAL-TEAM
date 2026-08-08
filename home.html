@@ -521,7 +521,7 @@ tr:last-child td{border-bottom:none;}
           <div class="card-title">💰 Normal Point</div>
           <div class="field"><label>Employee</label><select id="ptUser"></select></div>
           <div class="field"><label>Amount</label><input id="ptAmount" type="number" step="0.5" placeholder="เช่น 1"></div>
-          <div class="field"><label>Reason (required)</label><input id="ptReason" placeholder="เช่น No investigation this month"></div>
+          <div class="field"><label>Reason (required)</label><select id="ptReason"></select></div>
           <div class="action-row">
             <button class="btn btn-primary" id="ptAddBtn" onclick="window.submitPoint(1)">+ Add Point</button>
             <button class="btn btn-danger" id="ptDeductBtn" onclick="window.submitPoint(-1)">− Deduct Point</button>
@@ -531,7 +531,7 @@ tr:last-child td{border-bottom:none;}
           <div class="card-title">🔥 Clean Streak</div>
           <div class="sub" style="margin:-2px 0 14px; font-size:12.5px; color:var(--text-dim);">ใช้ Employee เดียวกับช่องซ้าย — ตั้งจำนวนเดือน Clean Streak ปัจจุบันของพนักงาน</div>
           <div class="field"><label>Current Streak (months)</label><input id="stMonths" type="number" min="0" step="1" placeholder="เช่น 5"></div>
-          <div class="field"><label>Reason (required)</label><input id="stReason" placeholder="เช่น Monthly streak update"></div>
+          <div class="field"><label>Reason (required)</label><select id="stReason"></select></div>
           <div class="action-row">
             <button class="btn btn-primary" id="stSetBtn" onclick="window.submitStreak()">Set Streak</button>
           </div>
@@ -541,6 +541,15 @@ tr:last-child td{border-bottom:none;}
           </div>
         </div>
       </div>
+    </div>
+
+    <!-- ============ ADMIN: REASONS ============ -->
+    <div class="page" id="page-admin-reasons">
+      <div class="section-toolbar">
+        <div><h1>Reasons</h1><div class="sub">จัดการรายการเหตุผลที่ใช้เป็น Dropdown ในหน้า Points / Streak / Investigation</div></div>
+        <button class="btn btn-primary" onclick="window.openAddReason()">+ Add Reason</button>
+      </div>
+      <div class="card" id="adReasonList"></div>
     </div>
 
     <!-- ============ ADMIN: REWARDS ============ -->
@@ -625,6 +634,7 @@ function tierBadgeHtml(tier, sizePx){
 }
 function romanish(n){ const r=['I','II','III','IV','V','VI','VII','VIII','IX','X']; return r[n-1] || n; }
 function fmtPts(n){ return (Math.round((n||0)*10)/10).toString().replace(/\.0$/,''); }
+function escapeHtml(s){ return String(s==null?'':s).replace(/[&<>"']/g, c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c])); }
 function targetInfo(user){
   const tier = tierForStreak(user.streakMonths||0);
   const inc = tier.inc;
@@ -654,6 +664,7 @@ let redemptions = [];
 let notifications = [];
 let history = [];
 let investigations = [];
+let reasons = [];
 let teamGoal = { target: 0, rewardTitle: '', rewardLines: '' };
 let liveUnsubs = [];
 
@@ -831,6 +842,7 @@ const ADMIN_TABS = [
   {key:'admin-dashboard', label:'Dashboard'},
   {key:'admin-employees', label:'Employees'},
   {key:'admin-points', label:'Points'},
+  {key:'admin-reasons', label:'Reasons'},
   {key:'admin-rewards', label:'Rewards'},
   {key:'admin-redemptions', label:'Redemption Requests'},
   {key:'admin-history', label:'History'},
@@ -1096,6 +1108,12 @@ function attachLiveListeners(){
     teamGoal = snap.exists() ? snap.data() : { target:0, rewardTitle:'', rewardLines:'' };
     renderAll();
   }, (e)=> console.warn('teamGoal listener error', e)));
+
+  // reason presets (used as dropdown options for Points / Streak / Investigation reasons)
+  liveUnsubs.push(onSnapshot(query(collection(db,'reasons'), orderBy('text')), (snap)=>{
+    reasons = snap.docs.map(d=>({id:d.id, ...d.data()}));
+    renderAll();
+  }, (e)=> console.warn('reasons listener error', e)));
 }
 
 /* =========================================================
@@ -1426,6 +1444,26 @@ function renderAdmin(){
       ? employeesOnly.map(u=>`<option value="${u.id}">${u.name} — ${tierForStreak(u.streakMonths||0).label} (${fmtPts(u.points)} pts)</option>`).join('')
       : `<option value="">— No employees yet —</option>`;
     if(prevVal && employeesOnly.find(u=>u.id===prevVal)) sel.value = prevVal;
+
+    const reasonOptions = `<option value="">— เลือกเหตุผล —</option>` + reasons.map(r=>`<option value="${escapeHtml(r.text)}">${escapeHtml(r.text)}</option>`).join('');
+    const ptR = document.getElementById('ptReason');
+    const stR = document.getElementById('stReason');
+    const prevPt = ptR.value, prevSt = stR.value;
+    const fallback = reasons.length ? '' : `<option value="" disabled>ยังไม่มี Reason — ไปเพิ่มที่เมนู Reasons ก่อน</option>`;
+    ptR.innerHTML = reasonOptions + fallback;
+    stR.innerHTML = reasonOptions + fallback;
+    if(reasons.find(r=>r.text===prevPt)) ptR.value = prevPt;
+    if(reasons.find(r=>r.text===prevSt)) stR.value = prevSt;
+  }
+
+  if(currentPage==='admin-reasons'){
+    document.getElementById('adReasonList').innerHTML = reasons.length
+      ? reasons.map(r=>`
+        <div class="online-vert-row" style="justify-content:space-between; padding:11px 4px;">
+          <span class="o-name" style="flex:1; white-space:normal;">🏷️ ${escapeHtml(r.text)}</span>
+          <button class="btn btn-danger btn-sm" onclick="window.deleteReason('${r.id}')">Delete</button>
+        </div>`).join('')
+      : `<div class="empty-state"><div class="ic">🏷️</div>ยังไม่มี Reason — กด + Add Reason<br><span style="font-size:12px; color:var(--text-faint);">Reason ที่เพิ่มไว้ที่นี่จะไปโผล่เป็น Dropdown ในหน้า Points / Streak / Investigation ให้อัตโนมัติ</span></div>`;
   }
 
   if(currentPage==='admin-rewards'){
@@ -1447,6 +1485,7 @@ function renderAdmin(){
 
   if(currentPage==='admin-redemptions'){
     const list = [...redemptions];
+    const isOwner = currentUser.owner === true;
     if(list.length===0){
       document.getElementById('adRedemptionList').innerHTML = `<div class="card"><div class="empty-state"><div class="ic">📭</div>ยังไม่มีคำขอแลก Reward</div></div>`;
     } else {
@@ -1465,6 +1504,7 @@ function renderAdmin(){
             <button class="btn btn-primary btn-sm" onclick="window.approveRedemption('${rq.id}', this)">Approve</button>
             <button class="btn btn-danger btn-sm" onclick="window.openRejectModal('${rq.id}')">Reject</button>
           </div>` : ''}
+          ${isOwner ? `<button class="btn btn-danger btn-sm" onclick="window.deleteRedemptionEntry('${rq.id}')">Delete</button>` : ''}
         </div>`;
       }).join('');
     }
@@ -1709,6 +1749,42 @@ window.confirmReject = async function(rqId){
   }
 };
 
+window.deleteRedemptionEntry = async function(rqId){
+  if(currentUser.owner !== true){ toast('เฉพาะ Owner เท่านั้นที่ลบคำขอได้', true); return; }
+  const rq = redemptions.find(x=>x.id===rqId);
+  if(!rq) return;
+  const msg = rq.status==='PENDING'
+    ? `ลบคำขอนี้ถาวร? ระบบจะคืนแต้ม ${rq.rewardCost} pts ที่หักไว้ให้ ${rq.userName} อัตโนมัติ`
+    : `ลบประวัติคำขอนี้ถาวร? (สถานะ ${rq.status} — จะไม่มีการปรับแต้มเพิ่มเติม)`;
+  if(!confirm(msg)) return;
+  try{
+    const rqRef = doc(db,'redemptions',rqId);
+    await runTransaction(db, async (tx)=>{
+      const rqSnap = await tx.get(rqRef);
+      if(!rqSnap.exists()) throw new Error('ไม่พบคำขอนี้');
+      const rqData = rqSnap.data();
+      if(rqData.status === 'PENDING'){
+        const uRef = doc(db,'users', rqData.userId);
+        const uSnap = await tx.get(uRef);
+        if(uSnap.exists()){
+          const cur = uSnap.data();
+          tx.update(uRef, {
+            points: (cur.points||0) + rqData.rewardCost,
+            tierPoints: (cur.tierPoints||0) + rqData.rewardCost
+          });
+        }
+        const rwRef = doc(db,'rewards', rqData.rewardId);
+        const rwSnap = await tx.get(rwRef);
+        if(rwSnap.exists() && typeof rwSnap.data().stock === 'number'){
+          tx.update(rwRef, { stock: rwSnap.data().stock + 1 });
+        }
+      }
+      tx.delete(rqRef);
+    });
+    toast('ลบคำขอแล้ว');
+  }catch(e){ toast(friendlyAuthError(e) || 'ลบไม่สำเร็จ', true); }
+};
+
 /* =========================================================
    ADMIN: EMPLOYEES CRUD
 ========================================================= */
@@ -1829,6 +1905,35 @@ window.confirmEditEmployee = async function(userId){
 /* =========================================================
    ADMIN: REWARDS CRUD
 ========================================================= */
+window.openAddReason = function(){
+  showModal(`
+    <h3>Add Reason</h3>
+    <div class="field"><label>Reason Text</label><input id="rsText" placeholder="เช่น No investigation this month"></div>
+    <div class="modal-actions">
+      <button class="btn" onclick="window.closeModal()">Cancel</button>
+      <button class="btn btn-primary" onclick="window.confirmAddReason()">Add Reason</button>
+    </div>
+  `);
+};
+window.confirmAddReason = async function(){
+  const text = document.getElementById('rsText').value.trim();
+  if(!text){ toast('กรอกข้อความเหตุผล', true); return; }
+  if(reasons.find(r=>r.text.toLowerCase()===text.toLowerCase())){ toast('มีเหตุผลนี้อยู่แล้ว', true); return; }
+  try{
+    await addDoc(collection(db,'reasons'), { text, createdAt: serverTimestamp() });
+    toast('เพิ่ม Reason แล้ว'); window.closeModal();
+  }catch(e){ toast(friendlyAuthError(e) || 'เพิ่มไม่สำเร็จ', true); }
+};
+window.deleteReason = async function(reasonId){
+  const r = reasons.find(x=>x.id===reasonId);
+  if(!r) return;
+  if(!confirm(`ลบ Reason "${r.text}"? (ประวัติเดิมที่เคยใช้ Reason นี้จะยังคงข้อความเดิมไว้)`)) return;
+  try{
+    await deleteDoc(doc(db,'reasons',reasonId));
+    toast('ลบ Reason แล้ว');
+  }catch(e){ toast(friendlyAuthError(e) || 'ลบไม่สำเร็จ', true); }
+};
+
 window.openAddReward = function(){
   showModal(`
     <h3>Add Reward</h3>
