@@ -1147,8 +1147,8 @@ window.markAllRead = async function(){
 async function logHistory(userId, action, points, reason, performedBy, status){
   await addDoc(collection(db,'history'), {userId, action, points, reason: reason||null, performedBy, status, createdAt: serverTimestamp()});
 }
-function historyRowsHtml(rows, showUser){
-  if(rows.length===0) return `<tr><td colspan="6"><div class="empty-state"><div class="ic">📭</div>ยังไม่มีประวัติ</div></td></tr>`;
+function historyRowsHtml(rows, showUser, canDelete){
+  if(rows.length===0) return `<tr><td colspan="${5 + (showUser?1:0) + (canDelete?1:0)}"><div class="empty-state"><div class="ic">📭</div>ยังไม่มีประวัติ</div></td></tr>`;
   return rows.map(r=>{
     const u = users.find(x=>x.id===r.userId);
     const ptsColor = r.points>0 ? 'var(--accent)' : r.points<0 ? 'var(--danger)' : 'var(--text-dim)';
@@ -1160,6 +1160,7 @@ function historyRowsHtml(rows, showUser){
       <td style="color:var(--text-dim)">${r.reason||'—'}</td>
       <td style="color:var(--text-dim)">${r.performedBy}</td>
       <td style="color:var(--text-faint); white-space:nowrap;">${fmtDT(r.createdAt)}</td>
+      ${canDelete ? `<td><button class="btn btn-danger btn-sm" onclick="window.deleteHistoryEntry('${r.id}')">Delete</button></td>` : ''}
     </tr>`;
   }).join('');
 }
@@ -1320,7 +1321,7 @@ function renderEmployee(){
     ring.textContent = rate+'%';
     ring.style.background = `conic-gradient(var(--accent) ${rate*3.6}deg, var(--bg-soft) 0deg)`;
     ring.style.color = 'var(--text)';
-    document.getElementById('empTeamRateSub').textContent = `${users.filter(x=>(x.streakMonths||0)>0).length} / ${users.length} คนกำลัง Clean อยู่`;
+    document.getElementById('empTeamRateSub').textContent = `${teamMembers().filter(x=>(x.streakMonths||0)>0).length} / ${teamMembers().length} คนกำลัง Clean อยู่`;
     document.getElementById('empTeamGoal').innerHTML = renderTeamGoalHtml(false);
   }
 
@@ -1470,9 +1471,10 @@ function renderAdmin(){
   }
 
   if(currentPage==='admin-history'){
+    const isOwner = currentUser.owner === true;
     document.getElementById('adHistoryTable').innerHTML = `
-      <thead><tr><th>Employee</th><th>Action</th><th>Point</th><th>Reason</th><th>By</th><th>Date</th></tr></thead>
-      <tbody>${historyRowsHtml(history,true)}</tbody>`;
+      <thead><tr><th>Employee</th><th>Action</th><th>Point</th><th>Reason</th><th>By</th><th>Date</th>${isOwner?'<th>Actions</th>':''}</tr></thead>
+      <tbody>${historyRowsHtml(history,true,isOwner)}</tbody>`;
   }
 }
 
@@ -1905,6 +1907,15 @@ window.deleteReward = async function(rewardId){
   }catch(e){ toast('ลบไม่สำเร็จ', true); }
 };
 
+window.deleteHistoryEntry = async function(historyId){
+  if(currentUser.owner !== true){ toast('เฉพาะ Owner เท่านั้นที่ลบ History ได้', true); return; }
+  if(!confirm('ลบรายการ History นี้ถาวร? การลบนี้ไม่คืนแต้มหรือแก้ไขยอดใดๆ ให้อัตโนมัติ')) return;
+  try{
+    await deleteDoc(doc(db,'history',historyId));
+    toast('ลบรายการ History แล้ว');
+  }catch(e){ toast(friendlyAuthError(e) || 'ลบไม่สำเร็จ: '+e.message, true); }
+};
+
 window.openEditTeamGoal = function(){
   showModal(`
     <h3>🚀 Set Team Goal</h3>
@@ -1927,7 +1938,7 @@ window.saveTeamGoal = async function(){
       target, rewardTitle, rewardLines, updatedAt: serverTimestamp(), updatedBy: currentUser.name
     }, { merge:true });
     toast('ตั้งเป้าหมายทีมแล้ว'); window.closeModal();
-  }catch(e){ toast('บันทึกไม่สำเร็จ', true); }
+  }catch(e){ toast(friendlyAuthError(e) || 'บันทึกไม่สำเร็จ: '+e.message, true); }
 };
 
 /* =========================================================
