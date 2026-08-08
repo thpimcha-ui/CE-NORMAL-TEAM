@@ -92,6 +92,20 @@ a{color:inherit;}
 .auth-form-wrap{flex:1; display:flex; align-items:center; justify-content:center; padding:40px;}
 .auth-form{width:100%; max-width:380px;}
 .auth-form h2{font-size:26px; margin-bottom:6px;}
+.login-badge{
+  display:inline-flex; align-items:center; gap:7px; padding:6px 14px; border-radius:99px;
+  background:var(--accent-dim); color:var(--accent); font-size:11.5px; font-weight:700;
+  letter-spacing:.06em; text-transform:uppercase; margin-bottom:16px;
+  box-shadow:0 0 0 0 var(--accent-glow); animation:badgePulse 2.2s ease-in-out infinite;
+}
+.login-badge .dot{width:7px; height:7px; border-radius:50%; background:var(--accent); animation:dotBlink 1.4s ease-in-out infinite;}
+@keyframes badgePulse{0%,100%{box-shadow:0 0 0 0 var(--accent-glow);} 50%{box-shadow:0 0 0 7px transparent;}}
+@keyframes dotBlink{0%,100%{opacity:1; transform:scale(1);} 50%{opacity:.4; transform:scale(.75);}}
+.login-headline{
+  font-size:30px; line-height:1.2; margin-bottom:8px;
+  background:linear-gradient(95deg, var(--text) 20%, var(--accent) 90%);
+  -webkit-background-clip:text; background-clip:text; -webkit-text-fill-color:transparent;
+}
 .auth-form .sub{color:var(--text-dim); font-size:13.5px; margin-bottom:28px;}
 .auth-toggle{display:flex; gap:4px; background:var(--bg-soft); border:1px solid var(--border); border-radius:9px; padding:4px; margin-bottom:26px;}
 .auth-toggle button{flex:1; padding:9px; border:none; background:transparent; border-radius:6px; font-weight:600; font-size:13px; color:var(--text-dim);}
@@ -220,7 +234,26 @@ tr:last-child td{border-bottom:none;}
 .tag-employee{background:var(--card-2); color:var(--text-dim); border:1px solid var(--border);}
 .tag-owner{background:var(--predator); color:#fff;}
 
+.online-summary{display:flex; align-items:center; gap:8px; font-size:13px; color:var(--text-dim); margin-bottom:2px;}
+.online-summary b{color:var(--accent); font-size:15px;}
+.status-dot{width:8px; height:8px; border-radius:50%; flex-shrink:0;}
+.status-dot.on{background:var(--accent); box-shadow:0 0 0 3px var(--accent-dim); animation:dotBlink 1.6s ease-in-out infinite;}
+.status-dot.off{background:var(--text-faint); opacity:.5;}
+.dash-layout{display:flex; gap:16px; align-items:flex-start;}
+.dash-main{flex:1; min-width:0;}
+.dash-side{width:230px; flex-shrink:0; position:sticky; top:20px;}
+.online-vert-list{display:flex; flex-direction:column; gap:2px;}
+.online-vert-row{display:flex; align-items:center; gap:9px; padding:8px 2px; border-bottom:1px solid var(--border-soft);}
+.online-vert-row:last-child{border-bottom:none;}
+.online-vert-row .avatar{width:26px; height:26px; font-size:11px; flex-shrink:0;}
+.online-vert-row .o-name{font-weight:600; font-size:13px; flex:1; overflow:hidden; text-overflow:ellipsis; white-space:nowrap;}
+.online-vert-row .o-role{display:block; font-size:10px; color:var(--text-faint); text-transform:uppercase; letter-spacing:.03em;}
+.period-filter{display:flex; gap:8px; justify-content:flex-end; align-items:center;}
+.period-filter select{padding:8px 10px; background:var(--bg-soft); border:1px solid var(--border); border-radius:8px; color:var(--text); font-size:13px; font-weight:600;}
 @media (max-width:920px){
+  .dash-layout{flex-direction:column;}
+  .dash-side{width:100%; position:static;}
+
   .auth-side{display:none;}
   .g-2, .g-3, .g-4{grid-template-columns:1fr;}
   .nav-tabs{display:none;}
@@ -270,8 +303,9 @@ tr:last-child td{border-bottom:none;}
         </div>
 
         <div id="loginPane">
-          <h2>ยินดีต้อนรับกลับ</h2>
-          <div class="sub">เข้าสู่ระบบด้วยบัญชีของคุณ</div>
+          <div class="login-badge"><span class="dot"></span>Streak กำลังรอคุณอยู่</div>
+          <h2 class="login-headline">พร้อมลุยต่อหรือยัง? 🔥</h2>
+          <div class="sub">เข้าสู่ระบบเพื่อสาน Clean Streak ต่อ ไล่แต้ม และปลดล็อก Tier ถัดไป</div>
           <div class="field"><label>Username</label><input id="loginUser" placeholder="เช่น thpimcha"></div>
           <div class="field"><label>Password</label><input id="loginPass" type="password" placeholder="••••••••"></div>
           <div class="auth-error" id="loginErr"></div>
@@ -402,26 +436,47 @@ tr:last-child td{border-bottom:none;}
     <!-- ============ ADMIN: DASHBOARD ============ -->
     <div class="page" id="page-admin-dashboard">
       <div class="page-head"><div><h1>Admin Dashboard</h1><div class="sub">ภาพรวมทีมที่ Admin ต้องรู้</div></div></div>
-      <div class="grid g-4" style="margin-bottom:16px;">
-        <div class="card"><div class="card-title">Team Clean Rate</div><div class="stat-num" id="adTeamRate">0%</div></div>
-        <div class="card"><div class="card-title">Total Employees</div><div class="stat-num" id="adTotalEmp">0</div></div>
-        <div class="card"><div class="card-title">Total Normal Point</div><div class="stat-num" id="adTotalPts">0</div></div>
-        <div class="card"><div class="card-title">Pending Redemption</div><div class="stat-num" id="adPending" style="color:var(--gold)">0</div></div>
-      </div>
-      <div class="grid g-2">
-        <div class="card">
-          <div class="card-title">Top 3</div>
-          <div id="adTop3"></div>
+      <div class="dash-layout">
+        <div class="dash-main">
+          <div class="grid g-4" style="margin-bottom:8px;">
+            <div></div><div></div><div></div>
+            <div class="period-filter">
+              <select id="dashMonthSel" onchange="window.onDashFilterChange()"></select>
+              <select id="dashYearSel" onchange="window.onDashFilterChange()"></select>
+            </div>
+          </div>
+          <div class="grid g-4" style="margin-bottom:16px;">
+            <div class="card"><div class="card-title">Team Clean Rate</div><div class="stat-num" id="adTeamRate">0%</div></div>
+            <div class="card"><div class="card-title">Total Employees</div><div class="stat-num" id="adTotalEmp">0</div></div>
+            <div class="card"><div class="card-title">Total Normal Point</div><div class="stat-num" id="adTotalPts">0</div></div>
+            <div class="card"><div class="card-title">Pending Redemption</div><div class="stat-num" id="adPending" style="color:var(--gold)">0</div></div>
+          </div>
+          <div class="grid g-2">
+            <div class="card">
+              <div class="card-title">Top 3</div>
+              <div id="adTop3"></div>
+            </div>
+            <div class="card">
+              <div class="card-title">Team Streak (avg. clean months)</div>
+              <div class="stat-num" id="adTeamStreak">0</div>
+              <div style="font-size:12.5px; color:var(--text-dim); margin-top:6px;" id="adTeamStreakSub"></div>
+            </div>
+          </div>
+          <div class="card" style="margin-top:16px;">
+            <div class="card-title">📊 Investigations by Month</div>
+            <div id="adInvChart"></div>
+          </div>
         </div>
-        <div class="card">
-          <div class="card-title">Team Streak (avg. clean months)</div>
-          <div class="stat-num" id="adTeamStreak">0</div>
-          <div style="font-size:12.5px; color:var(--text-dim); margin-top:6px;" id="adTeamStreakSub"></div>
-        </div>
-      </div>
-      <div class="card" style="margin-top:16px;">
-        <div class="card-title">📊 Investigations by Month</div>
-        <div id="adInvChart"></div>
+        <aside class="dash-side">
+          <div class="card">
+            <div class="card-title" style="display:flex; align-items:center; justify-content:space-between;">
+              <span>🟢 Online</span>
+              <b id="adOnlineCount" style="color:var(--accent)">0</b>
+            </div>
+            <div class="online-vert-list" id="adOnlineList"></div>
+            <div class="empty-state hidden" id="adOnlineEmpty" style="padding:10px 0">ไม่มีใครออนไลน์ตอนนี้</div>
+          </div>
+        </aside>
       </div>
     </div>
 
@@ -725,6 +780,7 @@ window.doSignup = async function(){
 window.logout = async function(){
   liveUnsubs.forEach(fn=>fn && fn());
   liveUnsubs = [];
+  stopPresenceHeartbeat();
   await signOut(auth);
   currentUser = null;
   document.getElementById('app').classList.remove('active');
@@ -764,7 +820,132 @@ function enterApp(){
   buildNav();
   renderShell();
   attachLiveListeners();
+  startPresenceHeartbeat();
+  initDashboardFilters();
   goto(currentUser.role==='admin' ? 'admin-dashboard' : 'emp-dashboard');
+}
+
+/* =========================================================
+   PRESENCE / ONLINE STATUS
+   Lightweight Firestore-based heartbeat (no Realtime DB needed).
+   Every active session writes lastActiveAt to its own user doc on an
+   interval + on tab focus; users with a heartbeat newer than
+   ONLINE_THRESHOLD_MS are considered "online" by anyone viewing the
+   Admin/Owner dashboard (users collection is already live-synced).
+========================================================= */
+const HEARTBEAT_INTERVAL_MS = 45000; // ping every 45s
+const ONLINE_THRESHOLD_MS = 120000;  // considered online if seen within 2 min
+let presenceTimer = null;
+
+async function pingPresence(){
+  if(!currentUser) return;
+  try{ await updateDoc(doc(db,'users',currentUser.uid), { lastActiveAt: serverTimestamp() }); }
+  catch(e){ /* non-critical */ }
+}
+function startPresenceHeartbeat(){
+  stopPresenceHeartbeat();
+  pingPresence();
+  presenceTimer = setInterval(pingPresence, HEARTBEAT_INTERVAL_MS);
+  document.addEventListener('visibilitychange', onVisibilityPing);
+  window.addEventListener('focus', onVisibilityPing);
+}
+function stopPresenceHeartbeat(){
+  if(presenceTimer){ clearInterval(presenceTimer); presenceTimer = null; }
+  document.removeEventListener('visibilitychange', onVisibilityPing);
+  window.removeEventListener('focus', onVisibilityPing);
+}
+function onVisibilityPing(){ if(document.visibilityState==='visible') pingPresence(); }
+
+function isUserOnline(u){
+  if(!u || !u.lastActiveAt || typeof u.lastActiveAt.toDate !== 'function') return false;
+  return (Date.now() - u.lastActiveAt.toDate().getTime()) < ONLINE_THRESHOLD_MS;
+}
+function lastSeenLabel(u){
+  if(!u || !u.lastActiveAt || typeof u.lastActiveAt.toDate !== 'function') return 'ไม่เคยเข้าระบบ';
+  const diffMs = Date.now() - u.lastActiveAt.toDate().getTime();
+  if(diffMs < ONLINE_THRESHOLD_MS) return 'ออนไลน์ตอนนี้';
+  const mins = Math.round(diffMs/60000);
+  if(mins < 60) return `${mins} นาทีที่แล้ว`;
+  const hrs = Math.round(mins/60);
+  if(hrs < 24) return `${hrs} ชม.ที่แล้ว`;
+  return `${Math.round(hrs/24)} วันที่แล้ว`;
+}
+function roleLabel(u){ return u.owner ? 'Owner' : u.role==='admin' ? 'Admin' : 'Employee'; }
+function renderOnlineStatus(){
+  const listEl = document.getElementById('adOnlineList');
+  if(!listEl) return;
+  const online = users.filter(isUserOnline);
+  document.getElementById('adOnlineCount').textContent = online.length;
+  listEl.innerHTML = online.map(u=>`
+    <div class="online-vert-row">
+      <span class="status-dot on"></span>
+      <span class="avatar">${(u.name||'?').charAt(0).toUpperCase()}</span>
+      <span class="o-name">${u.name}<span class="o-role">${roleLabel(u)}</span></span>
+    </div>`).join('');
+  document.getElementById('adOnlineEmpty').classList.toggle('hidden', online.length>0);
+}
+// keep the online list fresh even without new Firestore writes (heartbeats can lapse)
+setInterval(()=>{ if(currentUser && currentUser.role==='admin' && currentPage==='admin-dashboard') renderOnlineStatus(); }, 20000);
+
+/* =========================================================
+   DASHBOARD MONTH/YEAR FILTER
+   dashSelMonth: 'ALL' (whole year) or 1-12. dashSelYear: number.
+   Stat cards (Clean Rate / Employees / Total Points / Pending)
+   are computed for the selected period; Top3 / Streak / the
+   12-month chart stay as running/all-time views.
+========================================================= */
+let dashSelMonth = new Date().getMonth()+1;
+let dashSelYear = new Date().getFullYear();
+const MONTH_LABELS_TH = ['ทั้งปี','ม.ค.','ก.พ.','มี.ค.','เม.ย.','พ.ค.','มิ.ย.','ก.ค.','ส.ค.','ก.ย.','ต.ค.','พ.ย.','ธ.ค.'];
+
+function initDashboardFilters(){
+  const monthSel = document.getElementById('dashMonthSel');
+  const yearSel = document.getElementById('dashYearSel');
+  if(!monthSel || !yearSel) return;
+  monthSel.innerHTML = MONTH_LABELS_TH.map((label,i)=> `<option value="${i===0?'ALL':i}">${label}</option>`).join('');
+  monthSel.value = dashSelMonth;
+  const curY = new Date().getFullYear();
+  const years = [curY-2, curY-1, curY];
+  yearSel.innerHTML = years.map(y=>`<option value="${y}">${y}</option>`).join('');
+  yearSel.value = dashSelYear;
+}
+window.onDashFilterChange = function(){
+  dashSelMonth = document.getElementById('dashMonthSel').value; // 'ALL' or '1'..'12' (string)
+  dashSelYear = parseInt(document.getElementById('dashYearSel').value, 10);
+  renderAdmin();
+};
+function tsToDate(ts){ return (ts && typeof ts.toDate === 'function') ? ts.toDate() : null; }
+function inSelectedPeriod(d){
+  if(!d) return false;
+  if(d.getFullYear() !== dashSelYear) return false;
+  return dashSelMonth==='ALL' || (d.getMonth()+1) === Number(dashSelMonth);
+}
+function periodInvestigations(){
+  return investigations.filter(iv=>{
+    const parts = (iv.month||'').split('-').map(Number);
+    if(parts[0] !== dashSelYear) return false;
+    return dashSelMonth==='ALL' || parts[1] === Number(dashSelMonth);
+  });
+}
+function periodHistory(){ return history.filter(h=> inSelectedPeriod(tsToDate(h.createdAt))); }
+function periodEmployeeCount(){
+  const cutoff = dashSelMonth==='ALL'
+    ? new Date(dashSelYear, 11, 31, 23,59,59)
+    : new Date(dashSelYear, Number(dashSelMonth), 0, 23,59,59); // last day of selected month
+  const now = new Date();
+  const eff = cutoff > now ? now : cutoff;
+  return users.filter(u=> u.role==='employee' && tsToDate(u.joined) && tsToDate(u.joined) <= eff).length;
+}
+function periodTeamCleanRate(){
+  const empCount = periodEmployeeCount() || teamMembers().length;
+  if(!empCount) return 0;
+  const investigatedIds = new Set(periodInvestigations().map(iv=>iv.userId));
+  const clean = Math.max(0, empCount - investigatedIds.size);
+  return Math.round((clean/empCount)*100);
+}
+function periodTotalPoints(){ return periodHistory().reduce((s,h)=> s + (h.points||0), 0); }
+function periodPendingRedemptions(){
+  return redemptions.filter(r=> r.status==='PENDING' && inSelectedPeriod(tsToDate(r.requestedAt))).length;
 }
 
 function buildNav(){
@@ -1115,11 +1296,11 @@ function renderEmployee(){
 
 function renderAdmin(){
   if(currentPage==='admin-dashboard'){
-    const rate = teamCleanRate();
+    const rate = periodTeamCleanRate();
     document.getElementById('adTeamRate').textContent = rate+'%';
-    document.getElementById('adTotalEmp').textContent = users.filter(u=>u.role==='employee').length;
-    document.getElementById('adTotalPts').textContent = fmtPts(users.reduce((s,u)=>s+(u.points||0),0));
-    document.getElementById('adPending').textContent = redemptions.filter(r=>r.status==='PENDING').length;
+    document.getElementById('adTotalEmp').textContent = periodEmployeeCount();
+    document.getElementById('adTotalPts').textContent = fmtPts(periodTotalPoints());
+    document.getElementById('adPending').textContent = periodPendingRedemptions();
     const top3 = leaderboardSorted().slice(0,3);
     document.getElementById('adTop3').innerHTML = top3.map((x,i)=>`
       <div class="lb-row" style="margin-bottom:4px;">
@@ -1130,6 +1311,7 @@ function renderAdmin(){
     const avgStreak = teamMembers().length ? (teamMembers().reduce((s,u)=>s+(u.streakMonths||0),0)/teamMembers().length) : 0;
     document.getElementById('adTeamStreak').textContent = (Math.round(avgStreak*10)/10);
     document.getElementById('adTeamStreakSub').textContent = `Longest current streak: ${Math.max(...teamMembers().map(u=>u.streakMonths||0),0)} months`;
+    renderOnlineStatus();
     renderInvestigationChart();
   }
 
@@ -1153,7 +1335,9 @@ function renderAdmin(){
     };
     const head = `<thead><tr><th>Name</th><th>Points</th><th>Streak</th><th>Tier</th><th>Role</th><th>Actions</th></tr></thead>`;
     const adminRows = users.filter(u=>u.role==='admin');
-    const empRows = users.filter(u=>u.role==='employee');
+    const tierRank = (u)=> TIERS.findIndex(t=>t.key===tierForStreak(u.streakMonths||0).key);
+    const empRows = users.filter(u=>u.role==='employee')
+      .sort((a,b)=> tierRank(b)-tierRank(a) || (b.streakMonths||0)-(a.streakMonths||0) || (b.points||0)-(a.points||0));
     document.getElementById('adminTable').innerHTML = head + `<tbody>${
       adminRows.length ? adminRows.map(rowHtml).join('') : `<tr><td colspan="6"><div class="empty-state" style="padding:22px 0"><div class="ic">👑</div>ยังไม่มี Admin เพิ่มเติม</div></td></tr>`
     }</tbody>`;
@@ -1167,7 +1351,7 @@ function renderAdmin(){
     const prevVal = sel.value;
     const employeesOnly = users.filter(u=>u.role==='employee'); // Owner/Admin never appear here
     sel.innerHTML = employeesOnly.length
-      ? employeesOnly.map(u=>`<option value="${u.id}">${u.name} (${fmtPts(u.points)} pts)</option>`).join('')
+      ? employeesOnly.map(u=>`<option value="${u.id}">${u.name} — ${tierForStreak(u.streakMonths||0).label} (${fmtPts(u.points)} pts)</option>`).join('')
       : `<option value="">— No employees yet —</option>`;
     if(prevVal && employeesOnly.find(u=>u.id===prevVal)) sel.value = prevVal;
   }
