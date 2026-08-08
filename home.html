@@ -193,6 +193,20 @@ main{max-width:1180px; margin:0 auto; padding:28px 26px 80px;}
 
 .reward-card{display:flex; align-items:center; gap:16px;}
 .reward-icon{font-size:34px;}
+.team-goal-card{background:linear-gradient(160deg, var(--bg-card) 0%, var(--accent-dim) 180%); border-color:var(--accent);}
+.tg-title{font-size:15px; font-weight:800; letter-spacing:.02em; margin-bottom:14px; display:flex; align-items:center; gap:8px;}
+.tg-grid{display:grid; grid-template-columns:1.4fr 1fr 1fr; gap:22px;}
+@media (max-width:800px){.tg-grid{grid-template-columns:1fr;}}
+.tg-label{font-size:11px; color:var(--text-faint); text-transform:uppercase; letter-spacing:.05em; font-weight:700; margin-bottom:6px;}
+.tg-nums{font-size:19px; font-weight:800; margin-bottom:6px;}
+.tg-nums small{font-size:12px; color:var(--text-dim); font-weight:600;}
+.tg-pct{font-size:11px; color:var(--accent); font-weight:700; text-align:right; margin-top:4px;}
+.tg-streak{font-size:24px; font-weight:800;}
+.tg-reward-title{font-weight:700; font-size:13.5px; margin-bottom:4px;}
+.tg-reward-lines{font-size:12.5px; color:var(--text-dim); white-space:pre-line; line-height:1.6;}
+.tg-edit-btn{margin-top:16px;}
+.reward-featured{position:relative; border-color:var(--gold) !important; box-shadow:0 0 0 1px var(--gold), 0 8px 24px rgba(242,178,60,.18);}
+.featured-badge{position:absolute; top:-10px; right:14px; background:var(--gold); color:#241800; font-size:10.5px; font-weight:800; letter-spacing:.03em; padding:3px 10px; border-radius:99px; text-transform:uppercase; box-shadow:0 2px 8px rgba(242,178,60,.4);}
 .reward-need{font-size:12.5px; color:var(--text-dim); margin-top:6px;}
 
 .lb-row{display:flex; align-items:center; gap:12px; padding:10px 12px; border-radius:10px;}
@@ -413,6 +427,10 @@ tr:last-child td{border-bottom:none;}
           </div>
         </div>
       </div>
+
+      <div class="card team-goal-card" style="margin-top:16px;">
+        <div id="empTeamGoal"></div>
+      </div>
     </div>
 
     <!-- ============ EMPLOYEE: REWARDS ============ -->
@@ -477,6 +495,9 @@ tr:last-child td{border-bottom:none;}
             <div class="empty-state hidden" id="adOnlineEmpty" style="padding:10px 0">ไม่มีใครออนไลน์ตอนนี้</div>
           </div>
         </aside>
+      </div>
+      <div class="card team-goal-card" style="margin-top:16px;">
+        <div id="adTeamGoal"></div>
       </div>
     </div>
 
@@ -633,6 +654,7 @@ let redemptions = [];
 let notifications = [];
 let history = [];
 let investigations = [];
+let teamGoal = { target: 0, rewardTitle: '', rewardLines: '' };
 let liveUnsubs = [];
 
 /* =========================================================
@@ -1068,6 +1090,12 @@ function attachLiveListeners(){
       renderAll();
     }, (e)=> console.warn('investigations listener error', e)));
   }
+
+  // team goal (visible to everyone — shown on both Employee & Admin dashboards)
+  liveUnsubs.push(onSnapshot(doc(db,'settings','teamGoal'), (snap)=>{
+    teamGoal = snap.exists() ? snap.data() : { target:0, rewardTitle:'', rewardLines:'' };
+    renderAll();
+  }, (e)=> console.warn('teamGoal listener error', e)));
 }
 
 /* =========================================================
@@ -1154,6 +1182,42 @@ function teamCleanRate(){
   const total = team.length;
   const clean = team.filter(u=>(u.streakMonths||0)>0).length;
   return total ? Math.round((clean/total)*100) : 0;
+}
+function avgTeamStreak(){
+  const tm = teamMembers();
+  if(!tm.length) return 0;
+  return Math.round((tm.reduce((s,u)=>s+(u.streakMonths||0),0)/tm.length)*10)/10;
+}
+function teamTotalPoints(){ return teamMembers().reduce((s,u)=> s+(u.points||0), 0); }
+function renderTeamGoalHtml(isAdmin){
+  const total = teamTotalPoints();
+  const target = teamGoal.target || 0;
+  const pct = target>0 ? Math.min(100, Math.round((total/target)*100)) : 0;
+  const monthUpper = new Date().toLocaleString('en-US',{month:'long'}).toUpperCase();
+  const streak = avgTeamStreak();
+  const rewardTitle = (teamGoal.rewardTitle||'').trim();
+  const rewardLines = (teamGoal.rewardLines||'').trim();
+  return `
+    <div class="tg-title">🚀 ${monthUpper} TEAM MISSION</div>
+    <div class="tg-grid">
+      <div>
+        <div class="tg-label">Team Target</div>
+        <div class="tg-nums">${fmtPts(total)} <small>/ ${fmtPts(target)} POINTS</small></div>
+        <div class="progress-bar"><div class="progress-fill" style="width:${pct}%; background:var(--accent)"></div></div>
+        <div class="tg-pct">${pct}%</div>
+      </div>
+      <div>
+        <div class="tg-label">Current Team Streak</div>
+        <div class="tg-streak">🔥 ${streak} mo</div>
+      </div>
+      <div>
+        <div class="tg-label">Reward Unlock</div>
+        <div class="tg-reward-title">🎁 ${target ? `เมื่อถึง ${fmtPts(target)} pts` : 'ยังไม่ได้ตั้งเป้าหมาย'}</div>
+        <div class="tg-reward-lines">${rewardTitle ? `<b>${rewardTitle}</b><br>` : ''}${rewardLines.replace(/\n/g,'<br>')}</div>
+      </div>
+    </div>
+    ${isAdmin ? `<button class="btn btn-ghost btn-sm tg-edit-btn" onclick="window.openEditTeamGoal()">✏️ Edit Team Goal</button>` : ''}
+  `;
 }
 function displayTier(u){
   // Owner/Admin always display as Predator, regardless of their actual streak.
@@ -1257,19 +1321,25 @@ function renderEmployee(){
     ring.style.background = `conic-gradient(var(--accent) ${rate*3.6}deg, var(--bg-soft) 0deg)`;
     ring.style.color = 'var(--text)';
     document.getElementById('empTeamRateSub').textContent = `${users.filter(x=>(x.streakMonths||0)>0).length} / ${users.length} คนกำลัง Clean อยู่`;
+    document.getElementById('empTeamGoal').innerHTML = renderTeamGoalHtml(false);
   }
 
   if(currentPage==='emp-rewards'){
     document.getElementById('empRewardGrid').innerHTML = rewards.map(r=>{
       const can = (u.points||0) >= r.cost;
+      const soldOut = typeof r.stock === 'number' && r.stock <= 0;
       const pending = redemptions.find(rq=>rq.userId===u.uid && rq.rewardId===r.id && rq.status==='PENDING');
-      return `<div class="card">
+      return `<div class="card ${r.featured?'reward-featured':''}">
+        ${r.featured?'<div class="featured-badge">⭐ Featured</div>':''}
         <div class="reward-icon">${r.icon}</div>
         <div style="font-weight:700; font-size:16px; margin:8px 0 2px;">${r.name}</div>
-        <div style="color:var(--text-dim); font-size:13px; margin-bottom:14px;">Required: ${r.cost} points · You have ${fmtPts(u.points)}</div>
-        ${pending
-          ? `<span class="pill pill-pending">Pending Approval</span>`
-          : `<button class="btn ${can?'btn-primary':''}" style="width:100%" ${can?'':'disabled'} onclick="window.requestRedeem('${r.id}', this)">${can?'Request Redemption':'Not enough points'}</button>`}
+        <div style="color:var(--text-dim); font-size:13px; margin-bottom:6px;">Required: ${r.cost} points · You have ${fmtPts(u.points)}</div>
+        ${typeof r.stock === 'number' ? `<div style="font-size:12px; color:${soldOut?'var(--danger)':'var(--text-faint)'}; margin-bottom:10px;">${soldOut?'หมดแล้ว':`เหลือ ${r.stock} ชิ้น`}</div>` : '<div style="margin-bottom:10px;"></div>'}
+        ${soldOut
+          ? `<span class="pill pill-rejected" style="width:100%; justify-content:center; display:flex;">Sold Out</span>`
+          : pending
+            ? `<span class="pill pill-pending">Pending Approval</span>`
+            : `<button class="btn ${can?'btn-primary':''}" style="width:100%" ${can?'':'disabled'} onclick="window.requestRedeem('${r.id}', this)">${can?'Request Redemption':'Not enough points'}</button>`}
       </div>`;
     }).join('') || `<div class="empty-state"><div class="ic">🎁</div>ยังไม่มี Reward</div>`;
   }
@@ -1311,6 +1381,7 @@ function renderAdmin(){
     const avgStreak = teamMembers().length ? (teamMembers().reduce((s,u)=>s+(u.streakMonths||0),0)/teamMembers().length) : 0;
     document.getElementById('adTeamStreak').textContent = (Math.round(avgStreak*10)/10);
     document.getElementById('adTeamStreakSub').textContent = `Longest current streak: ${Math.max(...teamMembers().map(u=>u.streakMonths||0),0)} months`;
+    document.getElementById('adTeamGoal').innerHTML = renderTeamGoalHtml(true);
     renderOnlineStatus();
     renderInvestigationChart();
   }
@@ -1357,16 +1428,20 @@ function renderAdmin(){
   }
 
   if(currentPage==='admin-rewards'){
-    document.getElementById('adRewardGrid').innerHTML = rewards.map(r=>`
-      <div class="card">
+    document.getElementById('adRewardGrid').innerHTML = rewards.map(r=>{
+      const soldOut = typeof r.stock === 'number' && r.stock <= 0;
+      return `<div class="card ${r.featured?'reward-featured':''}">
+        ${r.featured?'<div class="featured-badge">⭐ Featured</div>':''}
         <div class="reward-icon">${r.icon}</div>
         <div style="font-weight:700; font-size:16px; margin:8px 0 2px;">${r.name}</div>
-        <div style="color:var(--text-dim); font-size:13px; margin-bottom:14px;">${r.cost} points</div>
+        <div style="color:var(--text-dim); font-size:13px; margin-bottom:4px;">${r.cost} points</div>
+        <div style="font-size:12px; color:${soldOut?'var(--danger)':'var(--text-faint)'}; margin-bottom:12px;">${typeof r.stock === 'number' ? (soldOut?'Sold Out':`เหลือ ${r.stock} ชิ้น`) : 'ไม่จำกัดจำนวน'}</div>
         <div class="action-row">
           <button class="btn btn-ghost btn-sm" onclick="window.openEditReward('${r.id}')">Edit</button>
           <button class="btn btn-danger btn-sm" onclick="window.deleteReward('${r.id}')">Delete</button>
         </div>
-      </div>`).join('') || `<div class="empty-state"><div class="ic">🎁</div>ยังไม่มี Reward — กด + Add Reward</div>`;
+      </div>`;
+    }).join('') || `<div class="empty-state"><div class="ic">🎁</div>ยังไม่มี Reward — กด + Add Reward</div>`;
   }
 
   if(currentPage==='admin-redemptions'){
@@ -1528,10 +1603,17 @@ window.requestRedeem = async function(rewardId, btnEl){
   if(btnEl) btnEl.disabled = true;
   try{
     const uRef = doc(db,'users',u.uid);
+    const rwRef = doc(db,'rewards',rewardId);
     await runTransaction(db, async (tx)=>{
       const uSnap = await tx.get(uRef);
       const cur = uSnap.data();
       if((cur.points||0) < r.cost) throw new Error('คะแนนไม่พอ');
+      const rwSnap = await tx.get(rwRef);
+      const rwCur = rwSnap.exists() ? rwSnap.data() : r;
+      if(typeof rwCur.stock === 'number'){
+        if(rwCur.stock <= 0) throw new Error('SOLD_OUT');
+        tx.update(rwRef, { stock: rwCur.stock - 1 });
+      }
       tx.update(uRef, {
         points: (cur.points||0) - r.cost,
         tierPoints: Math.max(0, (cur.tierPoints||0) - r.cost)
@@ -1545,7 +1627,7 @@ window.requestRedeem = async function(rewardId, btnEl){
     await notifyAdmins(`${u.name} requested ${r.icon} ${r.name} (${r.cost} pts)`, 'redeem');
     toast('ส่งคำขอแลก Reward แล้ว — หักแต้มไว้ชั่วคราว รอ Admin อนุมัติ');
   }catch(e){
-    toast(e.message==='คะแนนไม่พอ' ? 'คะแนนไม่พอ' : (friendlyAuthError(e)||'ส่งคำขอไม่สำเร็จ'), true);
+    toast(e.message==='คะแนนไม่พอ' ? 'คะแนนไม่พอ' : e.message==='SOLD_OUT' ? 'Reward นี้หมดแล้ว' : (friendlyAuthError(e)||'ส่งคำขอไม่สำเร็จ'), true);
   }finally{
     if(btnEl) btnEl.disabled = false;
   }
@@ -1607,6 +1689,11 @@ window.confirmReject = async function(rqId){
         points: (cur.points||0) + rqData.rewardCost,
         tierPoints: (cur.tierPoints||0) + rqData.rewardCost
       });
+      const rwRef = doc(db,'rewards', rqData.rewardId);
+      const rwSnap = await tx.get(rwRef);
+      if(rwSnap.exists() && typeof rwSnap.data().stock === 'number'){
+        tx.update(rwRef, { stock: rwSnap.data().stock + 1 });
+      }
       tx.update(rqRef, { status:'REJECTED', reason, resolvedAt: serverTimestamp(), resolvedBy: currentUser.name });
     });
     await logHistory(rqData.userId, 'REDEMPTION REJECTED (points refunded)', rqData.rewardCost, reason, currentUser.name, 'REJECTED');
@@ -1746,6 +1833,11 @@ window.openAddReward = function(){
     <div class="field"><label>Name</label><input id="nrName" placeholder="เช่น Coffee Voucher"></div>
     <div class="field"><label>Icon (emoji)</label><input id="nrIcon" placeholder="☕" value="🎁"></div>
     <div class="field"><label>Cost (points)</label><input id="nrCost" type="number" min="1"></div>
+    <div class="field"><label>Stock (จำนวน — เว้นว่าง = ไม่จำกัด)</label><input id="nrStock" type="number" min="0" placeholder="ไม่จำกัด"></div>
+    <div class="field" style="display:flex; align-items:center; gap:8px;">
+      <input id="nrFeatured" type="checkbox" style="width:auto;">
+      <label style="margin:0; text-transform:none; font-size:13.5px; font-weight:500;" for="nrFeatured">⭐ Featured — ทำให้ Card นี้ดูเด่น</label>
+    </div>
     <div class="modal-actions">
       <button class="btn" onclick="window.closeModal()">Cancel</button>
       <button class="btn btn-primary" onclick="window.confirmAddReward()">Add Reward</button>
@@ -1756,9 +1848,12 @@ window.confirmAddReward = async function(){
   const name = document.getElementById('nrName').value.trim();
   const icon = document.getElementById('nrIcon').value.trim() || '🎁';
   const cost = parseFloat(document.getElementById('nrCost').value);
+  const stockRaw = document.getElementById('nrStock').value.trim();
+  const stock = stockRaw==='' ? null : Math.max(0, parseInt(stockRaw,10));
+  const featured = document.getElementById('nrFeatured').checked;
   if(!name || !cost || cost<=0){ toast('กรอกข้อมูลให้ครบ', true); return; }
   try{
-    await addDoc(collection(db,'rewards'), { name, icon, cost });
+    await addDoc(collection(db,'rewards'), { name, icon, cost, stock, featured });
     toast('เพิ่ม Reward แล้ว'); window.closeModal();
   }catch(e){ toast('เพิ่มไม่สำเร็จ', true); }
 };
@@ -1769,6 +1864,11 @@ window.openEditReward = function(rewardId){
     <div class="field"><label>Name</label><input id="erName" value="${r.name}"></div>
     <div class="field"><label>Icon</label><input id="erIcon" value="${r.icon}"></div>
     <div class="field"><label>Cost</label><input id="erCost" type="number" value="${r.cost}"></div>
+    <div class="field"><label>Stock (จำนวน — เว้นว่าง = ไม่จำกัด)</label><input id="erStock" type="number" min="0" value="${typeof r.stock==='number' ? r.stock : ''}" placeholder="ไม่จำกัด"></div>
+    <div class="field" style="display:flex; align-items:center; gap:8px;">
+      <input id="erFeatured" type="checkbox" style="width:auto;" ${r.featured?'checked':''}>
+      <label style="margin:0; text-transform:none; font-size:13.5px; font-weight:500;" for="erFeatured">⭐ Featured — ทำให้ Card นี้ดูเด่น</label>
+    </div>
     <div class="modal-actions">
       <button class="btn" onclick="window.closeModal()">Cancel</button>
       <button class="btn btn-primary" onclick="window.confirmEditReward('${rewardId}')">Save</button>
@@ -1780,8 +1880,11 @@ window.confirmEditReward = async function(rewardId){
   const name = document.getElementById('erName').value.trim() || r.name;
   const icon = document.getElementById('erIcon').value.trim() || r.icon;
   const cost = parseFloat(document.getElementById('erCost').value) || r.cost;
+  const stockRaw = document.getElementById('erStock').value.trim();
+  const stock = stockRaw==='' ? null : Math.max(0, parseInt(stockRaw,10));
+  const featured = document.getElementById('erFeatured').checked;
   try{
-    await updateDoc(doc(db,'rewards',rewardId), { name, icon, cost });
+    await updateDoc(doc(db,'rewards',rewardId), { name, icon, cost, stock, featured });
     toast('บันทึกแล้ว'); window.closeModal();
   }catch(e){ toast('บันทึกไม่สำเร็จ', true); }
 };
@@ -1800,6 +1903,31 @@ window.deleteReward = async function(rewardId){
     await deleteDoc(doc(db,'rewards',rewardId));
     toast('ลบ Reward แล้ว');
   }catch(e){ toast('ลบไม่สำเร็จ', true); }
+};
+
+window.openEditTeamGoal = function(){
+  showModal(`
+    <h3>🚀 Set Team Goal</h3>
+    <div class="field"><label>Target Points (เป้าหมายแต้มรวมทั้งทีม)</label><input id="tgTarget" type="number" min="0" value="${teamGoal.target||''}"></div>
+    <div class="field"><label>Reward Title</label><input id="tgRewardTitle" placeholder="เช่น Team Lunch + Bonus" value="${teamGoal.rewardTitle||''}"></div>
+    <div class="field"><label>Reward Details (บรรทัดละ 1 รายการ)</label><textarea id="tgRewardLines" rows="4" placeholder="→ Team Lunch
+→ + Bonus Reward">${teamGoal.rewardLines||''}</textarea></div>
+    <div class="modal-actions">
+      <button class="btn" onclick="window.closeModal()">Cancel</button>
+      <button class="btn btn-primary" onclick="window.saveTeamGoal()">Save Goal</button>
+    </div>
+  `);
+};
+window.saveTeamGoal = async function(){
+  const target = Math.max(0, parseInt(document.getElementById('tgTarget').value,10) || 0);
+  const rewardTitle = document.getElementById('tgRewardTitle').value.trim();
+  const rewardLines = document.getElementById('tgRewardLines').value.trim();
+  try{
+    await setDoc(doc(db,'settings','teamGoal'), {
+      target, rewardTitle, rewardLines, updatedAt: serverTimestamp(), updatedBy: currentUser.name
+    }, { merge:true });
+    toast('ตั้งเป้าหมายทีมแล้ว'); window.closeModal();
+  }catch(e){ toast('บันทึกไม่สำเร็จ', true); }
 };
 
 /* =========================================================
