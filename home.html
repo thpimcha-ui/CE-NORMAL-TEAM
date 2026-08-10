@@ -205,6 +205,25 @@ main{max-width:1180px; margin:0 auto; padding:28px 26px 80px;}
 .tg-reward-title{font-weight:700; font-size:13.5px; margin-bottom:4px;}
 .tg-reward-lines{font-size:12.5px; color:var(--text-dim); white-space:pre-line; line-height:1.6;}
 .tg-edit-btn{margin-top:16px;}
+.tg-stale-banner{background:rgba(242,178,60,.12); color:var(--gold); font-size:12px; font-weight:600; padding:9px 12px; border-radius:8px; margin-bottom:14px;}
+.status-banner{display:flex; align-items:center; justify-content:space-between; gap:16px; border-left:4px solid var(--gold); flex-wrap:wrap;}
+.status-APPROVED, .status-DISTRIBUTED{border-left-color:var(--accent) !important;}
+.status-left{display:flex; align-items:center; gap:14px;}
+.status-pill{padding:4px 12px; border-radius:99px; font-size:11px; font-weight:700; letter-spacing:.05em; text-transform:uppercase; color:#241800; white-space:nowrap;}
+.status-title{font-weight:700; font-size:14.5px;}
+.status-sub{font-size:12.5px; color:var(--text-dim); margin-top:2px;}
+.status-actions{display:flex; gap:8px; flex-wrap:wrap;}
+.status-breakdown{background:var(--bg-card); border:1px solid var(--border); border-top:none; border-radius:0 0 14px 14px; margin-top:-14px; padding:6px 20px 14px; max-height:220px; overflow-y:auto;}
+.status-breakdown-row{display:flex; justify-content:space-between; padding:6px 0; font-size:12.5px; border-bottom:1px solid var(--border-soft);}
+.status-breakdown-row:last-child{border-bottom:none;}
+.na-row{display:flex; align-items:center; gap:10px; padding:9px 2px; border-bottom:1px solid var(--border-soft);}
+.na-row:last-child{border-bottom:none;}
+.na-row .avatar{width:26px; height:26px; font-size:11px; flex-shrink:0; background:var(--danger-dim); color:var(--danger);}
+.na-tags{font-size:11px; color:var(--danger); margin-top:1px;}
+.pb-row{display:flex; justify-content:space-between; align-items:center; padding:8px 2px; font-size:13px; border-bottom:1px solid var(--border-soft);}
+.pb-row:last-child{border-bottom:none;}
+.pb-bar-track{flex:1; height:6px; background:var(--bg-soft); border-radius:99px; margin:0 10px; overflow:hidden;}
+.pb-bar-fill{height:100%; border-radius:99px;}
 .reward-featured{position:relative; border-color:var(--gold) !important; box-shadow:0 0 0 1px var(--gold), 0 8px 24px rgba(242,178,60,.18);}
 .featured-badge{position:absolute; top:-10px; right:14px; background:var(--gold); color:#241800; font-size:10.5px; font-weight:800; letter-spacing:.03em; padding:3px 10px; border-radius:99px; text-transform:uppercase; box-shadow:0 2px 8px rgba(242,178,60,.4);}
 .reward-need{font-size:12.5px; color:var(--text-dim); margin-top:6px;}
@@ -264,6 +283,8 @@ tr:last-child td{border-bottom:none;}
 .online-vert-row .o-role{display:block; font-size:10px; color:var(--text-faint); text-transform:uppercase; letter-spacing:.03em;}
 .period-filter{display:flex; gap:8px; justify-content:flex-end; align-items:center;}
 .period-filter select{padding:8px 10px; background:var(--bg-soft); border:1px solid var(--border); border-radius:8px; color:var(--text); font-size:13px; font-weight:600;}
+.search-box{width:100%; padding:10px 14px; background:var(--bg-soft); border:1px solid var(--border); border-radius:10px; color:var(--text); font-size:13.5px; margin-bottom:4px;}
+.search-box:focus{border-color:var(--accent);}
 @media (max-width:920px){
   .dash-layout{flex-direction:column;}
   .dash-side{width:100%; position:static;}
@@ -463,6 +484,7 @@ tr:last-child td{border-bottom:none;}
               <select id="dashYearSel" onchange="window.onDashFilterChange()"></select>
             </div>
           </div>
+          <div id="monthlyStatusWrap" style="margin-bottom:16px;"></div>
           <div class="grid g-4" style="margin-bottom:16px;">
             <div class="card"><div class="card-title">Team Clean Rate</div><div class="stat-num" id="adTeamRate">0%</div></div>
             <div class="card"><div class="card-title">Total Employees</div><div class="stat-num" id="adTotalEmp">0</div></div>
@@ -475,9 +497,19 @@ tr:last-child td{border-bottom:none;}
               <div id="adTop3"></div>
             </div>
             <div class="card">
+              <div class="card-title">⚠️ Needs Attention</div>
+              <div id="adNeedsAttention"></div>
+            </div>
+          </div>
+          <div class="grid g-2" style="margin-top:16px;">
+            <div class="card">
               <div class="card-title">Team Streak (avg. clean months)</div>
               <div class="stat-num" id="adTeamStreak">0</div>
               <div style="font-size:12.5px; color:var(--text-dim); margin-top:6px;" id="adTeamStreakSub"></div>
+            </div>
+            <div class="card">
+              <div class="card-title">🧮 Points Breakdown (เดือนที่เลือก)</div>
+              <div id="adPointsBreakdown"></div>
             </div>
           </div>
           <div class="card" style="margin-top:16px;">
@@ -507,7 +539,8 @@ tr:last-child td{border-bottom:none;}
         <div><h1>Employees</h1><div class="sub">จัดการพนักงานและสิทธิ์ Admin</div></div>
         <button class="btn btn-primary" onclick="window.openAddEmployee()">+ Add Employee</button>
       </div>
-      <div class="card-title" style="margin:4px 0 8px;">👑 Owner &amp; Admin</div>
+      <input class="search-box" id="empSearchInput" placeholder="🔍 ค้นหาชื่อพนักงาน..." oninput="window.onEmpSearch(this.value)">
+      <div class="card-title" style="margin:14px 0 8px;">👑 Owner &amp; Admin</div>
       <div class="card table-wrap" style="margin-bottom:22px;"><table id="adminTable"></table></div>
       <div class="card-title" style="margin:4px 0 8px;">🧑‍💼 Employees</div>
       <div class="card table-wrap"><table id="empTable"></table></div>
@@ -570,6 +603,7 @@ tr:last-child td{border-bottom:none;}
     <!-- ============ ADMIN: HISTORY ============ -->
     <div class="page" id="page-admin-history">
       <div class="page-head"><div><h1>History</h1><div class="sub">ทุก Action ที่เกี่ยวกับ Point ของทุกคน</div></div></div>
+      <input class="search-box" id="historySearchInput" placeholder="🔍 ค้นหาชื่อ / Action / Reason..." oninput="window.onHistorySearch(this.value)">
       <div class="card table-wrap"><table id="adHistoryTable"></table></div>
     </div>
   </main>
@@ -665,6 +699,8 @@ let notifications = [];
 let history = [];
 let investigations = [];
 let reasons = [];
+let empSearchTerm = '';
+let historySearchTerm = '';
 let teamGoal = { target: 0, rewardTitle: '', rewardLines: '' };
 let liveUnsubs = [];
 
@@ -814,6 +850,8 @@ window.logout = async function(){
   liveUnsubs.forEach(fn=>fn && fn());
   liveUnsubs = [];
   stopPresenceHeartbeat();
+  if(batchUnsub){ batchUnsub(); batchUnsub = null; }
+  currentBatch = null;
   await signOut(auth);
   currentUser = null;
   document.getElementById('app').classList.remove('active');
@@ -942,12 +980,196 @@ function initDashboardFilters(){
   const years = [curY-2, curY-1, curY];
   yearSel.innerHTML = years.map(y=>`<option value="${y}">${y}</option>`).join('');
   yearSel.value = dashSelYear;
+  if(currentUser && currentUser.role==='admin') subscribeToMonthlyBatch();
 }
 window.onDashFilterChange = function(){
   dashSelMonth = document.getElementById('dashMonthSel').value; // 'ALL' or '1'..'12' (string)
   dashSelYear = parseInt(document.getElementById('dashYearSel').value, 10);
+  subscribeToMonthlyBatch();
   renderAdmin();
 };
+
+/* =========================================================
+   MONTHLY ACTION STATUS — bulk "Calculate → Approve → Distribute"
+   engine so Admin never has to add points one-by-one every month.
+   Doc: monthlyBatches/{YYYY-MM}
+========================================================= */
+let currentBatch = null;
+let batchUnsub = null;
+function selectedMonthKey(){
+  if(dashSelMonth === 'ALL') return null;
+  return dashSelYear + '-' + String(dashSelMonth).padStart(2,'0');
+}
+function subscribeToMonthlyBatch(){
+  if(batchUnsub){ batchUnsub(); batchUnsub = null; }
+  currentBatch = null;
+  const key = selectedMonthKey();
+  if(!key) return;
+  batchUnsub = onSnapshot(doc(db,'monthlyBatches', key), (snap)=>{
+    currentBatch = snap.exists() ? { id:snap.id, ...snap.data() } : null;
+    renderAdmin();
+  }, (e)=> console.warn('monthlyBatch listener error', e));
+}
+window.openCalculateModal = function(){
+  const key = selectedMonthKey();
+  if(!key) return;
+  const invThisMonth = new Set(investigations.filter(iv=> iv.month===key).map(iv=>iv.userId));
+  const cleanCount = teamMembers().filter(u=>!invThisMonth.has(u.id)).length;
+  showModal(`
+    <h3>⚙️ Calculate Monthly Points</h3>
+    <div class="sub" style="margin-bottom:12px;">คำนวณโบนัสให้พนักงานที่ "Clean" เดือนนี้ (ไม่มี Investigation) ทั้งทีมในครั้งเดียว — ${cleanCount}/${teamMembers().length} คน Clean</div>
+    <div class="field"><label>Clean Bonus ต่อคน (points)</label><input id="calcBonus" type="number" min="0" step="0.5" value="50"></div>
+    <div class="modal-actions">
+      <button class="btn" onclick="window.closeModal()">Cancel</button>
+      <button class="btn btn-primary" onclick="window.confirmCalculateBatch()">คำนวณ</button>
+    </div>
+  `);
+};
+window.confirmCalculateBatch = async function(){
+  const key = selectedMonthKey();
+  if(!key) return;
+  const bonus = Math.max(0, parseFloat(document.getElementById('calcBonus').value) || 0);
+  const invThisMonth = new Set(investigations.filter(iv=> iv.month===key).map(iv=>iv.userId));
+  const items = teamMembers().map(u=>({
+    userId: u.id, userName: u.name,
+    amount: invThisMonth.has(u.id) ? 0 : bonus,
+    reason: `Monthly Clean Rate Bonus — ${key}`
+  }));
+  const totalAmount = items.reduce((s,it)=>s+it.amount,0);
+  try{
+    await setDoc(doc(db,'monthlyBatches', key), {
+      status:'CALCULATED', cleanBonus: bonus, items, totalAmount,
+      calculatedAt: serverTimestamp(), calculatedBy: currentUser.name,
+      approvedAt:null, approvedBy:null, distributedAt:null, distributedBy:null
+    });
+    toast('คำนวณแต้มเดือนนี้แล้ว — ตรวจสอบแล้วกด Approve ได้เลย'); window.closeModal();
+  }catch(e){ toast(friendlyAuthError(e) || 'คำนวณไม่สำเร็จ', true); }
+};
+window.approveMonthlyBatch = async function(){
+  const key = selectedMonthKey();
+  if(!key || !currentBatch || currentBatch.status!=='CALCULATED') return;
+  try{
+    await updateDoc(doc(db,'monthlyBatches', key), { status:'APPROVED', approvedAt: serverTimestamp(), approvedBy: currentUser.name });
+    toast('อนุมัติแล้ว — พร้อม Distribute');
+  }catch(e){ toast(friendlyAuthError(e) || 'อนุมัติไม่สำเร็จ', true); }
+};
+window.distributeMonthlyBatch = async function(){
+  const key = selectedMonthKey();
+  if(!key || !currentBatch || currentBatch.status!=='APPROVED') return;
+  if(!confirm(`ยืนยันแจกแต้มรวม ${fmtPts(currentBatch.totalAmount||0)} pts ให้ทีม (${(currentBatch.items||[]).filter(i=>i.amount>0).length} คน) ในคลิกเดียว?`)) return;
+  try{
+    // guard against double-distribution
+    const freshSnap = await getDoc(doc(db,'monthlyBatches', key));
+    if(!freshSnap.exists() || freshSnap.data().status !== 'APPROVED'){ toast('สถานะเปลี่ยนไปแล้ว รีเฟรชแล้วลองใหม่', true); return; }
+    const batch = writeBatch(db);
+    const yearKey = key.split('-')[0];
+    (currentBatch.items||[]).filter(it=>it.amount>0).forEach(it=>{
+      const uRef = doc(db,'users', it.userId);
+      batch.update(uRef, { points: increment(it.amount), tierPoints: increment(it.amount), [`pointsEarnedByYear.${yearKey}`]: increment(it.amount) });
+      const hRef = doc(collection(db,'history'));
+      batch.set(hRef, {
+        userId: it.userId, action:'MONTHLY BONUS (auto-distributed)', points: it.amount, reason: it.reason,
+        performedBy: currentUser.name, status:'DONE', createdAt: serverTimestamp()
+      });
+    });
+    batch.update(doc(db,'monthlyBatches', key), { status:'DISTRIBUTED', distributedAt: serverTimestamp(), distributedBy: currentUser.name });
+    await batch.commit();
+    toast('🎉 แจกแต้มให้ทีมเรียบร้อยแล้ว!');
+  }catch(e){ toast(friendlyAuthError(e) || 'แจกแต้มไม่สำเร็จ', true); }
+};
+const STATUS_META = {
+  DRAFT:{ pill:'Draft', color:'var(--gold)' },
+  CALCULATED:{ pill:'Pending Approval', color:'var(--gold)' },
+  APPROVED:{ pill:'Approved', color:'var(--accent)' },
+  DISTRIBUTED:{ pill:'Completed', color:'var(--accent)' },
+};
+function renderMonthlyStatusBanner(){
+  const wrap = document.getElementById('monthlyStatusWrap');
+  if(!wrap) return;
+  const key = selectedMonthKey();
+  if(!key){ wrap.innerHTML = ''; return; }
+  const monthLabel = MONTH_LABELS_TH[Number(dashSelMonth)] + ' ' + dashSelYear;
+  const status = currentBatch ? currentBatch.status : 'DRAFT';
+  let title, sub, actionsHtml;
+  if(status==='DRAFT'){
+    title = `ยังไม่เริ่มคำนวณแต้มของเดือน ${monthLabel}`;
+    sub = 'กด "Calculate Points" เพื่อคำนวณโบนัส Clean Rate ให้พนักงานทั้งทีมในครั้งเดียว ไม่ต้องกดทีละคน';
+    actionsHtml = `<button class="btn btn-primary" onclick="window.openCalculateModal()">⚙️ Calculate Points</button>`;
+  } else if(status==='CALCULATED'){
+    title = `คำนวณแล้ว — รวม ${fmtPts(currentBatch.totalAmount||0)} pts ให้ ${(currentBatch.items||[]).filter(i=>i.amount>0).length} คน`;
+    sub = `คำนวณโดย ${currentBatch.calculatedBy||'—'} · รอ Admin/Owner ตรวจสอบและอนุมัติก่อนแจกจริง`;
+    actionsHtml = `<button class="btn btn-ghost btn-sm" onclick="window.openCalculateModal()">🔁 Recalculate</button><button class="btn btn-primary" onclick="window.approveMonthlyBatch()">✅ Approve</button>`;
+  } else if(status==='APPROVED'){
+    title = `อนุมัติแล้ว — พร้อมแจก ${fmtPts(currentBatch.totalAmount||0)} pts ให้ทีม`;
+    sub = `อนุมัติโดย ${currentBatch.approvedBy||'—'} · กด Distribute เพื่อแจกแต้มจริงในคลิกเดียว`;
+    actionsHtml = `<button class="btn btn-primary" onclick="window.distributeMonthlyBatch()">🎉 Distribute Points to Team</button>`;
+  } else {
+    title = `แจกแต้มของเดือน ${monthLabel} เรียบร้อยแล้ว 🎉`;
+    sub = `แจกโดย ${currentBatch.distributedBy||'—'} เมื่อ ${fmtDT(currentBatch.distributedAt)} · รวม ${fmtPts(currentBatch.totalAmount||0)} pts ให้ ${(currentBatch.items||[]).filter(i=>i.amount>0).length} คน`;
+    actionsHtml = `<span class="pill pill-approved">✔ Done</span>`;
+  }
+  const breakdownRows = (currentBatch && currentBatch.items && currentBatch.items.length && status!=='DRAFT')
+    ? `<div class="status-breakdown">${currentBatch.items.slice().sort((a,b)=>b.amount-a.amount).map(it=>`
+        <div class="status-breakdown-row">
+          <span>${it.amount>0?'✅':'—'} ${it.userName}</span>
+          <span style="color:${it.amount>0?'var(--accent)':'var(--text-faint)'}; font-weight:600;">${it.amount>0?'+'+fmtPts(it.amount):'0'} pts</span>
+        </div>`).join('')}</div>` : '';
+  wrap.innerHTML = `
+    <div class="card status-banner status-${status}">
+      <div class="status-left">
+        <div class="status-pill" style="background:${STATUS_META[status].color}">${STATUS_META[status].pill}</div>
+        <div><div class="status-title">${title}</div><div class="status-sub">${sub}</div></div>
+      </div>
+      <div class="status-actions">${actionsHtml}</div>
+    </div>
+    ${breakdownRows}
+  `;
+}
+function renderNeedsAttention(){
+  const el = document.getElementById('adNeedsAttention');
+  if(!el) return;
+  const DEDUCTION_THRESHOLD = 50;
+  const list = teamMembers().map(u=>{
+    const tags = [];
+    const invCount = periodInvestigations().filter(iv=>iv.userId===u.id).length;
+    if(invCount>0) tags.push(`🚨 ${invCount} Investigation`);
+    if((u.streakMonths||0)===0) tags.push('🔻 Clean Streak = 0');
+    const deduction = periodHistory().filter(h=>h.userId===u.id && h.points<0).reduce((s,h)=>s+Math.abs(h.points),0);
+    if(deduction>=DEDUCTION_THRESHOLD) tags.push(`➖ หัก ${fmtPts(deduction)} pts`);
+    return { user:u, tags, score: tags.length*10 + deduction };
+  }).filter(x=>x.tags.length).sort((a,b)=>b.score-a.score).slice(0,6);
+  el.innerHTML = list.length ? list.map(x=>`
+    <div class="na-row">
+      <span class="avatar">${x.user.name.charAt(0)}</span>
+      <div style="flex:1;">
+        <div class="o-name" style="margin-bottom:1px;">${x.user.name}</div>
+        <div class="na-tags">${x.tags.join(' · ')}</div>
+      </div>
+    </div>`).join('') : `<div class="empty-state" style="padding:14px 0;"><div class="ic">🎉</div>ไม่มีใครต้องดูแลเป็นพิเศษช่วงนี้</div>`;
+}
+function renderPointsBreakdown(){
+  const el = document.getElementById('adPointsBreakdown');
+  if(!el) return;
+  const rows = periodHistory().filter(h=>h.points);
+  if(!rows.length){ el.innerHTML = `<div class="empty-state" style="padding:14px 0;"><div class="ic">🧮</div>ยังไม่มีการเคลื่อนไหวแต้มในช่วงนี้</div>`; return; }
+  const groups = {};
+  rows.forEach(h=>{
+    let cat = h.points>0 ? '✅ อื่นๆ (บวก)' : '➖ อื่นๆ (ลบ)';
+    const a = (h.action||'').toUpperCase();
+    if(a.includes('MONTHLY BONUS')) cat = '🎯 Monthly Clean Bonus';
+    else if(a.includes('REDEEM')) cat = '🎁 Redeem Reward';
+    else if(h.points>0) cat = '✅ Manual Add';
+    else cat = '➖ Manual Deduct';
+    groups[cat] = (groups[cat]||0) + h.points;
+  });
+  const maxAbs = Math.max(1, ...Object.values(groups).map(v=>Math.abs(v)));
+  el.innerHTML = Object.entries(groups).sort((a,b)=>Math.abs(b[1])-Math.abs(a[1])).map(([cat,val])=>`
+    <div class="pb-row">
+      <span>${cat}</span>
+      <div class="pb-bar-track"><div class="pb-bar-fill" style="width:${Math.round(Math.abs(val)/maxAbs*100)}%; background:${val>=0?'var(--accent)':'var(--danger)'}"></div></div>
+      <span style="font-weight:700; color:${val>=0?'var(--accent)':'var(--danger)'}; white-space:nowrap;">${val>=0?'+':''}${fmtPts(val)}</span>
+    </div>`).join('');
+}
 function tsToDate(ts){ return (ts && typeof ts.toDate === 'function') ? ts.toDate() : null; }
 function inSelectedPeriod(d){
   if(!d) return false;
@@ -1208,20 +1430,64 @@ function avgTeamStreak(){
   return Math.round((tm.reduce((s,u)=>s+(u.streakMonths||0),0)/tm.length)*10)/10;
 }
 function teamTotalPoints(){ return teamMembers().reduce((s,u)=> s+(u.points||0), 0); }
+function teamPointsEarnedInYear(year){
+  return teamMembers().reduce((s,u)=> s + (((u.pointsEarnedByYear||{})[year]) || 0), 0);
+}
 function renderTeamGoalHtml(isAdmin){
-  const total = teamTotalPoints();
   const target = teamGoal.target || 0;
-  const pct = target>0 ? Math.min(100, Math.round((total/target)*100)) : 0;
-  const monthUpper = new Date().toLocaleString('en-US',{month:'long'}).toUpperCase();
+  const nowYear = new Date().getFullYear();
+  const year = teamGoal.periodYear || nowYear;
+  const progress = Math.max(0, teamPointsEarnedInYear(year));
+  const pct = target>0 ? Math.min(100, Math.round((progress/target)*100)) : 0;
+  const reached = target>0 && progress>=target;
+  const isStale = teamGoal.periodYear && teamGoal.periodYear !== nowYear;
   const streak = avgTeamStreak();
   const rewardTitle = (teamGoal.rewardTitle||'').trim();
   const rewardLines = (teamGoal.rewardLines||'').trim();
+  const staleBanner = isStale
+    ? `<div class="tg-stale-banner">🗓️ ${isAdmin ? `ปีใหม่แล้ว! เป้าด้านล่างคือของปี ${year} — กด "Edit Team Goal" แล้วติ๊ก "เริ่มปีใหม่" เพื่อรีเซ็ต` : 'รอ Admin ตั้งเป้าหมายใหม่สำหรับปีนี้'}</div>`
+    : '';
+
+  if(!target){
+    return `
+      <div class="tg-title">🚀 TEAM MISSION</div>
+      <div style="font-size:13px; color:var(--text-dim); padding:6px 0 14px;">ยังไม่ได้ตั้งเป้าหมายทีมสำหรับปีนี้</div>
+      ${isAdmin ? `<button class="btn btn-primary btn-sm tg-edit-btn" onclick="window.openEditTeamGoal()">🚀 ตั้งเป้าหมายทีมเลย</button>` : `<div style="font-size:12.5px; color:var(--text-faint);">รอ Admin ตั้งเป้าหมาย</div>`}
+    `;
+  }
+
+  if(reached){
+    return `
+      ${staleBanner}
+      <div class="tg-title">🎉 ${year} MISSION COMPLETE!</div>
+      <div class="tg-grid">
+        <div>
+          <div class="tg-label">Team Target (ทั้งปี ${year})</div>
+          <div class="tg-nums" style="color:var(--accent)">${fmtPts(progress)} <small>/ ${fmtPts(target)} POINTS ✅</small></div>
+          <div class="progress-bar"><div class="progress-fill" style="width:100%; background:var(--accent)"></div></div>
+          <div class="tg-pct">🏆 บรรลุเป้าหมายแล้ว!</div>
+        </div>
+        <div>
+          <div class="tg-label">Current Team Streak</div>
+          <div class="tg-streak">🔥 ${streak} mo</div>
+        </div>
+        <div>
+          <div class="tg-label">Reward Unlocked</div>
+          <div class="tg-reward-title">🎁 ${rewardTitle || 'ปลดล็อกรางวัลแล้ว!'}</div>
+          <div class="tg-reward-lines">${rewardLines.replace(/\n/g,'<br>')}</div>
+        </div>
+      </div>
+      ${isAdmin ? `<button class="btn btn-ghost btn-sm tg-edit-btn" onclick="window.openEditTeamGoal()">✏️ Edit / เริ่มปีใหม่</button>` : ''}
+    `;
+  }
+
   return `
-    <div class="tg-title">🚀 ${monthUpper} TEAM MISSION</div>
+    ${staleBanner}
+    <div class="tg-title">🚀 ${year} TEAM MISSION</div>
     <div class="tg-grid">
       <div>
-        <div class="tg-label">Team Target</div>
-        <div class="tg-nums">${fmtPts(total)} <small>/ ${fmtPts(target)} POINTS</small></div>
+        <div class="tg-label">Team Target (ทั้งปี ${year})</div>
+        <div class="tg-nums">${fmtPts(progress)} <small>/ ${fmtPts(target)} POINTS</small></div>
         <div class="progress-bar"><div class="progress-fill" style="width:${pct}%; background:var(--accent)"></div></div>
         <div class="tg-pct">${pct}%</div>
       </div>
@@ -1231,10 +1497,11 @@ function renderTeamGoalHtml(isAdmin){
       </div>
       <div>
         <div class="tg-label">Reward Unlock</div>
-        <div class="tg-reward-title">🎁 ${target ? `เมื่อถึง ${fmtPts(target)} pts` : 'ยังไม่ได้ตั้งเป้าหมาย'}</div>
+        <div class="tg-reward-title">🎁 เมื่อถึง ${fmtPts(target)} pts</div>
         <div class="tg-reward-lines">${rewardTitle ? `<b>${rewardTitle}</b><br>` : ''}${rewardLines.replace(/\n/g,'<br>')}</div>
       </div>
     </div>
+    <div style="font-size:11px; color:var(--text-faint); margin-top:10px;">* นับเฉพาะแต้มที่ทำได้จริง (Add / Deduct / Monthly Bonus) ตลอดทั้งปี — ไม่รวมการแลก Reward เพราะแลกไปแล้วแต้มที่ "ทำได้" ก็ยังนับอยู่</div>
     ${isAdmin ? `<button class="btn btn-ghost btn-sm tg-edit-btn" onclick="window.openEditTeamGoal()">✏️ Edit Team Goal</button>` : ''}
   `;
 }
@@ -1366,7 +1633,7 @@ function renderEmployee(){
   if(currentPage==='emp-history'){
     document.getElementById('empHistoryTable').innerHTML = `
       <thead><tr><th>Action</th><th>Point</th><th>Reason</th><th>By</th><th>Date</th></tr></thead>
-      <tbody>${historyRowsHtml(history,false)}</tbody>`;
+      <tbody>${historyRowsHtml(history.filter(h=>!h.hidden),false)}</tbody>`;
   }
 
   if(currentPage==='emp-ranking'){
@@ -1385,6 +1652,7 @@ function renderEmployee(){
 
 function renderAdmin(){
   if(currentPage==='admin-dashboard'){
+    renderMonthlyStatusBanner();
     const rate = periodTeamCleanRate();
     document.getElementById('adTeamRate').textContent = rate+'%';
     document.getElementById('adTotalEmp').textContent = periodEmployeeCount();
@@ -1397,9 +1665,11 @@ function renderAdmin(){
         <div class="lb-name">${x.name}</div>
         <div class="lb-pts">${fmtPts(x.points)}</div>
       </div>`).join('') || `<div class="empty-state" style="padding:10px 0">No data</div>`;
+    renderNeedsAttention();
     const avgStreak = teamMembers().length ? (teamMembers().reduce((s,u)=>s+(u.streakMonths||0),0)/teamMembers().length) : 0;
     document.getElementById('adTeamStreak').textContent = (Math.round(avgStreak*10)/10);
     document.getElementById('adTeamStreakSub').textContent = `Longest current streak: ${Math.max(...teamMembers().map(u=>u.streakMonths||0),0)} months`;
+    renderPointsBreakdown();
     document.getElementById('adTeamGoal').innerHTML = renderTeamGoalHtml(true);
     renderOnlineStatus();
     renderInvestigationChart();
@@ -1424,15 +1694,17 @@ function renderAdmin(){
         </tr>`;
     };
     const head = `<thead><tr><th>Name</th><th>Points</th><th>Streak</th><th>Tier</th><th>Role</th><th>Actions</th></tr></thead>`;
-    const adminRows = users.filter(u=>u.role==='admin');
+    const term = (empSearchTerm||'').trim().toLowerCase();
+    const matches = (u)=> !term || u.name.toLowerCase().includes(term) || (u.username||'').toLowerCase().includes(term);
+    const adminRows = users.filter(u=>u.role==='admin').filter(matches);
     const tierRank = (u)=> TIERS.findIndex(t=>t.key===tierForStreak(u.streakMonths||0).key);
-    const empRows = users.filter(u=>u.role==='employee')
+    const empRows = users.filter(u=>u.role==='employee').filter(matches)
       .sort((a,b)=> tierRank(b)-tierRank(a) || (b.streakMonths||0)-(a.streakMonths||0) || (b.points||0)-(a.points||0));
     document.getElementById('adminTable').innerHTML = head + `<tbody>${
-      adminRows.length ? adminRows.map(rowHtml).join('') : `<tr><td colspan="6"><div class="empty-state" style="padding:22px 0"><div class="ic">👑</div>ยังไม่มี Admin เพิ่มเติม</div></td></tr>`
+      adminRows.length ? adminRows.map(rowHtml).join('') : `<tr><td colspan="6"><div class="empty-state" style="padding:22px 0"><div class="ic">👑</div>${term?'ไม่พบผลลัพธ์':'ยังไม่มี Admin เพิ่มเติม'}</div></td></tr>`
     }</tbody>`;
     document.getElementById('empTable').innerHTML = head + `<tbody>${
-      empRows.length ? empRows.map(rowHtml).join('') : `<tr><td colspan="6"><div class="empty-state" style="padding:22px 0"><div class="ic">🧑‍💼</div>ยังไม่มีพนักงาน</div></td></tr>`
+      empRows.length ? empRows.map(rowHtml).join('') : `<tr><td colspan="6"><div class="empty-state" style="padding:22px 0"><div class="ic">🧑‍💼</div>${term?'ไม่พบผลลัพธ์':'ยังไม่มีพนักงาน'}</div></td></tr>`
     }</tbody>`;
   }
 
@@ -1445,7 +1717,11 @@ function renderAdmin(){
       : `<option value="">— No employees yet —</option>`;
     if(prevVal && employeesOnly.find(u=>u.id===prevVal)) sel.value = prevVal;
 
-    const reasonOptions = `<option value="">— เลือกเหตุผล —</option>` + reasons.map(r=>`<option value="${escapeHtml(r.text)}">${escapeHtml(r.text)}</option>`).join('');
+    const posOpts = reasons.filter(r=>r.type!=='negative').map(r=>`<option value="${escapeHtml(r.text)}">${escapeHtml(r.text)}</option>`).join('');
+    const negOpts = reasons.filter(r=>r.type==='negative').map(r=>`<option value="${escapeHtml(r.text)}">${escapeHtml(r.text)}</option>`).join('');
+    const reasonOptions = `<option value="">— เลือกเหตุผล —</option>`
+      + (posOpts ? `<optgroup label="✅ เชิงบวก">${posOpts}</optgroup>` : '')
+      + (negOpts ? `<optgroup label="❌ เชิงลบ">${negOpts}</optgroup>` : '');
     const ptR = document.getElementById('ptReason');
     const stR = document.getElementById('stReason');
     const prevPt = ptR.value, prevSt = stR.value;
@@ -1457,13 +1733,18 @@ function renderAdmin(){
   }
 
   if(currentPage==='admin-reasons'){
-    document.getElementById('adReasonList').innerHTML = reasons.length
-      ? reasons.map(r=>`
-        <div class="online-vert-row" style="justify-content:space-between; padding:11px 4px;">
-          <span class="o-name" style="flex:1; white-space:normal;">🏷️ ${escapeHtml(r.text)}</span>
-          <button class="btn btn-danger btn-sm" onclick="window.deleteReason('${r.id}')">Delete</button>
-        </div>`).join('')
-      : `<div class="empty-state"><div class="ic">🏷️</div>ยังไม่มี Reason — กด + Add Reason<br><span style="font-size:12px; color:var(--text-faint);">Reason ที่เพิ่มไว้ที่นี่จะไปโผล่เป็น Dropdown ในหน้า Points / Streak / Investigation ให้อัตโนมัติ</span></div>`;
+    const pos = reasons.filter(r=>r.type!=='negative');
+    const neg = reasons.filter(r=>r.type==='negative');
+    const rowHtml = (r)=>`<div class="online-vert-row" style="justify-content:space-between; padding:11px 4px;">
+      <span class="o-name" style="flex:1; white-space:normal;">${escapeHtml(r.text)}</span>
+      <button class="btn btn-danger btn-sm" onclick="window.deleteReason('${r.id}')">Delete</button>
+    </div>`;
+    document.getElementById('adReasonList').innerHTML = reasons.length ? `
+      <div class="card-title" style="margin-bottom:6px;">✅ เชิงบวก (Add Point)</div>
+      ${pos.length ? pos.map(rowHtml).join('') : `<div style="font-size:12.5px; color:var(--text-faint); padding:6px 4px 16px;">— ไม่มี —</div>`}
+      <div class="card-title" style="margin:16px 0 6px; padding-top:14px; border-top:1px dashed var(--border);">❌ เชิงลบ (Deduct Point)</div>
+      ${neg.length ? neg.map(rowHtml).join('') : `<div style="font-size:12.5px; color:var(--text-faint); padding:6px 4px;">— ไม่มี —</div>`}
+    ` : `<div class="empty-state"><div class="ic">🏷️</div>ยังไม่มี Reason — กด + Add Reason<br><span style="font-size:12px; color:var(--text-faint);">Reason ที่เพิ่มไว้ที่นี่จะไปโผล่เป็น Dropdown ในหน้า Points / Streak / Investigation ให้อัตโนมัติ</span></div>`;
   }
 
   if(currentPage==='admin-rewards'){
@@ -1484,7 +1765,7 @@ function renderAdmin(){
   }
 
   if(currentPage==='admin-redemptions'){
-    const list = [...redemptions];
+    const list = redemptions.filter(r=>!r.hidden);
     const isOwner = currentUser.owner === true;
     if(list.length===0){
       document.getElementById('adRedemptionList').innerHTML = `<div class="card"><div class="empty-state"><div class="ic">📭</div>ยังไม่มีคำขอแลก Reward</div></div>`;
@@ -1512,9 +1793,15 @@ function renderAdmin(){
 
   if(currentPage==='admin-history'){
     const isOwner = currentUser.owner === true;
+    const term = (historySearchTerm||'').trim().toLowerCase();
+    const visible = history.filter(h=>!h.hidden).filter(h=>{
+      if(!term) return true;
+      const u = users.find(x=>x.id===h.userId);
+      return (u && u.name.toLowerCase().includes(term)) || (h.action||'').toLowerCase().includes(term) || (h.reason||'').toLowerCase().includes(term);
+    });
     document.getElementById('adHistoryTable').innerHTML = `
       <thead><tr><th>Employee</th><th>Action</th><th>Point</th><th>Reason</th><th>By</th><th>Date</th>${isOwner?'<th>Actions</th>':''}</tr></thead>
-      <tbody>${historyRowsHtml(history,true,isOwner)}</tbody>`;
+      <tbody>${historyRowsHtml(visible,true,isOwner)}</tbody>`;
   }
 }
 
@@ -1535,6 +1822,7 @@ window.submitPoint = async function(sign){
     const delta = sign*amount;
     const uRef = doc(db,'users',userId);
     let finalDelta = delta;
+    const yearKey = new Date().getFullYear();
     await runTransaction(db, async (tx)=>{
       const uSnap = await tx.get(uRef);
       if(!uSnap.exists()) throw new Error('ไม่พบพนักงานนี้');
@@ -1543,7 +1831,7 @@ window.submitPoint = async function(sign){
       const appliedDelta = newPoints - (cur.points||0);
       const newTierPoints = Math.max(0, (cur.tierPoints||0) + appliedDelta);
       finalDelta = appliedDelta;
-      tx.update(uRef, { points:newPoints, tierPoints:newTierPoints });
+      tx.update(uRef, { points:newPoints, tierPoints:newTierPoints, [`pointsEarnedByYear.${yearKey}`]: increment(appliedDelta) });
     });
     const uData = users.find(x=>x.id===userId);
     await logHistory(userId, sign>0?'ADMIN ADJUSTMENT (ADD)':'ADMIN ADJUSTMENT (DEDUCT)', finalDelta, reason, currentUser.name, 'DONE');
@@ -1754,8 +2042,8 @@ window.deleteRedemptionEntry = async function(rqId){
   const rq = redemptions.find(x=>x.id===rqId);
   if(!rq) return;
   const msg = rq.status==='PENDING'
-    ? `ลบคำขอนี้ถาวร? ระบบจะคืนแต้ม ${rq.rewardCost} pts ที่หักไว้ให้ ${rq.userName} อัตโนมัติ`
-    : `ลบประวัติคำขอนี้ถาวร? (สถานะ ${rq.status} — จะไม่มีการปรับแต้มเพิ่มเติม)`;
+    ? `ซ่อนคำขอนี้จากหน้าจอ? ระบบจะคืนแต้ม ${rq.rewardCost} pts ที่หักไว้ให้ ${rq.userName} อัตโนมัติ (ข้อมูลจะยังเก็บไว้เพื่อ Audit Trail)`
+    : `ซ่อนประวัติคำขอนี้จากหน้าจอ? (สถานะ ${rq.status} — จะไม่มีการปรับแต้มเพิ่มเติม, ข้อมูลจะยังเก็บไว้เพื่อ Audit Trail)`;
   if(!confirm(msg)) return;
   try{
     const rqRef = doc(db,'redemptions',rqId);
@@ -1778,16 +2066,21 @@ window.deleteRedemptionEntry = async function(rqId){
         if(rwSnap.exists() && typeof rwSnap.data().stock === 'number'){
           tx.update(rwRef, { stock: rwSnap.data().stock + 1 });
         }
+        tx.update(rqRef, { status:'REJECTED', reason:'Deleted by Owner (auto-refunded)', resolvedAt: serverTimestamp(), resolvedBy: currentUser.name, hidden:true, hiddenAt:serverTimestamp(), hiddenBy:currentUser.name });
+      } else {
+        tx.update(rqRef, { hidden:true, hiddenAt:serverTimestamp(), hiddenBy:currentUser.name });
       }
-      tx.delete(rqRef);
     });
-    toast('ลบคำขอแล้ว');
+    toast('ซ่อนคำขอแล้ว');
   }catch(e){ toast(friendlyAuthError(e) || 'ลบไม่สำเร็จ', true); }
 };
 
 /* =========================================================
    ADMIN: EMPLOYEES CRUD
 ========================================================= */
+window.onEmpSearch = function(val){ empSearchTerm = val; renderAdmin(); };
+window.onHistorySearch = function(val){ historySearchTerm = val; renderAdmin(); };
+
 window.toggleAdmin = async function(userId){
   const u = users.find(x=>x.id===userId);
   if(!u || u.owner) return;
@@ -1804,7 +2097,7 @@ window.deleteEmployee = async function(userId){
   try{
     await deleteUserCascade(userId);
     toast(`ลบ ${u.name} และข้อมูลที่เกี่ยวข้องแล้ว`);
-  }catch(e){ toast('ลบไม่สำเร็จ', true); console.error(e); }
+  }catch(e){ toast(friendlyAuthError(e) || 'ลบไม่สำเร็จ: '+e.message, true); console.error(e); }
 };
 
 // Deletes a user doc plus every document across other collections that
@@ -1909,6 +2202,17 @@ window.openAddReason = function(){
   showModal(`
     <h3>Add Reason</h3>
     <div class="field"><label>Reason Text</label><input id="rsText" placeholder="เช่น No investigation this month"></div>
+    <div class="field">
+      <label>Type</label>
+      <div style="display:flex; gap:16px;">
+        <label style="display:flex; align-items:center; gap:6px; margin:0; text-transform:none; font-size:13.5px; font-weight:500;">
+          <input type="radio" name="rsType" value="positive" checked style="width:auto;"> ✅ เชิงบวก (Add Point)
+        </label>
+        <label style="display:flex; align-items:center; gap:6px; margin:0; text-transform:none; font-size:13.5px; font-weight:500;">
+          <input type="radio" name="rsType" value="negative" style="width:auto;"> ❌ เชิงลบ (Deduct Point)
+        </label>
+      </div>
+    </div>
     <div class="modal-actions">
       <button class="btn" onclick="window.closeModal()">Cancel</button>
       <button class="btn btn-primary" onclick="window.confirmAddReason()">Add Reason</button>
@@ -1917,10 +2221,11 @@ window.openAddReason = function(){
 };
 window.confirmAddReason = async function(){
   const text = document.getElementById('rsText').value.trim();
+  const type = document.querySelector('input[name="rsType"]:checked')?.value || 'positive';
   if(!text){ toast('กรอกข้อความเหตุผล', true); return; }
   if(reasons.find(r=>r.text.toLowerCase()===text.toLowerCase())){ toast('มีเหตุผลนี้อยู่แล้ว', true); return; }
   try{
-    await addDoc(collection(db,'reasons'), { text, createdAt: serverTimestamp() });
+    await addDoc(collection(db,'reasons'), { text, type, createdAt: serverTimestamp() });
     toast('เพิ่ม Reason แล้ว'); window.closeModal();
   }catch(e){ toast(friendlyAuthError(e) || 'เพิ่มไม่สำเร็จ', true); }
 };
@@ -2014,20 +2319,29 @@ window.deleteReward = async function(rewardId){
 
 window.deleteHistoryEntry = async function(historyId){
   if(currentUser.owner !== true){ toast('เฉพาะ Owner เท่านั้นที่ลบ History ได้', true); return; }
-  if(!confirm('ลบรายการ History นี้ถาวร? การลบนี้ไม่คืนแต้มหรือแก้ไขยอดใดๆ ให้อัตโนมัติ')) return;
+  if(!confirm('ซ่อนรายการ History นี้จากหน้าจอ? (ข้อมูลจะยังเก็บไว้ใน Database เพื่อ Audit Trail ไม่ได้ลบถาวร)')) return;
   try{
-    await deleteDoc(doc(db,'history',historyId));
-    toast('ลบรายการ History แล้ว');
+    await updateDoc(doc(db,'history',historyId), { hidden:true, hiddenAt:serverTimestamp(), hiddenBy:currentUser.name });
+    toast('ซ่อนรายการแล้ว');
   }catch(e){ toast(friendlyAuthError(e) || 'ลบไม่สำเร็จ: '+e.message, true); }
 };
 
 window.openEditTeamGoal = function(){
+  const nowYear = new Date().getFullYear();
+  const isStale = teamGoal.periodYear && teamGoal.periodYear !== nowYear;
+  const noYearYet = !teamGoal.periodYear;
   showModal(`
-    <h3>🚀 Set Team Goal</h3>
-    <div class="field"><label>Target Points (เป้าหมายแต้มรวมทั้งทีม)</label><input id="tgTarget" type="number" min="0" value="${teamGoal.target||''}"></div>
+    <h3>🚀 Set Team Goal (รายปี)</h3>
+    ${isStale ? `<div style="background:var(--accent-dim); color:var(--accent); font-size:12.5px; padding:10px 12px; border-radius:8px; margin-bottom:14px;">🗓️ ปีใหม่แล้ว! แนะนำให้ติ๊ก "เริ่มปีใหม่" ด้านล่างเพื่อรีเซ็ตความคืบหน้า</div>` : ''}
+    <div class="field"><label>Target Points (แต้มรวมที่ทีมต้อง "ทำได้" ตลอดทั้งปี)</label><input id="tgTarget" type="number" min="0" value="${teamGoal.target||''}"></div>
     <div class="field"><label>Reward Title</label><input id="tgRewardTitle" placeholder="เช่น Team Lunch + Bonus" value="${teamGoal.rewardTitle||''}"></div>
     <div class="field"><label>Reward Details (บรรทัดละ 1 รายการ)</label><textarea id="tgRewardLines" rows="4" placeholder="→ Team Lunch
 → + Bonus Reward">${teamGoal.rewardLines||''}</textarea></div>
+    <div class="field" style="display:flex; align-items:center; gap:8px;">
+      <input id="tgResetYear" type="checkbox" style="width:auto;" ${(isStale||noYearYet)?'checked':''}>
+      <label style="margin:0; text-transform:none; font-size:13px; font-weight:500;" for="tgResetYear">🔄 เริ่มปีใหม่ (${nowYear}) — รีเซ็ตความคืบหน้าเป็น 0 แต้ม</label>
+    </div>
+    ${!noYearYet ? `<button type="button" class="btn btn-ghost btn-sm" style="width:100%; margin-top:2px;" onclick="window.syncTeamGoalFromHistory()">🔄 Sync ยอดจาก History (แก้เผื่อข้อมูลไม่ตรง)</button>` : ''}
     <div class="modal-actions">
       <button class="btn" onclick="window.closeModal()">Cancel</button>
       <button class="btn btn-primary" onclick="window.saveTeamGoal()">Save Goal</button>
@@ -2038,12 +2352,38 @@ window.saveTeamGoal = async function(){
   const target = Math.max(0, parseInt(document.getElementById('tgTarget').value,10) || 0);
   const rewardTitle = document.getElementById('tgRewardTitle').value.trim();
   const rewardLines = document.getElementById('tgRewardLines').value.trim();
+  const resetYear = document.getElementById('tgResetYear').checked;
   try{
-    await setDoc(doc(db,'settings','teamGoal'), {
-      target, rewardTitle, rewardLines, updatedAt: serverTimestamp(), updatedBy: currentUser.name
-    }, { merge:true });
+    const payload = { target, rewardTitle, rewardLines, updatedAt: serverTimestamp(), updatedBy: currentUser.name };
+    if(resetYear){ payload.periodYear = new Date().getFullYear(); }
+    await setDoc(doc(db,'settings','teamGoal'), payload, { merge:true });
     toast('ตั้งเป้าหมายทีมแล้ว'); window.closeModal();
   }catch(e){ toast(friendlyAuthError(e) || 'บันทึกไม่สำเร็จ: '+e.message, true); }
+};
+// Recomputes each employee's pointsEarnedByYear.<year> directly from the full History
+// collection (bypassing the 150-doc live-listener cap) — excludes REDEEM entries so
+// redemption spending never reduces the Team Goal. Use this to backfill/fix drift.
+window.syncTeamGoalFromHistory = async function(){
+  const year = teamGoal.periodYear || new Date().getFullYear();
+  if(!confirm(`คำนวณ Points Earned ปี ${year} ใหม่จากประวัติทั้งหมด (ไม่รวมการแลก Reward) แล้วเขียนทับข้อมูลปัจจุบัน? อาจใช้เวลาสักครู่`)) return;
+  try{
+    const start = new Date(year, 0, 1);
+    const end = new Date(year+1, 0, 1);
+    const snap = await getDocs(query(collection(db,'history'), where('createdAt','>=', start), where('createdAt','<', end)));
+    const sums = {};
+    snap.forEach(d=>{
+      const h = d.data();
+      if((h.action||'').toUpperCase().startsWith('REDEEM')) return; // spending doesn't count against/for the goal
+      sums[h.userId] = (sums[h.userId]||0) + (h.points||0);
+    });
+    const ids = Object.keys(sums);
+    for(let i=0; i<ids.length; i+=450){
+      const b = writeBatch(db);
+      ids.slice(i,i+450).forEach(uid=> b.update(doc(db,'users',uid), { [`pointsEarnedByYear.${year}`]: sums[uid] }));
+      await b.commit();
+    }
+    toast(`Sync ข้อมูลปี ${year} เรียบร้อย (${ids.length} คน)`);
+  }catch(e){ toast(friendlyAuthError(e) || 'Sync ไม่สำเร็จ', true); }
 };
 
 /* =========================================================
