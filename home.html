@@ -214,6 +214,9 @@ main{max-width:1180px; margin:0 auto; padding:28px 26px 80px;}
 .tg-reward-lines{font-size:12.5px; color:var(--text-dim); white-space:pre-line; line-height:1.6;}
 .tg-edit-btn{margin-top:16px;}
 .tg-stale-banner{background:rgba(242,178,60,.12); color:var(--gold); font-size:12px; font-weight:600; padding:9px 12px; border-radius:8px; margin-bottom:14px;}
+.reminder-banner{display:flex; align-items:center; gap:12px; background:rgba(230,80,60,.14); border:1px solid var(--danger); border-radius:12px; padding:12px 16px; margin-bottom:16px;}
+.reminder-banner .txt{flex:1; font-size:13px; font-weight:700; color:var(--danger);}
+.reminder-banner .txt small{display:block; font-weight:500; color:var(--text-dim); margin-top:2px;}
 .status-banner{display:flex; align-items:center; justify-content:space-between; gap:16px; border-left:4px solid var(--gold); flex-wrap:wrap;}
 .status-APPROVED, .status-DISTRIBUTED{border-left-color:var(--accent) !important;}
 .status-left{display:flex; align-items:center; gap:14px;}
@@ -249,6 +252,7 @@ main{max-width:1180px; margin:0 auto; padding:28px 26px 80px;}
 .badge-unlock-card{background:var(--card); border:1px solid var(--gold); border-radius:18px; max-width:340px; width:100%; padding:30px 24px 24px; text-align:center; box-shadow:0 20px 60px rgba(0,0,0,.5); animation:announceIn .3s ease;}
 .badge-unlock-card img{width:88px; height:88px; object-fit:contain; margin-bottom:14px; animation:bootPulse 1.4s ease-in-out infinite;}
 .reward-featured{position:relative; border-color:var(--gold) !important; box-shadow:0 0 0 1px var(--gold), 0 8px 24px rgba(242,178,60,.18);}
+.reward-expired{opacity:.55; filter:grayscale(.4);}
 .featured-badge{position:absolute; top:-10px; right:14px; background:var(--gold); color:#241800; font-size:10.5px; font-weight:800; letter-spacing:.03em; padding:3px 10px; border-radius:99px; text-transform:uppercase; box-shadow:0 2px 8px rgba(242,178,60,.4);}
 .reward-need{font-size:12.5px; color:var(--text-dim); margin-top:6px;}
 
@@ -318,6 +322,11 @@ tr:last-child td{border-bottom:none;}
   .nav-tabs{display:none;}
   .mobile-caret{display:inline-block;}
   main{padding:20px 14px 60px;}
+  .reminder-banner{flex-wrap:wrap;}
+  .reminder-banner .txt{flex:1 1 100%;}
+  .reminder-banner button{width:100%;}
+  .status-actions{width:100%;}
+  .status-actions button{flex:1;}
 }
 </style>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
@@ -481,6 +490,11 @@ tr:last-child td{border-bottom:none;}
       <div class="card team-goal-card" style="margin-top:16px;">
         <div id="empTeamGoal"></div>
       </div>
+
+      <div class="card" style="margin-top:16px;">
+        <div class="card-title">📣 Team Feed</div>
+        <div id="empTeamFeed"></div>
+      </div>
     </div>
 
     <!-- ============ EMPLOYEE: REWARDS ============ -->
@@ -512,6 +526,7 @@ tr:last-child td{border-bottom:none;}
       <div class="page-head"><div style="display:flex; align-items:center; gap:12px;"><img src="" id="adDashLogo" style="width:40px; height:40px; border-radius:9px;" alt=""><div><h1>Admin Dashboard</h1><div class="sub">ภาพรวมทีมที่ Admin ต้องรู้</div></div></div></div>
       <div class="dash-layout">
         <div class="dash-main">
+          <div id="monthlyReminderWrap"></div>
           <div class="grid g-4" style="margin-bottom:8px;">
             <div></div><div></div>
             <div style="display:flex; align-items:center; justify-content:flex-end; gap:8px;">
@@ -568,6 +583,10 @@ tr:last-child td{border-bottom:none;}
       </div>
       <div class="card team-goal-card" style="margin-top:16px;">
         <div id="adTeamGoal"></div>
+      </div>
+      <div class="card" style="margin-top:16px;">
+        <div class="card-title">📣 Team Feed</div>
+        <div id="adTeamFeed"></div>
       </div>
     </div>
 
@@ -661,6 +680,16 @@ tr:last-child td{border-bottom:none;}
       <input class="search-box" id="historySearchInput" placeholder="🔍 ค้นหาชื่อ / Action / Reason..." oninput="window.onHistorySearch(this.value)">
       <div class="card table-wrap"><table id="adHistoryTable"></table></div>
     </div>
+
+    <!-- ============ ADMIN: ACTIVITY LOG ============ -->
+    <div class="page" id="page-admin-activity">
+      <div class="page-head"><div><h1>📋 Activity Log</h1><div class="sub">ใครเปลี่ยนอะไรไปบ้าง — Team Goal, Reason, Badge, Reward, Employee, Announcement, Monthly Batch</div></div></div>
+      <div class="card table-wrap"><table id="adActivityTable"></table></div>
+    </div>
+
+    <!-- ============ HELP / FAQ (shared content, both Admin & Employee) ============ -->
+    <div class="page" id="page-admin-help"><div id="adHelpContent"></div></div>
+    <div class="page" id="page-emp-help"><div id="empHelpContent"></div></div>
   </main>
 </div>
 
@@ -731,6 +760,12 @@ function tierBadgeHtml(tier, sizePx){
 function romanish(n){ const r=['I','II','III','IV','V','VI','VII','VIII','IX','X']; return r[n-1] || n; }
 function fmtPts(n){ return (Math.round((n||0)*10)/10).toString().replace(/\.0$/,''); }
 function escapeHtml(s){ return String(s==null?'':s).replace(/[&<>"']/g, c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c])); }
+function isRewardExpired(r){
+  if(!r.expiresAt) return false;
+  // expiresAt stored as 'YYYY-MM-DD' — treat as expired starting the day AFTER that date
+  const exp = new Date(r.expiresAt+'T23:59:59');
+  return Date.now() > exp.getTime();
+}
 function targetInfo(user){
   const tier = displayTier(user);
   const inc = tier.inc;
@@ -762,6 +797,8 @@ let history = [];
 let investigations = [];
 let reasons = [];
 let badges = [];
+let activityLog = [];
+let teamFeed = [];
 let empSearchTerm = '';
 let historySearchTerm = '';
 let teamGoal = { target: 0, rewardTitle: '', rewardLines: '' };
@@ -941,6 +978,7 @@ const EMP_TABS = [
   {key:'emp-ranking', label:'Ranking'},
   {key:'emp-badges', label:'Badges'},
   {key:'emp-history', label:'History'},
+  {key:'emp-help', label:'ช่วยเหลือ'},
 ];
 const ADMIN_TABS = [
   {key:'admin-dashboard', label:'Dashboard'},
@@ -951,6 +989,8 @@ const ADMIN_TABS = [
   {key:'admin-badges', label:'Badges'},
   {key:'admin-redemptions', label:'Redemption Requests'},
   {key:'admin-history', label:'History'},
+  {key:'admin-activity', label:'Activity Log'},
+  {key:'admin-help', label:'ช่วยเหลือ'},
 ];
 
 function enterApp(){
@@ -1024,7 +1064,7 @@ function renderOnlineStatus(){
   document.getElementById('adOnlineEmpty').classList.toggle('hidden', online.length>0);
 }
 // keep the online list fresh even without new Firestore writes (heartbeats can lapse)
-setInterval(()=>{ if(currentUser && currentUser.role==='admin' && currentPage==='admin-dashboard') renderOnlineStatus(); }, 20000);
+setInterval(()=>{ if(currentUser && currentUser.role==='admin' && currentPage==='admin-dashboard') { renderOnlineStatus(); renderMonthlyReminder(); } }, 20000);
 
 /* =========================================================
    DASHBOARD MONTH/YEAR FILTER
@@ -1062,6 +1102,8 @@ window.onDashFilterChange = function(){
 ========================================================= */
 let currentBatch = null;
 let batchUnsub = null;
+let realCurrentMonthBatch = null;
+let reminderUnsub = null;
 function selectedMonthKey(){
   if(dashSelMonth === 'ALL') return null;
   return dashSelYear + '-' + String(dashSelMonth).padStart(2,'0');
@@ -1076,6 +1118,44 @@ function subscribeToMonthlyBatch(){
     renderAdmin();
   }, (e)=> console.warn('monthlyBatch listener error', e));
 }
+// Independent of the dashboard month/year filter — always watches the REAL current
+// calendar month, so the reminder banner shows regardless of what the Admin has selected.
+function subscribeToCurrentMonthReminder(){
+  const key = monthKey(new Date());
+  if(reminderUnsub){ reminderUnsub(); reminderUnsub = null; }
+  reminderUnsub = onSnapshot(doc(db,'monthlyBatches', key), (snap)=>{
+    realCurrentMonthBatch = snap.exists() ? snap.data() : null;
+    renderAdmin();
+  }, (e)=> console.warn('reminder listener error', e));
+  liveUnsubs.push(reminderUnsub);
+}
+function renderMonthlyReminder(){
+  const wrap = document.getElementById('monthlyReminderWrap');
+  if(!wrap) return;
+  const now = new Date();
+  const dayOfMonth = now.getDate();
+  const status = realCurrentMonthBatch ? realCurrentMonthBatch.status : 'DRAFT';
+  if(dayOfMonth < 20 || status !== 'DRAFT'){ wrap.innerHTML = ''; return; }
+  const monthLabel = MONTH_LABELS_TH[now.getMonth()+1] + ' ' + now.getFullYear();
+  wrap.innerHTML = `
+    <div class="reminder-banner">
+      <span style="font-size:22px;">⏰</span>
+      <div class="txt">ยังไม่ได้คำนวณแต้มของเดือน ${monthLabel} เลย
+        <small>ผ่านมาแล้ว ${dayOfMonth} วันของเดือน — อย่าลืมกด Calculate Points ก่อนสิ้นเดือน</small>
+      </div>
+      <button class="btn btn-primary btn-sm" onclick="window.jumpToCurrentMonthCalculate()">ไปคำนวณเลย</button>
+    </div>`;
+}
+window.jumpToCurrentMonthCalculate = function(){
+  const now = new Date();
+  dashSelYear = now.getFullYear();
+  dashSelMonth = String(now.getMonth()+1);
+  document.getElementById('dashMonthSel').value = dashSelMonth;
+  document.getElementById('dashYearSel').value = dashSelYear;
+  subscribeToMonthlyBatch();
+  renderAdmin();
+  setTimeout(()=> window.openCalculateModal(), 300);
+};
 window.openCalculateModal = function(){
   const key = selectedMonthKey();
   if(!key) return;
@@ -1109,6 +1189,7 @@ window.confirmCalculateBatch = async function(){
       approvedAt:null, approvedBy:null, distributedAt:null, distributedBy:null
     });
     toast('คำนวณแต้มเดือนนี้แล้ว — ตรวจสอบแล้วกด Approve ได้เลย'); window.closeModal();
+    logActivity('Calculate Monthly Points', `${key} — bonus ${bonus} pts/คน, รวม ${totalAmount} pts`);
   }catch(e){ toast(friendlyAuthError(e) || 'คำนวณไม่สำเร็จ', true); }
 };
 window.approveMonthlyBatch = async function(){
@@ -1117,6 +1198,7 @@ window.approveMonthlyBatch = async function(){
   try{
     await updateDoc(doc(db,'monthlyBatches', key), { status:'APPROVED', approvedAt: serverTimestamp(), approvedBy: currentUser.name });
     toast('อนุมัติแล้ว — พร้อม Distribute');
+    logActivity('Approve Monthly Batch', key);
   }catch(e){ toast(friendlyAuthError(e) || 'อนุมัติไม่สำเร็จ', true); }
 };
 window.distributeMonthlyBatch = async function(){
@@ -1141,6 +1223,7 @@ window.distributeMonthlyBatch = async function(){
     batch.update(doc(db,'monthlyBatches', key), { status:'DISTRIBUTED', distributedAt: serverTimestamp(), distributedBy: currentUser.name });
     await batch.commit();
     toast('🎉 แจกแต้มให้ทีมเรียบร้อยแล้ว!');
+    logActivity('Distribute Monthly Points', `${key} — รวม ${fmtPts(currentBatch.totalAmount||0)} pts ให้ ${(currentBatch.items||[]).filter(i=>i.amount>0).length} คน`);
   }catch(e){ toast(friendlyAuthError(e) || 'แจกแต้มไม่สำเร็จ', true); }
 };
 window.cancelMonthlyBatch = async function(){
@@ -1150,6 +1233,7 @@ window.cancelMonthlyBatch = async function(){
   try{
     await deleteDoc(doc(db,'monthlyBatches', key));
     toast('ยกเลิกแล้ว — กลับไปเป็น Draft');
+    logActivity('Cancel Monthly Batch', key);
   }catch(e){ toast(friendlyAuthError(e) || 'ยกเลิกไม่สำเร็จ', true); }
 };
 const STATUS_META = {
@@ -1358,6 +1442,7 @@ function attachLiveListeners(){
     if(me) currentUser = me;
     renderAll();
     if(currentUser.role!=='admin') checkNewlyUnlockedBadges();
+    checkTeamGoalReachedFeed();
   }, (e)=> console.warn('users listener error', e)));
 
   // rewards
@@ -1412,6 +1497,7 @@ function attachLiveListeners(){
   liveUnsubs.push(onSnapshot(doc(db,'settings','teamGoal'), (snap)=>{
     teamGoal = snap.exists() ? snap.data() : { target:0, rewardTitle:'', rewardLines:'' };
     renderAll();
+    checkTeamGoalReachedFeed();
   }, (e)=> console.warn('teamGoal listener error', e)));
 
   // login announcement (Admin/Owner broadcast, dismissible, shown to everyone on login)
@@ -1433,6 +1519,21 @@ function attachLiveListeners(){
     renderAll();
     if(currentUser.role!=='admin') checkNewlyUnlockedBadges();
   }, (e)=> console.warn('badges listener error', e)));
+
+  // team feed (badge unlocks / team goal reached — celebratory broadcast, shown on both dashboards)
+  liveUnsubs.push(onSnapshot(query(collection(db,'teamFeed'), orderBy('createdAt','desc'), limit(15)), (snap)=>{
+    teamFeed = snap.docs.map(d=>({id:d.id, ...d.data()}));
+    renderAll();
+  }, (e)=> console.warn('teamFeed listener error', e)));
+
+  // activity log (admin/owner only — who changed what)
+  if(currentUser.role==='admin'){
+    liveUnsubs.push(onSnapshot(query(collection(db,'activityLog'), orderBy('createdAt','desc'), limit(200)), (snap)=>{
+      activityLog = snap.docs.map(d=>({id:d.id, ...d.data()}));
+      renderAll();
+    }, (e)=> console.warn('activityLog listener error', e)));
+    subscribeToCurrentMonthReminder();
+  }
 }
 
 /* =========================================================
@@ -1443,6 +1544,19 @@ async function notifyUser(userId, text, type){
 }
 async function notifyAdmins(text, type){
   await addDoc(collection(db,'notifications'), {userId:'admin', text, type, read:false, createdAt: serverTimestamp()});
+}
+// Admin/Owner action audit trail — tracks who changed what, separate from the point History log.
+async function logActivity(action, details){
+  try{
+    await addDoc(collection(db,'activityLog'), {
+      action, details: details||'', actorId: currentUser.uid, actorName: currentUser.name, createdAt: serverTimestamp()
+    });
+  }catch(e){ console.warn('logActivity failed', e); } // never block the main action if logging fails
+}
+// Broadcast a celebratory event (badge unlock, team goal reached) to everyone's dashboard.
+async function postTeamFeed(type, text){
+  try{ await addDoc(collection(db,'teamFeed'), { type, text, createdAt: serverTimestamp() }); }
+  catch(e){ console.warn('postTeamFeed failed', e); }
 }
 function timeAgo(ts){
   if(!ts) return 'เมื่อสักครู่';
@@ -1529,6 +1643,92 @@ function avgTeamStreak(){
 function teamTotalPoints(){ return teamMembers().reduce((s,u)=> s+(u.points||0), 0); }
 function teamPointsEarnedInYear(year){
   return teamMembers().reduce((s,u)=> s + (((u.pointsEarnedByYear||{})[year]) || 0), 0);
+}
+/* =========================================================
+   HELP / FAQ — shared static content for both Admin & Employee
+========================================================= */
+function helpContentHtml(){
+  const tierRows = TIERS.map(t=>`
+    <div class="pb-row">
+      <span style="display:flex; align-items:center; gap:8px;">${tierBadgeHtml(t,24)} <b style="color:${t.color}">${t.label}</b></span>
+      <span style="color:var(--text-dim); font-size:12.5px;">${t.max===Infinity ? `ตั้งแต่ ${t.min} เดือนขึ้นไป` : `${t.min}–${t.max} เดือน`}</span>
+    </div>`).join('');
+  return `
+    <div class="page-head"><div><h1>❓ วิธีการทำงานของระบบ</h1><div class="sub">อ่านเข้าใจง่าย ไม่ต้องถาม Admin ซ้ำๆ</div></div></div>
+
+    <div class="card" style="margin-bottom:16px;">
+      <div class="card-title">🏅 Tier มาจากไหน</div>
+      <div style="font-size:13px; color:var(--text-dim); margin-bottom:12px;">Tier ของคุณคำนวณจากจำนวนเดือน "Clean Streak" (เดือนที่ไม่โดน Investigation ติดต่อกัน) — ยิ่ง Streak ยาว ยิ่งได้ Tier สูง:</div>
+      ${tierRows}
+    </div>
+
+    <div class="card" style="margin-bottom:16px;">
+      <div class="card-title">🥈 ถึง 💎 ต่ำกว่า Diamond — โดนสอบแล้วเป็นยังไง</div>
+      <div style="font-size:13px; color:var(--text-dim); line-height:1.7;">
+        ตรงไปตรงมา: โดน Investigation เมื่อไหร่ก็ตาม ระบบจะ<b style="color:var(--danger);">รีเซ็ต Streak กลับเป็น 0 เดือนทันที</b> Tier ก็จะตกกลับไปตามธรรมชาติ (เช่น อยู่ Gold โดนสอบ → กลับไป Silver)
+      </div>
+    </div>
+
+    <div class="card" style="margin-bottom:16px;">
+      <div class="card-title">💎 Diamond ขึ้นไป — ระบบกันตกหนัก (Demotion &amp; Recovery)</div>
+      <div style="font-size:13px; color:var(--text-dim); line-height:1.8;">
+        พอไต่ถึง <b>Diamond, Master หรือ Predator</b> แล้ว ระบบจะ "ใจดีขึ้น" ตอนโดน Investigation — ไม่ทำให้ตกไป Silver ทันที แต่จะค่อยๆ ลดทีละขั้นแทน:
+        <ol style="margin:10px 0 10px 20px; padding:0;">
+          <li style="margin-bottom:8px;"><b>โดนครั้งที่ 1:</b> ตกลง 1 ระดับ (ไม่ใช่ Silver) + เริ่มนับ "ช่วงกู้คืน 3 เดือน"</li>
+          <li style="margin-bottom:8px;"><b>Clean ครบ 3 เดือนติดกัน (ไม่โดนซ้ำ):</b> 🎉 กู้คืนกลับไปที่ Tier เดิมทันที</li>
+          <li style="margin-bottom:8px;"><b>โดนซ้ำระหว่างกู้คืน (ยังไม่ครบ 3 เดือน):</b> ตกลงอีก 1 ระดับ นาฬิกา 3 เดือนเริ่มนับใหม่</li>
+          <li><b>โดนครั้งที่ 3 ภายใน 6 เดือน:</b> ⚠️ ไม่ว่ากำลังกู้คืนอยู่ขั้นไหน ตกไป <b style="color:var(--danger)">Silver ทันที</b></li>
+        </ol>
+        <div style="background:var(--accent-dim); border-left:3px solid var(--accent); border-radius:6px; padding:10px 12px; font-size:12.5px;">
+          💡 เหตุผล: คนที่ปีนขึ้นไปถึง Diamond+ ลงทุนเวลาไปเยอะมาก พลาดครั้งเดียวไม่ควรร่วงไป Silver ทันที ระบบนี้ให้โอกาสกู้คืน แต่ก็ไม่ปล่อยให้ทำผิดซ้ำๆ แบบไม่มีผลตามมา
+        </div>
+      </div>
+    </div>
+
+    <div class="card" style="margin-bottom:16px;">
+      <div class="card-title">🎯 Team Goal คืออะไร</div>
+      <div style="font-size:13px; color:var(--text-dim); line-height:1.7;">
+        เป้าหมายรวมของทั้งทีมในแต่ละปี นับจาก <b>แต้มที่ทุกคนทำได้จริง</b> (Add / Deduct / Monthly Bonus) — <b>ไม่รวมการแลก Reward</b> เพราะแลกไปแล้วแต้มที่ "ทำได้" ก็ยังนับอยู่เหมือนเดิม ต่อให้แลกของหมดตัว Team Goal ก็ไม่ลด
+      </div>
+    </div>
+
+    <div class="card" style="margin-bottom:16px;">
+      <div class="card-title">🎖️ Badge ปลดล็อกยังไง</div>
+      <div style="font-size:13px; color:var(--text-dim); line-height:1.7;">
+        Badge แต่ละอันผูกกับ Tier ที่กำหนดไว้ — พอ Tier ของคุณถึงเกณฑ์ที่ Badge นั้นต้องการ จะปลดล็อกอัตโนมัติทันที (ไม่ต้องกดอะไร) พร้อม Popup แจ้งความยินดี และประกาศใน Team Feed ให้ทั้งทีมเห็นด้วย
+      </div>
+    </div>
+
+    <div class="card">
+      <div class="card-title">💰 Points ทำงานยังไง</div>
+      <div style="font-size:13px; color:var(--text-dim); line-height:1.7;">
+        Admin เป็นคนเพิ่ม/หักแต้มให้ตามผลงานหรือปัญหาที่เกิดขึ้น ทุกครั้งจะมีเหตุผลระบุไว้เสมอ ดูย้อนหลังได้ที่เมนู History — แต้มสะสมเอาไปแลก Reward ได้ที่เมนู Rewards
+      </div>
+    </div>
+  `;
+}
+function renderTeamFeed(elId){
+  const el = document.getElementById(elId);
+  if(!el) return;
+  el.innerHTML = teamFeed.length ? teamFeed.map(f=>`
+    <div class="online-vert-row" style="align-items:flex-start;">
+      <span style="font-size:16px;">${f.type==='goal'?'🏆':'🎖️'}</span>
+      <div style="flex:1;">
+        <div style="font-size:12.5px; font-weight:600;">${escapeHtml(f.text)}</div>
+        <div style="font-size:10.5px; color:var(--text-faint); margin-top:2px;">${timeAgo(f.createdAt)}</div>
+      </div>
+    </div>`).join('') : `<div class="empty-state" style="padding:14px 0;"><div class="ic">📣</div>ยังไม่มีความเคลื่อนไหว — ปลดล็อก Badge หรือทำ Team Goal สำเร็จเพื่อขึ้นที่นี่</div>`;
+}
+function checkTeamGoalReachedFeed(){
+  if(!currentUser) return;
+  const target = teamGoal.target || 0;
+  if(!target) return;
+  const year = teamGoal.periodYear || new Date().getFullYear();
+  if(teamPointsEarnedInYear(year) < target) return;
+  const key = `goalReachedPosted_${year}_${target}`;
+  if(localStorage.getItem(key)) return;
+  localStorage.setItem(key, '1');
+  postTeamFeed('goal', `🏆 ทีมทำสำเร็จ! บรรลุเป้าหมาย Team Mission แล้ว (${fmtPts(target)} pts) 🎉`);
 }
 function renderTeamGoalHtml(isAdmin){
   const target = teamGoal.target || 0;
@@ -1648,6 +1848,7 @@ function checkNewlyUnlockedBadges(){
   if(newOnes.length){
     localStorage.setItem(key, JSON.stringify(nowUnlocked.map(b=>b.id)));
     showBadgeUnlockPopup(newOnes[0]);
+    newOnes.forEach(b=> postTeamFeed('badge', `🎖️ ${currentUser.name} ปลดล็อก Badge "${b.name}" แล้ว!`));
   }
 }
 function showBadgeUnlockPopup(badge){
@@ -1683,13 +1884,16 @@ window.confirmAddBadge = async function(){
   try{
     await addDoc(collection(db,'badges'), { name, imageUrl, requiredTierKey, createdAt: serverTimestamp() });
     toast('เพิ่ม Badge แล้ว'); window.closeModal();
+    logActivity('Add Badge', `${name} (ต้องถึง ${requiredTierKey})`);
   }catch(e){ toast(friendlyAuthError(e) || 'เพิ่มไม่สำเร็จ', true); }
 };
 window.deleteBadge = async function(badgeId){
+  const b = badges.find(x=>x.id===badgeId);
   if(!confirm('ลบ Badge นี้?')) return;
   try{
     await deleteDoc(doc(db,'badges',badgeId));
     toast('ลบ Badge แล้ว');
+    logActivity('Delete Badge', b?b.name:badgeId);
   }catch(e){ toast(friendlyAuthError(e) || 'ลบไม่สำเร็จ', true); }
 };
 
@@ -1800,20 +2004,25 @@ function renderEmployee(){
     ring.style.color = 'var(--text)';
     document.getElementById('empTeamRateSub').textContent = `${teamMembers().filter(x=>(x.streakMonths||0)>0).length} / ${teamMembers().length} คนกำลัง Clean อยู่`;
     document.getElementById('empTeamGoal').innerHTML = renderTeamGoalHtml(false);
+    renderTeamFeed('empTeamFeed');
   }
 
   if(currentPage==='emp-rewards'){
     document.getElementById('empRewardGrid').innerHTML = rewards.map(r=>{
       const can = (u.points||0) >= r.cost;
       const soldOut = typeof r.stock === 'number' && r.stock <= 0;
+      const expired = isRewardExpired(r);
       const pending = redemptions.find(rq=>rq.userId===u.uid && rq.rewardId===r.id && rq.status==='PENDING');
       return `<div class="card ${r.featured?'reward-featured':''}">
         ${r.featured?'<div class="featured-badge">⭐ Featured</div>':''}
         <div class="reward-icon">${r.icon}</div>
         <div style="font-weight:700; font-size:16px; margin:8px 0 2px;">${r.name}</div>
         <div style="color:var(--text-dim); font-size:13px; margin-bottom:6px;">Required: ${r.cost} points · You have ${fmtPts(u.points)}</div>
+        ${r.expiresAt ? `<div style="font-size:11.5px; color:${expired?'var(--danger)':'var(--text-faint)'}; margin-bottom:2px;">${expired?'หมดอายุแล้ว':'หมดอายุ'} ${r.expiresAt}</div>` : ''}
         ${typeof r.stock === 'number' ? `<div style="font-size:12px; color:${soldOut?'var(--danger)':'var(--text-faint)'}; margin-bottom:10px;">${soldOut?'หมดแล้ว':`เหลือ ${r.stock} ชิ้น`}</div>` : '<div style="margin-bottom:10px;"></div>'}
-        ${soldOut
+        ${expired
+          ? `<span class="pill pill-rejected" style="width:100%; justify-content:center; display:flex;">หมดอายุแล้ว</span>`
+          : soldOut
           ? `<span class="pill pill-rejected" style="width:100%; justify-content:center; display:flex;">Sold Out</span>`
           : pending
             ? `<span class="pill pill-pending">Pending Approval</span>`
@@ -1846,10 +2055,15 @@ function renderEmployee(){
   if(currentPage==='emp-badges'){
     renderBadgeGrid('empBadgeGrid', false);
   }
+
+  if(currentPage==='emp-help'){
+    document.getElementById('empHelpContent').innerHTML = helpContentHtml();
+  }
 }
 
 function renderAdmin(){
   if(currentPage==='admin-dashboard'){
+    renderMonthlyReminder();
     renderMonthlyStatusBanner();
     const rate = periodTeamCleanRate();
     document.getElementById('adTeamRate').textContent = rate+'%';
@@ -1869,6 +2083,7 @@ function renderAdmin(){
     document.getElementById('adTeamStreakSub').textContent = `Longest current streak: ${Math.max(...teamMembers().map(u=>u.streakMonths||0),0)} months`;
     renderPointsBreakdown();
     document.getElementById('adTeamGoal').innerHTML = renderTeamGoalHtml(true);
+    renderTeamFeed('adTeamFeed');
     renderOnlineStatus();
     renderInvestigationChart();
   }
@@ -1948,11 +2163,13 @@ function renderAdmin(){
   if(currentPage==='admin-rewards'){
     document.getElementById('adRewardGrid').innerHTML = rewards.map(r=>{
       const soldOut = typeof r.stock === 'number' && r.stock <= 0;
-      return `<div class="card ${r.featured?'reward-featured':''}">
+      const expired = isRewardExpired(r);
+      return `<div class="card ${r.featured?'reward-featured':''} ${expired?'reward-expired':''}">
         ${r.featured?'<div class="featured-badge">⭐ Featured</div>':''}
         <div class="reward-icon">${r.icon}</div>
         <div style="font-weight:700; font-size:16px; margin:8px 0 2px;">${r.name}</div>
         <div style="color:var(--text-dim); font-size:13px; margin-bottom:4px;">${r.cost} points</div>
+        ${r.expiresAt ? `<div style="font-size:11.5px; color:${expired?'var(--danger)':'var(--text-faint)'}; margin-bottom:2px;">${expired?'⚠️ หมดอายุแล้ว':'หมดอายุ'} ${r.expiresAt}</div>` : ''}
         <div style="font-size:12px; color:${soldOut?'var(--danger)':'var(--text-faint)'}; margin-bottom:12px;">${typeof r.stock === 'number' ? (soldOut?'Sold Out':`เหลือ ${r.stock} ชิ้น`) : 'ไม่จำกัดจำนวน'}</div>
         <div class="action-row">
           <button class="btn btn-ghost btn-sm" onclick="window.openEditReward('${r.id}')">Edit</button>
@@ -2004,6 +2221,22 @@ function renderAdmin(){
     document.getElementById('adHistoryTable').innerHTML = `
       <thead><tr><th>Employee</th><th>Action</th><th>Point</th><th>Reason</th><th>By</th><th>Date</th>${isOwner?'<th>Actions</th>':''}</tr></thead>
       <tbody>${historyRowsHtml(visible,true,isOwner)}</tbody>`;
+  }
+
+  if(currentPage==='admin-activity'){
+    document.getElementById('adActivityTable').innerHTML = `
+      <thead><tr><th>Action</th><th>Details</th><th>By</th><th>Date</th></tr></thead>
+      <tbody>${activityLog.length ? activityLog.map(a=>`
+        <tr>
+          <td style="font-weight:600;">${escapeHtml(a.action)}</td>
+          <td style="color:var(--text-dim);">${escapeHtml(a.details||'—')}</td>
+          <td style="color:var(--text-dim);">${escapeHtml(a.actorName||'—')}</td>
+          <td style="color:var(--text-faint); white-space:nowrap;">${fmtDT(a.createdAt)}</td>
+        </tr>`).join('') : `<tr><td colspan="4"><div class="empty-state" style="padding:22px 0"><div class="ic">📋</div>ยังไม่มีการกระทำที่บันทึกไว้</div></td></tr>`}</tbody>`;
+  }
+
+  if(currentPage==='admin-help'){
+    document.getElementById('adHelpContent').innerHTML = helpContentHtml();
   }
 }
 
@@ -2177,6 +2410,7 @@ window.requestRedeem = async function(rewardId, btnEl){
   const u = currentUser;
   const r = rewards.find(x=>x.id===rewardId);
   if(!r){ toast('ไม่พบ Reward นี้', true); return; }
+  if(isRewardExpired(r)){ toast('Reward นี้หมดอายุแล้ว', true); return; }
   if(btnEl) btnEl.disabled = true;
   try{
     const uRef = doc(db,'users',u.uid);
@@ -2319,6 +2553,7 @@ window.deleteRedemptionEntry = async function(rqId){
       }
     });
     toast('ซ่อนคำขอแล้ว');
+    logActivity('Delete Redemption (Owner)', `${rq.userName} — ${rq.rewardName} (${rq.status})`);
   }catch(e){ toast(friendlyAuthError(e) || 'ลบไม่สำเร็จ', true); }
 };
 
@@ -2335,6 +2570,7 @@ window.toggleAdmin = async function(userId){
   try{
     await updateDoc(doc(db,'users',userId), { role:newRole });
     toast(`${u.name} is now ${newRole==='admin'?'an Admin':'an Employee'}`);
+    logActivity('Change Role', `${u.name} → ${newRole}`);
   }catch(e){ toast('เปลี่ยนสิทธิ์ไม่สำเร็จ', true); }
 };
 window.deleteEmployee = async function(userId){
@@ -2344,6 +2580,7 @@ window.deleteEmployee = async function(userId){
   try{
     await deleteUserCascade(userId);
     toast(`ลบ ${u.name} และข้อมูลที่เกี่ยวข้องแล้ว`);
+    logActivity('Delete Employee', u.name);
   }catch(e){ toast(friendlyAuthError(e) || 'ลบไม่สำเร็จ: '+e.message, true); console.error(e); }
 };
 
@@ -2474,6 +2711,7 @@ window.confirmAddReason = async function(){
   try{
     await addDoc(collection(db,'reasons'), { text, type, createdAt: serverTimestamp() });
     toast('เพิ่ม Reason แล้ว'); window.closeModal();
+    logActivity('Add Reason', `"${text}" (${type})`);
   }catch(e){ toast(friendlyAuthError(e) || 'เพิ่มไม่สำเร็จ', true); }
 };
 window.deleteReason = async function(reasonId){
@@ -2483,6 +2721,7 @@ window.deleteReason = async function(reasonId){
   try{
     await deleteDoc(doc(db,'reasons',reasonId));
     toast('ลบ Reason แล้ว');
+    logActivity('Delete Reason', `"${r.text}"`);
   }catch(e){ toast(friendlyAuthError(e) || 'ลบไม่สำเร็จ', true); }
 };
 
@@ -2496,6 +2735,7 @@ window.resetAllRewardStock = async function(){
       await b.commit();
     }
     toast('Reset สต็อก Reward ทั้งหมดเป็นไม่จำกัดแล้ว');
+    logActivity('Reset All Reward Stock', `${rewards.length} รายการ`);
   }catch(e){ toast(friendlyAuthError(e) || 'Reset ไม่สำเร็จ', true); }
 };
 
@@ -2506,6 +2746,7 @@ window.openAddReward = function(){
     <div class="field"><label>Icon (emoji)</label><input id="nrIcon" placeholder="☕" value="🎁"></div>
     <div class="field"><label>Cost (points)</label><input id="nrCost" type="number" min="1"></div>
     <div class="field"><label>Stock (จำนวน — เว้นว่าง = ไม่จำกัด)</label><input id="nrStock" type="number" min="0" placeholder="ไม่จำกัด"></div>
+    <div class="field"><label>วันหมดอายุ (เว้นว่าง = ไม่มีวันหมดอายุ)</label><input id="nrExpiry" type="date"></div>
     <div class="field" style="display:flex; align-items:center; gap:8px;">
       <input id="nrFeatured" type="checkbox" style="width:auto;">
       <label style="margin:0; text-transform:none; font-size:13.5px; font-weight:500;" for="nrFeatured">⭐ Featured — ทำให้ Card นี้ดูเด่น</label>
@@ -2523,10 +2764,13 @@ window.confirmAddReward = async function(){
   const stockRaw = document.getElementById('nrStock').value.trim();
   const stock = stockRaw==='' ? null : Math.max(0, parseInt(stockRaw,10));
   const featured = document.getElementById('nrFeatured').checked;
+  const expiryRaw = document.getElementById('nrExpiry').value;
+  const expiresAt = expiryRaw ? expiryRaw : null; // stored as 'YYYY-MM-DD' string, simple date-only comparison
   if(!name || !cost || cost<=0){ toast('กรอกข้อมูลให้ครบ', true); return; }
   try{
-    await addDoc(collection(db,'rewards'), { name, icon, cost, stock, featured });
+    await addDoc(collection(db,'rewards'), { name, icon, cost, stock, featured, expiresAt });
     toast('เพิ่ม Reward แล้ว'); window.closeModal();
+    logActivity('Add Reward', `${name} (${cost} pts)${expiresAt?` — หมดอายุ ${expiresAt}`:''}`);
   }catch(e){ toast('เพิ่มไม่สำเร็จ', true); }
 };
 window.openEditReward = function(rewardId){
@@ -2537,6 +2781,7 @@ window.openEditReward = function(rewardId){
     <div class="field"><label>Icon</label><input id="erIcon" value="${r.icon}"></div>
     <div class="field"><label>Cost</label><input id="erCost" type="number" value="${r.cost}"></div>
     <div class="field"><label>Stock (จำนวน — เว้นว่าง = ไม่จำกัด)</label><input id="erStock" type="number" min="0" value="${typeof r.stock==='number' ? r.stock : ''}" placeholder="ไม่จำกัด"></div>
+    <div class="field"><label>วันหมดอายุ (เว้นว่าง = ไม่มีวันหมดอายุ)</label><input id="erExpiry" type="date" value="${r.expiresAt||''}"></div>
     <div class="field" style="display:flex; align-items:center; gap:8px;">
       <input id="erFeatured" type="checkbox" style="width:auto;" ${r.featured?'checked':''}>
       <label style="margin:0; text-transform:none; font-size:13.5px; font-weight:500;" for="erFeatured">⭐ Featured — ทำให้ Card นี้ดูเด่น</label>
@@ -2555,9 +2800,12 @@ window.confirmEditReward = async function(rewardId){
   const stockRaw = document.getElementById('erStock').value.trim();
   const stock = stockRaw==='' ? null : Math.max(0, parseInt(stockRaw,10));
   const featured = document.getElementById('erFeatured').checked;
+  const expiryRaw = document.getElementById('erExpiry').value;
+  const expiresAt = expiryRaw ? expiryRaw : null;
   try{
-    await updateDoc(doc(db,'rewards',rewardId), { name, icon, cost, stock, featured });
+    await updateDoc(doc(db,'rewards',rewardId), { name, icon, cost, stock, featured, expiresAt });
     toast('บันทึกแล้ว'); window.closeModal();
+    logActivity('Edit Reward', `${name} (${cost} pts)${expiresAt?` — หมดอายุ ${expiresAt}`:''}`);
   }catch(e){ toast('บันทึกไม่สำเร็จ', true); }
 };
 window.deleteReward = async function(rewardId){
@@ -2574,6 +2822,7 @@ window.deleteReward = async function(rewardId){
   try{
     await deleteDoc(doc(db,'rewards',rewardId));
     toast('ลบ Reward แล้ว');
+    logActivity('Delete Reward', r.name);
   }catch(e){ toast('ลบไม่สำเร็จ', true); }
 };
 
@@ -2583,6 +2832,7 @@ window.deleteHistoryEntry = async function(historyId){
   try{
     await updateDoc(doc(db,'history',historyId), { hidden:true, hiddenAt:serverTimestamp(), hiddenBy:currentUser.name });
     toast('ซ่อนรายการแล้ว');
+    logActivity('Delete History Entry (Owner)', historyId);
   }catch(e){ toast(friendlyAuthError(e) || 'ลบไม่สำเร็จ: '+e.message, true); }
 };
 
@@ -2618,6 +2868,7 @@ window.saveTeamGoal = async function(){
     if(resetYear){ payload.periodYear = new Date().getFullYear(); }
     await setDoc(doc(db,'settings','teamGoal'), payload, { merge:true });
     toast('ตั้งเป้าหมายทีมแล้ว'); window.closeModal();
+    logActivity('Edit Team Goal', `Target ${target} pts${resetYear?' (เริ่มปีใหม่)':''}`);
   }catch(e){ toast(friendlyAuthError(e) || 'บันทึกไม่สำเร็จ: '+e.message, true); }
 };
 // Recomputes each employee's pointsEarnedByYear.<year> directly from the full History
@@ -2689,6 +2940,7 @@ window.saveAnnouncement = async function(){
   try{
     await setDoc(doc(db,'settings','announcement'), { message, active, updatedAt: serverTimestamp(), updatedBy: currentUser.name }, { merge:true });
     toast('บันทึกประกาศแล้ว'); window.closeModal();
+    logActivity('Edit Announcement', active ? `เปิดใช้งาน: "${message.slice(0,60)}"` : 'ปิดการแสดงผล');
   }catch(e){ toast(friendlyAuthError(e) || 'บันทึกไม่สำเร็จ', true); }
 };
 
