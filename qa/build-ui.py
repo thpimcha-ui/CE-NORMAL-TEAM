@@ -31,6 +31,7 @@ app=app.replace('การสร้างบัญชีในต้นแบบ
 app=app.replace('ต้นแบบนี้ยังไม่สร้างบัญชีเข้าสู่ระบบจริง','ระบบสร้างรหัสชั่วคราวให้ และให้ตั้งรหัสส่วนตัวเมื่อเข้าใช้งานครั้งแรก')
 app=app.replace('<button class="text-button" data-action="toggle-employee"', '<button class="text-button" data-action="reset-password" data-id="${e.id}">รหัสชั่วคราวใหม่</button><button class="text-button" data-action="toggle-employee"')
 app=app.replace("const cashLeft=(reward)=>Math.max(0,reward.stock-cashUsed(reward));", "const cashLeft=(reward)=>reward.cashRemaining??Math.max(0,reward.stock-cashUsed(reward));")
+app=app.replace("const eligible=rewardEligibility(r);", "const eligible=admin?{ok:false,text:''}:rewardEligibility(r);")
 (root/'public/app.js').write_text(app,encoding='utf-8')
 ext=(prototype/'extensions.js').read_text(encoding='utf-8')
 ext=ext[:ext.index('function demoRecords()')]+ext[ext.index('function announcementBanner()'):]
