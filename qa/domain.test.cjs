@@ -1,0 +1,32 @@
+'use strict';
+const test=require('node:test'),assert=require('node:assert/strict'),D=require('../functions/domain.cjs');
+const employee={id:'a',name:'A',role:'employee',active:true,points:10,streak:5};
+const now='2026-10-07T15:00:00+07:00';
+test('Investigation deducts old balance, resets streak, never creates debt',()=>{
+ const report=D.closeMonth({employees:[employee],requests:[],months:[],startMonth:'2026-09',month:'2026-09',checks:{a:{cases:10,kpi:true}},teamTop:true,now});
+ assert.equal(report.entries[0].balanceAfter,0);assert.equal(report.entries[0].delta,-10);assert.equal(report.entries[0].streakAfter,0);assert.equal(report.entries[0].kpiBonus,0);assert.equal(report.entries[0].teamBonus,1);
+});
+test('old tier applies before promotion',()=>{const e=D.closeMonth({employees:[{...employee,streak:1}],requests:[],months:[],startMonth:'2026-09',month:'2026-09',checks:{},teamTop:false,now}).entries[0];assert.equal(e.base,5);assert.equal(e.streakAfter,2);});
+test('duplicate, current, skipped months and stale members are rejected',()=>{
+ const base={employees:[employee],requests:[],months:[],startMonth:'2026-09',month:'2026-09',checks:{},teamTop:false,now};
+ for(const change of [{month:'2026-10'},{month:'2026-08'},{months:[{month:'2026-09'}]},{checks:{intruder:{cases:0,kpi:true}}},{checks:{a:{cases:-1}}}])assert.throws(()=>D.closeMonth({...base,...change}));
+});
+test('pending holds block overspending and close with insufficient post-deduction points',()=>{
+ const reward={id:'r',name:'coffee',active:true,cost:10,value:50,type:'coffee'},requests=[{employeeId:'a',cost:5,status:'pending'}];
+ assert.throws(()=>D.redeem({actor:employee,reward,requests,now}));
+ assert.throws(()=>D.closeMonth({employees:[employee],requests,months:[],startMonth:'2026-09',month:'2026-09',checks:{a:{cases:10,kpi:false}},teamTop:false,now}));
+});
+test('cash grants three slots total and one slot per person across cash rewards',()=>{
+ const reward={id:'cash',name:'cash',active:true,cost:100,value:1000,type:'cash',stock:3,year:2026};
+ const actor={...employee,points:200},requests=[1,2,3].map(n=>({employeeId:'x'+n,rewardId:'cash',type:'cash',year:2026,status:n===1?'pending':'approved',cost:100}));
+ assert.throws(()=>D.redeem({actor,reward,requests,now}));
+ assert.throws(()=>D.redeem({actor,reward,requests:[{...requests[0],employeeId:'a',rewardId:'other'}],now}));
+ assert.equal(D.redeem({actor,reward,requests:requests.slice(0,2),now}).value,1000);
+});
+test('approval deducts exactly once, rejection does not change balance, redemption does not change streak',()=>{
+ const request={status:'pending',cost:5},out=D.decide({request,employee,status:'approved',now});assert.equal(out.employee.points,5);assert.equal(out.employee.streak,5);assert.throws(()=>D.decide({request:out.request,employee:out.employee,status:'approved',now}));
+ assert.equal(D.decide({request,employee,status:'rejected',now}).employee.points,10);
+});
+test('server rejects malformed images, negative budgets and unbounded reward inputs',()=>{
+ assert.throws(()=>D.image('javascript:alert(1)'));assert.throws(()=>D.int(-1,0,100,'bad'));assert.throws(()=>D.rewardInput({name:'X',description:'X',type:'cash',active:true,cost:1,value:1000,stock:4,photo:null},null,[],2026));
+});
