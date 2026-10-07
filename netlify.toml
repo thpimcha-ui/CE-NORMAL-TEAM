@@ -1,0 +1,11 @@
+[build]
+publish = "public"
+
+[[headers]]
+for = "/*"
+[headers.values]
+X-Content-Type-Options = "nosniff"
+Referrer-Policy = "strict-origin-when-cross-origin"
+X-Frame-Options = "DENY"
+Permissions-Policy = "camera=(), microphone=(), geolocation=()"
+Content-Security-Policy = "default-src 'self'; script-src 'self' https://www.gstatic.com; style-src 'self' 'unsafe-inline'; img-src 'self' data:; connect-src 'self' https://*.googleapis.com https://*.cloudfunctions.net https://*.run.app; frame-src https://cenolmal.firebaseapp.com; base-uri 'self'; object-src 'none'; form-action 'self'"

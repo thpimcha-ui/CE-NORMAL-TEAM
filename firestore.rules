@@ -1,0 +1,22 @@
+// Prototype rules for final cutover; do not deploy while the original client still writes directly.
+// Assumed data model (all financial, membership and permission fields are server-owned):
+// ceLitePreviewMembers / ceLiteMembers: UID -> name,username,role,active,points,streak,
+// photo, mustChangePassword, temporaryPasswordHash(optional),createdAt. Private.
+// Requests: id -> employeeId,rewardId,name,cost,value,type,status,date,year,
+// decidedAt/By, deliveredAt/By,paidAmount(optional). Private, server validation.
+// Rewards: id -> name,description,cost,value,type,active,photo,stock/year(optional).
+// Months: YYYY-MM -> month,teamTop,closedAt/By,entries[] (server-validated fields).
+// History: id -> employeeId,title,detail,amount,kind,date,performedBy.
+// Control: settings -> startMonth,revision,announcement,rewardBudget,updatedAt.
+// Operations: immutable idempotency receipt, fingerprint,result,createdAt,actor,action.
+// Reads: UID -> ids[],updatedAt. No client writes; API validates shape and ownership.
+// Legacy collections remain stored and accessible through the authorized server only.
+// The callable API authenticates, checks membership/role and filters personal data.
+rules_version = '2';
+service cloud.firestore {
+  match /databases/{database}/documents {
+    match /{document=**} {
+      allow read, write: if false;
+    }
+  }
+}
