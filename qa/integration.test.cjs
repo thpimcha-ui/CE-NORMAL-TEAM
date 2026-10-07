@@ -20,6 +20,14 @@ test('end-to-end server authorization, concurrent rewards, idempotency, month cl
  assert.equal((await call(aToken,{action:'budget',budget:1000,operationId:op()})).error.status,'PERMISSION_DENIED');
  const employeeState=(await call(aToken,{action:'state'})).result;
  assert.deepEqual(employeeState.employees.map(e=>e.id),['a']);assert.equal(employeeState.teamRank.total,2);
+ const photo='data:image/jpeg;base64,/9j/2Q==';
+ assert.ok((await call(aToken,{action:'profile',id:'b',photo,operationId:op()})).result);
+ assert.equal((await members.doc('a').get()).data().photo,photo);assert.equal((await members.doc('b').get()).data().photo,null,'profile action always edits the caller');
+ assert.equal((await call(aToken,{action:'profile',photo:'javascript:alert(1)',operationId:op()})).error.status,'FAILED_PRECONDITION');
+ assert.ok((await call(aToken,{action:'profile',photo:null,operationId:op()})).result);
+ assert.equal((await call(aToken,{action:'announcement',title:'test',body:'test',active:true,operationId:op()})).error.status,'PERMISSION_DENIED');
+ assert.ok((await call(adminToken,{action:'announcement',title:'team notice',body:'test only',active:true,operationId:op()})).result);
+ assert.equal((await call(aToken,{action:'state'})).result.announcement.title,'team notice');
  const [r1,r2]=await Promise.all([aToken,bToken].map(token=>call(token,{action:'redeem',rewardId:'cash',operationId:op()})));
  assert.equal([r1,r2].filter(r=>r.result).length,1,'single cash slot must survive simultaneous requests');
  const request=(await db.collection(prefix+'Requests').get()).docs[0],winner=request.data().employeeId;
