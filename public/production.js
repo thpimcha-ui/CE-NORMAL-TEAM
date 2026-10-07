@@ -10,7 +10,7 @@ async function refresh(showAnnouncementOnLogin=false){
  if(data.unchanged)return;
  if(data.mustChangePassword){loggedIn=false;passwordScreen(data.me);return;}
  const first=!loggedIn;state=data;currentEmployeeId=data.me.id;role=data.role;loggedIn=true;
- if(first){view=role==='admin'?'overview':'home';selectedMonth=state.closedMonths.length?nextMonth([...state.closedMonths].sort().at(-1)):state.startMonth;reportMonth=[...state.closedMonths].sort().at(-1)||state.startMonth;}
+ if(first){view=role==='admin'?(new URLSearchParams(location.search).get('view')==='requests'?'admin-rewards':'overview'):'home';selectedMonth=state.closedMonths.length?nextMonth([...state.closedMonths].sort().at(-1)):state.startMonth;reportMonth=[...state.closedMonths].sort().at(-1)||state.startMonth;}
  if(!dialog.open)render();
  if(showAnnouncementOnLogin&&role==='employee')showAnnouncement();
 }
