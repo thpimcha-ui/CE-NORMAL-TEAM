@@ -58,7 +58,7 @@ function rewardEligibility(r,id=currentEmployeeId){
  return {ok:true,text:'ขอแลกรางวัล'};
 }
 function rewardCard(r,admin=false){
- const eligible=rewardEligibility(r);
+ const eligible=admin?{ok:false,text:''}:rewardEligibility(r);
  return `<article class="reward-card"><div class="reward-visual ${r.type==='cash'?'cash':''} ${r.photo?'has-photo':''}">${r.photo?`<img class="reward-photo" src="${esc(r.photo)}" alt="${esc(r.name)}">`:''}<span class="reward-type">${r.type==='cash'?'รางวัลพิเศษ':'พักเติมพลัง'}</span><span class="pill">${r.type==='cash'?`${cashLeft(r)}/${r.stock} สิทธิ์`:`มูลค่า ${r.value} บาท`}</span>${r.photo?'':`<div class="reward-icon">${icon(r.type==='cash'?'ticket':'coffee')}</div>`}</div><div class="reward-body"><h3>${esc(r.name)}</h3><p>${esc(r.description)}</p><div class="reward-bottom"><div class="reward-price">${coin('inline-coin')} ${r.cost} <span>NMP</span></div>${admin?`<span class="pill ${r.active?'lime':''}">${r.active?'เปิดรับแลก':'ปิดรับแลก'}</span>`:`<button class="primary" data-action="redeem" data-id="${r.id}" ${eligible.ok?'':'disabled'}>${eligible.text}</button>`}</div>${admin?`<button class="secondary" data-action="edit-reward" data-id="${r.id}">${icon('edit')} แก้ไขรางวัล</button>`:''}</div></article>`;
 }
 
