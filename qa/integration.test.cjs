@@ -2,9 +2,10 @@
 // Run only with demo emulators. This test refuses live databases and credentials.
 const test=require('node:test'),assert=require('node:assert/strict');
 if(!process.env.FIRESTORE_EMULATOR_HOST||!process.env.FIREBASE_AUTH_EMULATOR_HOST||!process.env.GCLOUD_PROJECT?.startsWith('demo-'))throw new Error('Emulators with demo project required');
-const {initializeApp}=require('../functions/node_modules/firebase-admin/app');
-const {getFirestore}=require('../functions/node_modules/firebase-admin/firestore');
-const {getAuth}=require('../functions/node_modules/firebase-admin/auth');
+const functionRequire=require('node:module').createRequire(require('node:path').resolve(__dirname,'../functions/package.json'));
+const {initializeApp}=functionRequire('firebase-admin/app');
+const {getFirestore}=functionRequire('firebase-admin/firestore');
+const {getAuth}=functionRequire('firebase-admin/auth');
 initializeApp({projectId:process.env.GCLOUD_PROJECT});const db=getFirestore(),auth=getAuth(),prefix='ceLitePreview';
 const members=db.collection(prefix+'Members'),control=db.collection(prefix+'Control').doc('settings');
 const endpoint=`http://127.0.0.1:5001/${process.env.GCLOUD_PROJECT}/asia-southeast1/ceLiteApi`;
