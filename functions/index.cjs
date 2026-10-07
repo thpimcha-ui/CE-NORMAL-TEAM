@@ -7,6 +7,8 @@ const {randomBytes,createHash}=require('node:crypto');
 const D=require('./domain.cjs');
 initializeApp();
 const db=getFirestore(),auth=getAuth();
+// Deploy this worker only after both LINE secrets are configured.
+exports.ceLineRequestNotification=require('./line-trigger.cjs');
 // Test site uses a separate ledger. Original users/rewards/history are never written.
 const PREFIX=process.env.CE_NAMESPACE||'ceLitePreview';
 const col=name=>db.collection(PREFIX+name);
