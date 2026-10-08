@@ -27,10 +27,11 @@ Investigation หักเคสละ 2 NMP ถึงแต้มสะสม �
 
 ## LINE My Point สำหรับเว็บทดลอง
 
-LINE OA ใช้ rich menu ปุ่ม `My Point` แบบ postback `action=my_point` หรือพิมพ์ `My Point` ในแชตส่วนตัวได้
+LINE OA ใช้ rich menu ปุ่ม `My Point` ที่ส่งข้อความ `My Point` เข้าแชตส่วนตัว หรือพิมพ์คำเดียวกันเองได้ (Webhook รองรับ postback `action=my_point` ด้วย)
 Webhook `ceLineMyPointWebhook` ตรวจ LINE signature จาก raw body ก่อนทำงาน ใช้ `CE_LINE_CHANNEL_SECRET` และ `CE_LINE_ACCESS_TOKEN` ใน Firebase Secret Manager
 ผู้ใช้ต้องผูก LINE กับบัญชี CE ของตัวเองผ่าน LINE account linking ทางการก่อน ระบบเก็บความสัมพันธ์ใน `ceLitePreviewLineLinks` และอ่าน Firestore ด้วย Admin SDK ฝั่ง Cloud Function เท่านั้น
 หน้าโปรไฟล์ยกเลิกการผูกได้ บัญชีที่ปิดใช้งานหรือยังไม่เปลี่ยนรหัสชั่วคราวดู My Point ไม่ได้ อันดับนับเฉพาะพนักงานที่ใช้งานอยู่ และใช้ `standing()` เดียวกับเว็บ
+ปิด Auto-response มาตรฐานของ OA เพื่อไม่ให้ตอบข้อความซ้ำกับ Webhook และเปิด Webhooks ไว้
 ทดสอบใน OA และเว็บทดลองก่อนเปิดทีม โดยไม่แก้ Firestore Rules เดิมหรือ collection เดิม
 
 ## บัญชี
