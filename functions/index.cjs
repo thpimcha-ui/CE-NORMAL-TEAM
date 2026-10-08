@@ -1,10 +1,12 @@
 'use strict';
-const {onCall,HttpsError}=require('firebase-functions/v2/https');
+const {onCall,onRequest,HttpsError}=require('firebase-functions/v2/https');
+const {defineSecret}=require('firebase-functions/params');
 const {initializeApp}=require('firebase-admin/app');
 const {getAuth}=require('firebase-admin/auth');
 const {getFirestore,FieldValue}=require('firebase-admin/firestore');
 const {randomBytes,createHash}=require('node:crypto');
 const D=require('./domain.cjs');
+const Line=require('./line-my-point.cjs');
 initializeApp();
 const db=getFirestore(),auth=getAuth();
 // Deploy this worker only after both LINE secrets are configured.
@@ -13,6 +15,9 @@ exports.ceLineRequestNotification=require('./line-trigger.cjs');
 const PREFIX=process.env.CE_NAMESPACE||'ceLitePreview';
 const col=name=>db.collection(PREFIX+name);
 const control=col('Control').doc('settings');
+const lineToken=defineSecret('CE_LINE_ACCESS_TOKEN'),lineSecret=defineSecret('CE_LINE_CHANNEL_SECRET');
+const lineHandler=(token,secret)=>Line.createHandler({db,token,secret,prefix:PREFIX});
+exports.ceLineMyPointWebhook=onRequest({region:'asia-southeast1',secrets:[lineToken,lineSecret],maxInstances:1,minInstances:0,memory:'256MiB',timeoutSeconds:60},(req,res)=>lineHandler(lineToken.value(),lineSecret.value()).webhook(req,res));
 const now=()=>new Date().toLocaleString('sv-SE',{timeZone:'Asia/Bangkok'}).replace(' ','T')+'+07:00';
 const rows=snapshot=>snapshot.docs.map(doc=>({id:doc.id,...doc.data()}));
 const staffOnly=actor=>{if(actor.role!=='admin')throw new HttpsError('permission-denied','เฉพาะ Supervisor เท่านั้น');};
@@ -36,7 +41,8 @@ async function stateFor(actor,knownRevision){
  const rewards=rows(rs).map(r=>({...r,cashRemaining:r.type==='cash'?Math.max(0,r.stock-allRequests.filter(q=>q.rewardId===r.id&&q.year===r.year&&['pending','approved'].includes(q.status)).length):null}));
  const months=rows(xs),monthlyRecords=Object.fromEntries(months.map(m=>[m.month,admin?m:{...m,entries:m.entries.filter(e=>e.employeeId===actor.id)}]));
  const logs=rows(hs).filter(l=>admin||l.employeeId===actor.id);
- return {mode:PREFIX==='ceLitePreview'?'preview':'live',revision:cfg.revision||0,role:actor.role,me,employees:admin?members:[me],rewards:admin?rewards:rewards.filter(r=>r.active&&!r.archived),requests:admin?allRequests:allRequests.filter(r=>r.employeeId===actor.id),logs,monthlyRecords,closedMonths:months.map(m=>m.month),startMonth:cfg.startMonth,announcement:cfg.announcement||{active:false},rewardBudget:admin?cfg.rewardBudget||{}:{},supervisor:me,notificationReads:{[admin?'admin':actor.id]:readDoc.data()?.ids||[]},teamRank:{position:1+active.filter(e=>e.streak>me.streak).length,total:active.length,tied:active.filter(e=>e.streak===me.streak).length>1}};
+ const standing=D.rules.standing(actor,allMembers);
+ return {mode:PREFIX==='ceLitePreview'?'preview':'live',revision:cfg.revision||0,role:actor.role,me,employees:admin?members:[me],rewards:admin?rewards:rewards.filter(r=>r.active&&!r.archived),requests:admin?allRequests:allRequests.filter(r=>r.employeeId===actor.id),logs,monthlyRecords,closedMonths:months.map(m=>m.month),startMonth:cfg.startMonth,announcement:cfg.announcement||{active:false},rewardBudget:admin?cfg.rewardBudget||{}:{},supervisor:me,lineLinked:!!actor.lineUserId,notificationReads:{[admin?'admin':actor.id]:readDoc.data()?.ids||[]},teamRank:{position:standing.rank,total:standing.total,tied:standing.tied}};
 }
 async function mutate(actor,data){
  const op=D.text(data.operationId,80,'รหัสรายการไม่ถูกต้อง');
@@ -114,6 +120,8 @@ exports.ceLiteApi=onCall({region:'asia-southeast1',maxInstances:1,minInstances:0
  try{
   const actor=await actorFor(req),data=req.data||{};
   if(data.action==='state')return await stateFor(actor,data.knownRevision);
+  if(data.action==='prepareLineLink')return await lineHandler().prepareLink(actor,data.linkToken);
+  if(data.action==='unlinkLine')return await lineHandler().unlink(actor);
   if(data.action==='changePassword'){
    if(!actor.mustChangePassword)throw new HttpsError('permission-denied','ใช้เฉพาะรหัสชั่วคราวครั้งแรก');
    const password=D.text(data.password,128,'รหัสผ่านไม่ถูกต้อง');if(password.length<10)D.fail('ใช้รหัสผ่านอย่างน้อย 10 ตัว');
