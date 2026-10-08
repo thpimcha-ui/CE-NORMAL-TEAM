@@ -29,15 +29,16 @@ async function uploadPhoto(file){
 }
 document.addEventListener('click',async event=>{
  const b=event.target.closest('[data-action]');if(!b||b.disabled)return;const {action,id}=b.dataset;
- const actions=['confirm-redeem','confirm-request','confirm-close','confirm-employee','remove-photo','reset-password','confirm-password-reset','refresh','logout'];
+ const actions=['confirm-redeem','confirm-request','confirm-close','confirm-employee','confirm-archive-reward','restore-reward','remove-photo','reset-password','confirm-password-reset','refresh','logout'];
  if(actions.includes(action)){
   event.preventDefault();event.stopImmediatePropagation();
   try{
    if(action==='logout'){await authSDK.signOut(firebaseAuth);if(dialog.open)dialog.close();loggedIn=false;state={employees:[],requests:[],rewards:[],logs:[],closedMonths:[],monthlyRecords:{}};render();return;}
    if(action==='refresh'){await refresh();toast('ข้อมูลล่าสุดแล้ว');return;}
    if(action==='reset-password'){openDialog('ออกรหัสชั่วคราวใหม่?',`<p>${esc(employee(id).name)} จะต้องเข้าสู่ระบบด้วยรหัสใหม่ และตั้งรหัสส่วนตัวอีกครั้ง</p>`,`<button class="secondary" data-action="dismiss">กลับ</button><button class="primary" data-action="confirm-password-reset" data-id="${id}">ออกรหัสใหม่</button>`);return;}
-   const task=action==='confirm-redeem'?{action:'redeem',rewardId:id}:action==='confirm-request'?{action:'decide',id,status:b.dataset.status}:action==='confirm-close'?{action:'closeMonth',month:selectedMonth,checks,teamTop,expectedRevision:state.revision}:action==='confirm-employee'?{action:'toggleEmployee',id}:action==='remove-photo'?{action:'profile',photo:null}:{action:'resetPassword',id};
-   const result=await runTask(task,'บันทึกเรียบร้อย ✦');if(action==='confirm-password-reset')temporaryCredential(result);if(action==='confirm-close'){reportMonth=selectedMonth;selectedMonth=nextMonth(selectedMonth);checks={};teamTop=false;render();}
+   const task=action==='confirm-redeem'?{action:'redeem',rewardId:id}:action==='confirm-request'?{action:'decide',id,status:b.dataset.status}:action==='confirm-close'?{action:'closeMonth',month:selectedMonth,checks,teamTop,expectedRevision:state.revision}:action==='confirm-employee'?{action:'toggleEmployee',id}:action==='confirm-archive-reward'?{action:'archiveReward',id}:action==='restore-reward'?{action:'restoreReward',id}:action==='remove-photo'?{action:'profile',photo:null}:{action:'resetPassword',id};
+   const message=action==='confirm-archive-reward'?'ลบออกจากร้านแล้ว ✦':action==='restore-reward'?'คืนรางวัลเข้าร้านแล้ว ✦':'บันทึกเรียบร้อย ✦';
+   const result=await runTask(task,message);if(action==='confirm-password-reset')temporaryCredential(result);if(action==='confirm-close'){reportMonth=selectedMonth;selectedMonth=nextMonth(selectedMonth);checks={};teamTop=false;render();}
   }catch{}
   return;
  }
@@ -52,6 +53,7 @@ document.addEventListener('click',async event=>{
   case 'profile':profile();break;
   case 'add-reward':editReward();break;
   case 'edit-reward':editReward(id);break;
+  case 'archive-reward':askArchiveReward(id);break;
   case 'remove-reward-photo':draftRewardPhoto=null;document.getElementById('reward-image-preview').innerHTML='<div class="image-empty">เพิ่มรูปให้รางวัลน่าแลกขึ้น</div>';b.disabled=true;break;
   case 'add-employee':addEmployee();break;
   case 'toggle-employee':askEmployee(id);break;

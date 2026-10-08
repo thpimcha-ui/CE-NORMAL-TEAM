@@ -31,3 +31,4 @@
 .top-user .user-name{display:block}
 
 .top-user .user-name{display:block}
+.reward-admin-actions{display:flex;gap:8px;margin-top:14px}.reward-admin-actions button{flex:1;min-width:0;padding:9px 8px;min-height:42px;font-size:12px}.reward-admin-actions .danger{color:#ffbdb5;border-color:#74483f}.archived-rewards{margin-top:20px;padding:16px;border:1px solid #35424c;border-radius:18px;background:#111a20}.archived-rewards summary{cursor:pointer;font-weight:700;color:#d4dfd8}.archived-rewards .reward-grid{margin-top:16px}.reward-card.is-archived{opacity:.75}
