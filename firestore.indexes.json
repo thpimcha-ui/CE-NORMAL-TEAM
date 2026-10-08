@@ -1,0 +1,1 @@
+{"indexes":[{"collectionGroup":"ceLitePreviewHistory","queryScope":"COLLECTION","fields":[{"fieldPath":"employeeId","order":"ASCENDING"},{"fieldPath":"date","order":"DESCENDING"}]},{"collectionGroup":"ceLiteHistory","queryScope":"COLLECTION","fields":[{"fieldPath":"employeeId","order":"ASCENDING"},{"fieldPath":"date","order":"DESCENDING"}]}],"fieldOverrides":[]}

@@ -1,0 +1,9 @@
+node_modules/
+*-debug.log
+.firebase/
+source-audit/
+qa/artifacts/
+*.zip
+.env*
+*.pem
+*service-account*.json

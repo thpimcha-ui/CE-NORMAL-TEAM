@@ -1,0 +1,8 @@
+document.addEventListener('DOMContentLoaded',()=>{
+ const employees=[{id:'a',name:'บีม',username:'ce001',role:'employee',points:32,streak:4,active:true,photo:null},{id:'b',name:'เมย์',username:'ce002',role:'employee',points:75,streak:7,active:true,photo:null}];
+ const supervisor={id:'admin',name:'ปอนด์',username:'pond',role:'admin',points:0,streak:0,active:true,photo:null};
+ const admin=location.pathname==='/qa-admin';
+ state={mode:'preview',revision:0,role:admin?'admin':'employee',me:admin?supervisor:employees[0],supervisor,employees:admin?employees:[employees[0]],rewards:[{id:'coffee',name:'กาแฟแก้วโปรด',description:'พักเติมพลังสักแก้ว',value:50,cost:10,type:'coffee',stock:5,remaining:5,active:true},{id:'wfh',name:'สิทธิ์ WFH 1 วัน',description:'เลือกวันพักทำงานจากบ้าน',value:null,cost:15,type:'coffee',stock:2,remaining:2,special:true,active:true},{id:'cash',name:'รางวัลพิเศษ 1,000 บาท',description:'3 คนต่อปี · ใครถึงก่อนแลกก่อน',value:1000,cost:100,type:'cash',stock:3,year:YEAR,cashRemaining:3,active:true}],requests:[{id:'r',employeeId:'b',rewardId:'coffee',name:'กาแฟแก้วโปรด',cost:10,value:50,type:'coffee',status:'pending',date:TODAY,year:YEAR}],closedMonths:[],monthlyRecords:{},logs:[],startMonth:'2026-09',announcement:{title:'ไปต่อด้วยกัน ✦',body:'พื้นที่ทดสอบหน้าตาระบบ',active:true,version:1,updatedAt:TODAY},rewardBudget:{},notificationReads:{},teamRank:{position:2,total:15,tied:false}};
+ if(!admin)state.requests=[];
+ role=state.role;loggedIn=true;currentEmployeeId=state.me.id;initialized=true;view=admin?(new URLSearchParams(location.search).get('view')==='rewards'?'admin-rewards':new URLSearchParams(location.search).get('view')==='monthly'?'monthly':'overview'):'home';selectedMonth='2026-09';reportMonth='2026-09';render();
+});
