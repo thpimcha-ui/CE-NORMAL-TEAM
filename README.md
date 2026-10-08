@@ -23,6 +23,15 @@ Investigation หักเคสละ 2 NMP ถึงแต้มสะสม �
 แลกรางวัลกันแต้มเมื่อส่งคำขอ หักจริงเมื่ออนุมัติ และไม่หักซ้ำตอนส่งมอบ
 เงินรางวัลจำกัด 3 คนต่อปี คนละ 1 ครั้ง ใครส่งก่อนจองก่อน
 ใช้ Tier ก่อนปิดเดือนคิดแต้ม ปิดเดือนได้ครั้งเดียวและเรียงเดือนที่จบแล้ว
+ปิดเดือนย้อนหลังได้ตั้งแต่ `startMonth` ที่กำหนดตอนเริ่มระบบเท่านั้น เดือนก่อนหน้านั้นรวมอยู่ในยอดตั้งต้นแล้วและห้ามปิดซ้ำ
+
+## LINE My Point สำหรับเว็บทดลอง
+
+LINE OA ใช้ rich menu ปุ่ม `My Point` แบบ postback `action=my_point` หรือพิมพ์ `My Point` ในแชตส่วนตัวได้
+Webhook `ceLineMyPointWebhook` ตรวจ LINE signature จาก raw body ก่อนทำงาน ใช้ `CE_LINE_CHANNEL_SECRET` และ `CE_LINE_ACCESS_TOKEN` ใน Firebase Secret Manager
+ผู้ใช้ต้องผูก LINE กับบัญชี CE ของตัวเองผ่าน LINE account linking ทางการก่อน ระบบเก็บความสัมพันธ์ใน `ceLitePreviewLineLinks` และอ่าน Firestore ด้วย Admin SDK ฝั่ง Cloud Function เท่านั้น
+หน้าโปรไฟล์ยกเลิกการผูกได้ บัญชีที่ปิดใช้งานหรือยังไม่เปลี่ยนรหัสชั่วคราวดู My Point ไม่ได้ อันดับนับเฉพาะพนักงานที่ใช้งานอยู่ และใช้ `standing()` เดียวกับเว็บ
+ทดสอบใน OA และเว็บทดลองก่อนเปิดทีม โดยไม่แก้ Firestore Rules เดิมหรือ collection เดิม
 
 ## บัญชี
 
