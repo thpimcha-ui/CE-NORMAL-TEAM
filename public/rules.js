@@ -7,6 +7,17 @@
     { name: 'Predator', min: 12, points: 10, color: '#ff9292', asset: 'predator' }
   ];
   function tier(streak) { return [...tiers].reverse().find(t => streak >= t.min) || tiers[0]; }
+  function standing(person, employees) {
+    const current = tier(person.streak);
+    const next = tiers.find(t => t.min > person.streak) || null;
+    const active = employees.filter(e => e.role === 'employee' && e.active);
+    const eligible = person.role === 'employee' && person.active;
+    return { tier: current.name, nextTier: next?.name || null,
+      monthsToNext: next ? next.min - person.streak : 0,
+      rank: eligible ? 1 + active.filter(e => e.streak > person.streak).length : null,
+      total: active.length,
+      tied: eligible && active.filter(e => e.streak === person.streak).length > 1 };
+  }
   function greeting(hour, name) {
     if (hour >= 5 && hour < 12) return `สวัสดีตอนเช้า ${name}`;
     if (hour >= 12 && hour < 17) return `สวัสดีตอนบ่าย ${name}`;
@@ -29,7 +40,7 @@
     const affected = entries.filter(e => e.cases > 0).length;
     return { people: entries.length, affected, clean: entries.length - affected, cases: entries.reduce((n,e) => n + e.cases, 0), kpi: entries.filter(e => e.kpi && !e.cases).length, teamTop: !!record.teamTop };
   }
-  const api = { tiers, tier, greeting, award, summarize };
+  const api = { tiers, tier, standing, greeting, award, summarize };
   if (typeof module !== 'undefined' && module.exports) module.exports = api;
   else root.CERules = api;
 })(typeof globalThis !== 'undefined' ? globalThis : this);

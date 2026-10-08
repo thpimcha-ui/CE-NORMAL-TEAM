@@ -1,5 +1,5 @@
 'use strict';
-let firebaseAuth,callFunction,authSDK,busy=false,initialized=false,readTimer;
+let firebaseAuth,callFunction,authSDK,busy=false,initialized=false,readTimer,linePrompted=false;
 function defaultAnnouncement(){return {title:'ประกาศถึงทีม',body:'',active:false,version:0};}
 const api=async data=>{if(!callFunction)throw new Error('ระบบกำลังเชื่อมต่อ');return (await callFunction(data)).data;};
 function queueReadSync(){clearTimeout(readTimer);readTimer=setTimeout(()=>api({action:'read',ids:readSet(),operationId:uid()}).catch(()=>toast('ยังบันทึกสถานะอ่านไม่ได้')),400);}
@@ -12,7 +12,9 @@ async function refresh(showAnnouncementOnLogin=false){
  const first=!loggedIn;state=data;currentEmployeeId=data.me.id;role=data.role;loggedIn=true;
  if(first){view=role==='admin'?(new URLSearchParams(location.search).get('view')==='requests'?'admin-rewards':'overview'):'home';selectedMonth=state.closedMonths.length?nextMonth([...state.closedMonths].sort().at(-1)):state.startMonth;reportMonth=[...state.closedMonths].sort().at(-1)||state.startMonth;}
  if(!dialog.open)render();
- if(showAnnouncementOnLogin&&role==='employee')showAnnouncement();
+ if(first&&role==='employee'&&!linePrompted&&new URLSearchParams(location.search).has('lineLinkToken')){
+  linePrompted=true;openDialog('เชื่อม My Point กับ LINE',`<p>LINE จะเห็นเฉพาะชื่อ แต้ม Tier และอันดับทีมของบัญชีนี้ เมื่อกด My Point เท่านั้น</p><p>เชื่อมบัญชีนี้กับ LINE ของคุณหรือไม่? ยกเลิกได้ในหน้าโปรไฟล์</p>`,`<button class="secondary" data-action="dismiss-line-link">ไว้ก่อน</button><button class="primary" data-action="confirm-line-link">เชื่อม LINE</button>`);
+ }else if(showAnnouncementOnLogin&&role==='employee')showAnnouncement();
 }
 function errorText(error){const code=error.code||'';return /invalid-credential|wrong-password|user-not-found/.test(code)?'ชื่อผู้ใช้หรือรหัสผ่านไม่ถูกต้อง':/too-many-requests/.test(code)?'ลองหลายครั้งเกินไป กรุณารอสักครู่':/network/.test(code)?'เชื่อมต่อไม่ได้ กรุณาตรวจอินเทอร์เน็ต':error.message?.replace(/^Firebase:\s*/,'')||'ทำรายการไม่สำเร็จ';}
 async function runTask(data,message){
@@ -29,10 +31,18 @@ async function uploadPhoto(file){
 }
 document.addEventListener('click',async event=>{
  const b=event.target.closest('[data-action]');if(!b||b.disabled)return;const {action,id}=b.dataset;
- const actions=['confirm-redeem','confirm-request','confirm-close','confirm-employee','confirm-archive-reward','restore-reward','remove-photo','reset-password','confirm-password-reset','refresh','logout'];
+ const actions=['confirm-redeem','confirm-request','confirm-close','confirm-employee','confirm-archive-reward','restore-reward','remove-photo','reset-password','confirm-password-reset','refresh','logout','confirm-line-link','dismiss-line-link','unlink-line'];
  if(actions.includes(action)){
   event.preventDefault();event.stopImmediatePropagation();
   try{
+   if(action==='dismiss-line-link'){dialog.close();history.replaceState(null,'',location.pathname);return;}
+   if(action==='confirm-line-link'){
+    const linkToken=new URLSearchParams(location.search).get('lineLinkToken');
+    const result=await api({action:'prepareLineLink',linkToken});
+    history.replaceState(null,'',location.pathname);
+    location.assign(result.url);return;
+   }
+   if(action==='unlink-line'){await runTask({action:'unlinkLine'},'ยกเลิกการเชื่อม LINE แล้ว');return;}
    if(action==='logout'){await authSDK.signOut(firebaseAuth);if(dialog.open)dialog.close();loggedIn=false;state={employees:[],requests:[],rewards:[],logs:[],closedMonths:[],monthlyRecords:{}};render();return;}
    if(action==='refresh'){await refresh();toast('ข้อมูลล่าสุดแล้ว');return;}
    if(action==='reset-password'){openDialog('ออกรหัสชั่วคราวใหม่?',`<p>${esc(employee(id).name)} จะต้องเข้าสู่ระบบด้วยรหัสใหม่ และตั้งรหัสส่วนตัวอีกครั้ง</p>`,`<button class="secondary" data-action="dismiss">กลับ</button><button class="primary" data-action="confirm-password-reset" data-id="${id}">ออกรหัสใหม่</button>`);return;}
