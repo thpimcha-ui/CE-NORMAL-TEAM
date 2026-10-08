@@ -38,6 +38,10 @@ test('end-to-end server authorization, concurrent rewards, idempotency, month cl
  assert.equal((await call(aToken,{action:'redeem',rewardId:'coffee',operationId:op()})).error.status,'FAILED_PRECONDITION');
  assert.ok((await call(adminToken,{action:'restoreReward',id:'coffee',operationId:op()})).result);
  assert.equal((await call(aToken,{action:'state'})).result.rewards.some(r=>r.id==='coffee'),true);
+ await coffee.update({active:false});
+ assert.ok((await call(adminToken,{action:'archiveReward',id:'coffee',operationId:op()})).result);
+ assert.ok((await call(adminToken,{action:'restoreReward',id:'coffee',operationId:op()})).result);
+ assert.equal((await coffee.get()).data().active,false,'restoring an inactive reward must not open it for redemption');
  const [r1,r2]=await Promise.all([aToken,bToken].map(token=>call(token,{action:'redeem',rewardId:'cash',operationId:op()})));
  assert.equal([r1,r2].filter(r=>r.result).length,1,'single cash slot must survive simultaneous requests');
  const request=(await db.collection(prefix+'Requests').get()).docs[0],winner=request.data().employeeId;

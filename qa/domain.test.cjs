@@ -17,10 +17,10 @@ test('pending holds block overspending and close with insufficient post-deductio
  assert.throws(()=>D.closeMonth({employees:[employee],requests,months:[],startMonth:'2026-09',month:'2026-09',checks:{a:{cases:10,kpi:false}},teamTop:false,now}));
 });
 test('removed reward cannot be redeemed or accidentally reopened by editing',()=>{
- const old={id:'r',name:'coffee',description:'coffee',active:false,archived:true,cost:3,value:50,type:'coffee',photo:null};
+ const old={id:'r',name:'coffee',description:'coffee',active:false,archived:true,activeBeforeArchive:true,archivedAt:'2026-10-08',cost:3,value:50,type:'coffee',photo:null};
  assert.throws(()=>D.redeem({actor:employee,reward:{...old,active:true},requests:[],now}));
  const edited=D.rewardInput({...old,active:true},old,[],2026);
- assert.equal(edited.archived,true);assert.equal(edited.active,false);
+ assert.equal(edited.archived,true);assert.equal(edited.active,false);assert.equal(edited.activeBeforeArchive,true);assert.equal(edited.archivedAt,old.archivedAt);
 });
 test('cash grants three slots total and one slot per person across cash rewards',()=>{
  const reward={id:'cash',name:'cash',active:true,cost:100,value:1000,type:'cash',stock:3,year:2026};
