@@ -77,12 +77,12 @@ async function mutate(actor,data){
    case 'archiveReward':{
     staffOnly(fresh);const reward=rewards.find(r=>r.id===data.id);
     if(!reward||reward.archived)D.fail('ไม่พบรางวัลที่ต้องการนำออก');
-    tx.update(col('Rewards').doc(data.id),{active:false,archived:true,archivedAt:timestamp,archivedBy:actor.id});break;
+    tx.update(col('Rewards').doc(data.id),{active:false,activeBeforeArchive:!!reward.active,archived:true,archivedAt:timestamp,archivedBy:actor.id});break;
    }
    case 'restoreReward':{
     staffOnly(fresh);const reward=rewards.find(r=>r.id===data.id);
     if(!reward?.archived)D.fail('ไม่พบรางวัลที่ต้องการคืน');
-    tx.update(col('Rewards').doc(data.id),{active:true,archived:false,restoredAt:timestamp,restoredBy:actor.id});break;
+    tx.update(col('Rewards').doc(data.id),{active:reward.activeBeforeArchive===true,archived:false,restoredAt:timestamp,restoredBy:actor.id});break;
    }
    case 'announcement':{
     staffOnly(fresh);tx.update(control,{announcement:{title:D.text(data.title,90,'กรุณาระบุหัวข้อ'),body:D.text(data.body,1800,'กรุณาระบุรายละเอียด'),active:D.bool(data.active),version:(cfg.announcement?.version||0)+1,updatedAt:timestamp}});break;

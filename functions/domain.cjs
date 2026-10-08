@@ -51,6 +51,7 @@ function closeMonth({employees,requests,months,startMonth,month,checks,teamTop,n
 function rewardInput(data,old,requests,year){
  const type=old?.type||data.type;if(!['coffee','cash'].includes(type))fail('ประเภทรางวัลไม่ถูกต้อง');
  const reward={name:text(data.name,70,'กรุณาระบุชื่อรางวัล'),description:text(data.description,140,'กรุณาระบุรายละเอียด'),cost:int(data.cost,1,100000,'แต้มรางวัลไม่ถูกต้อง'),value:int(data.value,1,100000,'มูลค่ารางวัลไม่ถูกต้อง'),type,active:old?.archived?false:bool(data.active),archived:Boolean(old?.archived),photo:image(data.photo??null)};
+ if(old?.archived){reward.activeBeforeArchive=old.activeBeforeArchive===true;if(old.archivedAt)reward.archivedAt=old.archivedAt;if(old.archivedBy)reward.archivedBy=old.archivedBy;}
  if(type==='cash'){
   reward.year=old?.year||year;reward.stock=int(data.stock,1,3,'สิทธิ์เงินรางวัลต้องเป็น 1–3');
   const used=requests.filter(r=>r.rewardId===old?.id&&r.year===reward.year&&['pending','approved'].includes(r.status)).length;
