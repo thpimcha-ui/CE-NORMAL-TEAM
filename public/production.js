@@ -93,7 +93,7 @@ document.addEventListener('submit',async event=>{
   if(form.id==='delivery-form')task={action:'deliver',id:form.dataset.id,paidAmount:Number(data.get('paid'))};
   if(form.id==='reward-form'){
    if(photoBusy)throw new Error('รอรูปภาพสักครู่');const old=state.rewards.find(r=>r.id===form.dataset.id);
-   task={action:'reward',id:form.dataset.id,reward:{name:String(data.get('name')),description:String(data.get('description')),cost:Number(data.get('cost')),value:Number(data.get('value')),stock:Number(data.get('stock')),type:old?.type||String(data.get('type')),active:data.has('active'),photo:draftRewardPhoto}};
+   task={action:'reward',id:form.dataset.id,reward:{name:String(data.get('name')),description:String(data.get('description')),cost:Number(data.get('cost')),value:data.get('value')===''?null:Number(data.get('value')),stock:data.get('stock')===''?null:Number(data.get('stock')),type:old?.type||String(data.get('type')),special:data.has('special'),active:data.has('active'),photo:draftRewardPhoto}};
   }
   if(!task)return;const result=await runTask(task,'บันทึกเรียบร้อย ✦');if(form.id==='employee-form')temporaryCredential(result);
  }catch(e){if(error?.isConnected)error.textContent=errorText(e);else toast(errorText(e));}

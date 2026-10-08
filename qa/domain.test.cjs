@@ -36,3 +36,27 @@ test('approval deducts exactly once, rejection does not change balance, redempti
 test('server rejects malformed images, negative budgets and unbounded reward inputs',()=>{
  assert.throws(()=>D.image('javascript:alert(1)'));assert.throws(()=>D.int(-1,0,100,'bad'));assert.throws(()=>D.rewardInput({name:'X',description:'X',type:'cash',active:true,cost:1,value:1000,stock:4,photo:null},null,[],2026));
 });
+test('extra points are added per person before investigation deduction',()=>{
+ const report=D.closeMonth({employees:[employee],requests:[],months:[],startMonth:'2026-09',month:'2026-09',checks:{a:{cases:2,kpi:false,extra:3}},teamTop:false,now});
+ const entry=report.entries[0];assert.equal(entry.extraBonus,3);assert.equal(entry.calculated,6);assert.equal(entry.balanceAfter,16);assert.equal(entry.streakAfter,0);
+ assert.throws(()=>D.closeMonth({employees:[employee],requests:[],months:[],startMonth:'2026-09',month:'2026-09',checks:{a:{extra:1001}},teamTop:false,now}));
+});
+test('general reward rights decrease only on approval',()=>{
+ const reward={id:'wfh',name:'WFH',description:'one day',active:true,cost:3,value:null,type:'coffee',stock:1,special:true,photo:null};
+ const input=D.rewardInput(reward,null,[],2026);assert.equal(input.stock,1);assert.equal(input.value,null);assert.equal(input.special,true);
+ const request=D.redeem({actor:employee,reward:{...reward,...input},requests:[],now});
+ const waiting=[{...request,id:'r1',status:'pending'}];
+ assert.equal(D.redeem({actor:{...employee,id:'b'},reward:{...reward,...input},requests:waiting,now}).status,'pending');
+ const approved=D.decide({request:waiting[0],employee,status:'approved',now,reward:{...reward,...input},requests:waiting});
+ assert.equal(approved.employee.points,7);
+ assert.throws(()=>D.decide({request:{...request,id:'r2'},employee:{...employee,id:'b'},status:'approved',now,reward:{...reward,...input},requests:[approved.request]}),/สิทธิ์รางวัลครบ/);
+ assert.throws(()=>D.redeem({actor:{...employee,id:'b'},reward:{...reward,...input},requests:[approved.request],now}),/สิทธิ์รางวัลครบ/);
+ const rejected=D.decide({request:{...request,id:'r2'},employee:{...employee,id:'b'},status:'rejected',now,reward:{...reward,...input},requests:waiting});
+ assert.equal(rejected.employee.points,10);
+});
+test('normal reward stock cannot drop below approvals and cash still needs a price',()=>{
+ const old={id:'wfh',name:'WFH',description:'one day',active:true,cost:3,value:null,type:'coffee',stock:2,special:true,photo:null};
+ const requests=[{rewardId:'wfh',status:'approved'}];
+ assert.throws(()=>D.rewardInput({...old,stock:0},old,requests,2026));
+ assert.throws(()=>D.rewardInput({...old,type:'cash',value:null,stock:1},null,[],2026));
+});

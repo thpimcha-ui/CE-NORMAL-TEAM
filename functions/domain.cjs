@@ -15,6 +15,7 @@ function redeem({actor,reward,requests,now}){
  if(!reward?.active||reward.archived)fail('รางวัลนี้ปิดรับแลกแล้ว');
  int(reward.cost,1,100000,'แต้มรางวัลไม่ถูกต้อง');
  if(actor.points-reserved(requests,actor.id)<reward.cost)fail('แต้มพร้อมแลกไม่เพียงพอ');
+ if(reward.type!=='cash'&&reward.stock!=null&&requests.filter(r=>r.rewardId===reward.id&&r.status==='approved').length>=reward.stock)fail('สิทธิ์รางวัลครบแล้ว');
  const year=Number(now.slice(0,4));
  if(reward.type==='cash'){
   if(reward.year!==year)fail('รางวัลยังไม่เปิดรอบปีนี้');
@@ -24,10 +25,11 @@ function redeem({actor,reward,requests,now}){
  }
  return {employeeId:actor.id,rewardId:reward.id,name:reward.name,cost:reward.cost,value:reward.value,type:reward.type,status:'pending',date:now,year:reward.year||year};
 }
-function decide({request,employee,status,now}){
+function decide({request,employee,status,now,reward,requests=[]}){
  if(!request||request.status!=='pending')fail('คำขอนี้ดำเนินการแล้ว');
  if(!['approved','rejected'].includes(status))fail('สถานะไม่ถูกต้อง');
  if(status==='approved'&&(!employee?.active||employee.points<request.cost))fail('บัญชีหรือแต้มไม่พร้อมอนุมัติ');
+ if(status==='approved'&&request.type!=='cash'&&reward?.stock!=null&&requests.filter(r=>r.rewardId===request.rewardId&&r.status==='approved').length>=reward.stock)fail('สิทธิ์รางวัลครบแล้ว กรุณาปฏิเสธคำขอนี้');
  return {request:{...request,status,decidedAt:now},employee:status==='approved'?{...employee,points:employee.points-request.cost}:employee};
 }
 function closeMonth({employees,requests,months,startMonth,month,checks,teamTop,now}){
@@ -41,21 +43,26 @@ function closeMonth({employees,requests,months,startMonth,month,checks,teamTop,n
  if(!checks||typeof checks!=='object'||Array.isArray(checks))fail('รายการตรวจไม่ถูกต้อง');
  if(Object.keys(checks).some(id=>!active.some(e=>e.id===id)))fail('สมาชิกทีมเปลี่ยนแล้ว กรุณาตรวจใหม่');
  const entries=active.map(raw=>{
-  const e=member(raw),check=checks[e.id]||{},cases=int(check.cases??0,0,999,'จำนวนเคสต้องเป็น 0–999'),kpi=bool(check.kpi??false)&&cases===0;
-  const result=rules.award({streak:e.streak,balance:e.points,cases,kpi,teamTop});
+  const e=member(raw),check=checks[e.id]||{},cases=int(check.cases??0,0,999,'จำนวนเคสต้องเป็น 0–999'),kpi=bool(check.kpi??false)&&cases===0,extra=int(check.extra??0,0,1000,'Point พิเศษต้องเป็น 0–1000');
+  const result=rules.award({streak:e.streak,balance:e.points,cases,kpi,teamTop,extra});
   if(reserved(requests,e.id)>result.after)fail(`${e.name} มีคำขอที่กันแต้มเกินยอดหลังปิดเดือน`);
-  return {employeeId:e.id,name:e.name,cases,kpi,base:result.base,kpiBonus:result.kpiBonus,teamBonus:result.teamBonus,deduction:result.deduction,calculated:result.calculated,delta:result.delta,balanceBefore:e.points,balanceAfter:result.after,streakBefore:e.streak,streakAfter:result.streakAfter};
+  return {employeeId:e.id,name:e.name,cases,kpi,base:result.base,kpiBonus:result.kpiBonus,teamBonus:result.teamBonus,extraBonus:result.extraBonus,deduction:result.deduction,calculated:result.calculated,delta:result.delta,balanceBefore:e.points,balanceAfter:result.after,streakBefore:e.streak,streakAfter:result.streakAfter};
  });
  return {month,teamTop,closedAt:now,entries};
 }
 function rewardInput(data,old,requests,year){
  const type=old?.type||data.type;if(!['coffee','cash'].includes(type))fail('ประเภทรางวัลไม่ถูกต้อง');
- const reward={name:text(data.name,70,'กรุณาระบุชื่อรางวัล'),description:text(data.description,140,'กรุณาระบุรายละเอียด'),cost:int(data.cost,1,100000,'แต้มรางวัลไม่ถูกต้อง'),value:int(data.value,1,100000,'มูลค่ารางวัลไม่ถูกต้อง'),type,active:old?.archived?false:bool(data.active),archived:Boolean(old?.archived),photo:image(data.photo??null)};
+ const reward={name:text(data.name,70,'กรุณาระบุชื่อรางวัล'),description:text(data.description,140,'กรุณาระบุรายละเอียด'),cost:int(data.cost,1,100000,'แต้มรางวัลไม่ถูกต้อง'),value:data.value==null?null:int(data.value,1,100000,'มูลค่ารางวัลไม่ถูกต้อง'),type,special:bool(data.special??false),active:old?.archived?false:bool(data.active),archived:Boolean(old?.archived),photo:image(data.photo??null)};
  if(old?.archived){reward.activeBeforeArchive=old.activeBeforeArchive===true;if(old.archivedAt)reward.archivedAt=old.archivedAt;if(old.archivedBy)reward.archivedBy=old.archivedBy;}
  if(type==='cash'){
+  if(reward.value===null)fail('เงินรางวัลต้องระบุมูลค่า');
   reward.year=old?.year||year;reward.stock=int(data.stock,1,3,'สิทธิ์เงินรางวัลต้องเป็น 1–3');
   const used=requests.filter(r=>r.rewardId===old?.id&&r.year===reward.year&&['pending','approved'].includes(r.status)).length;
   if(reward.stock<used)fail('สิทธิ์น้อยกว่าจำนวนที่จองแล้ว');
+ }else{
+  reward.stock=data.stock==null&&old&&old.stock==null?null:int(data.stock,1,999,'สิทธิ์รางวัลต้องเป็น 1–999');
+  const used=requests.filter(r=>r.rewardId===old?.id&&r.status==='approved').length;
+  if(reward.stock!=null&&reward.stock<used)fail('สิทธิ์น้อยกว่าจำนวนที่อนุมัติแล้ว');
  }
  return reward;
 }

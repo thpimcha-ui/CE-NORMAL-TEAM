@@ -53,10 +53,24 @@ test('end-to-end server authorization, concurrent rewards, idempotency, month cl
  const delivery={action:'deliver',id:request.id,paidAmount:950,operationId:op()};assert.ok((await call(adminToken,delivery)).result);assert.ok((await call(adminToken,delivery)).result);
  assert.equal((await members.doc(winner).get()).data().points,0);
  const expectedRevision=(await control.get()).data().revision;
- const close={action:'closeMonth',month:'2026-09',checks:{a:{cases:10,kpi:true},b:{cases:0,kpi:true}},teamTop:true,expectedRevision,operationId:op()};
+ const close={action:'closeMonth',month:'2026-09',checks:{a:{cases:10,kpi:true,extra:3},b:{cases:0,kpi:true}},teamTop:true,expectedRevision,operationId:op()};
  assert.ok((await call(adminToken,close)).result);assert.ok((await call(adminToken,close)).result);
- const closed=(await db.collection(prefix+'Months').doc('2026-09').get()).data();assert.equal(closed.entries.find(e=>e.employeeId==='a').streakAfter,0);assert.equal(closed.entries.find(e=>e.employeeId==='a').kpiBonus,0);
+ const closed=(await db.collection(prefix+'Months').doc('2026-09').get()).data();assert.equal(closed.entries.find(e=>e.employeeId==='a').streakAfter,0);assert.equal(closed.entries.find(e=>e.employeeId==='a').kpiBonus,0);assert.equal(closed.entries.find(e=>e.employeeId==='a').extraBonus,3);
  assert.equal((await call(adminToken,{...close,operationId:op(),expectedRevision:(await control.get()).data().revision})).error.status,'FAILED_PRECONDITION');
+ await Promise.all(['a','b'].map(id=>members.doc(id).update({points:10})));
+ assert.ok((await call(adminToken,{action:'reward',reward:{name:'WFH',description:'one day',cost:1,value:null,type:'coffee',stock:1,special:true,active:true,photo:null},operationId:op()})).result);
+ const wfhDoc=(await db.collection(prefix+'Rewards').where('name','==','WFH').get()).docs[0];
+ assert.equal(wfhDoc.data().special,true);assert.equal(wfhDoc.data().value,null);
+ const [wa,wb]=await Promise.all([aToken,bToken].map(token=>call(token,{action:'redeem',rewardId:wfhDoc.id,operationId:op()})));
+ assert.ok(wa.result&&wb.result,'both requests may wait for the single right');
+ const wfhRequests=(await db.collection(prefix+'Requests').where('rewardId','==',wfhDoc.id).get()).docs;
+ assert.equal(wfhRequests.length,2);
+ assert.ok((await call(adminToken,{action:'decide',id:wfhRequests[0].id,status:'approved',operationId:op()})).result);
+ assert.equal((await call(adminToken,{action:'decide',id:wfhRequests[1].id,status:'approved',operationId:op()})).error.status,'FAILED_PRECONDITION');
+ assert.ok((await call(adminToken,{action:'decide',id:wfhRequests[1].id,status:'rejected',operationId:op()})).result);
+ const wfhState=(await call(adminToken,{action:'state'})).result.rewards.find(r=>r.id===wfhDoc.id);
+ assert.equal(wfhState.remaining,0);
+
  await members.doc('a').update({mustChangePassword:true});
  assert.equal((await call(aToken,{action:'state'})).result.mustChangePassword,true);
  assert.equal((await call(aToken,{action:'redeem',rewardId:'cash',operationId:op()})).error.status,'FAILED_PRECONDITION');

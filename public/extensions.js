@@ -58,19 +58,20 @@ function restoreFocusedControl(selector) {
   if(selector)document.querySelector(selector)?.focus({preventScroll:true});
 }
 document.addEventListener('input',event=>{
-  const input=event.target,id=input.dataset.cases;
+  const input=event.target,id=input.dataset.cases||input.dataset.extra;
   if(!id)return;
-  const cases=Number(input.value);
-  if(!Number.isInteger(cases)||cases<0||cases>999)return;
-  checks[id]??={};checks[id].cases=cases;if(cases)checks[id].kpi=false;
+  const n=Number(input.value),isCase=!!input.dataset.cases,max=isCase?999:1000;
+  if(!Number.isInteger(n)||n<0||n>max)return;
+  checks[id]??={};
+  if(isCase){checks[id].cases=n;if(n)checks[id].kpi=false;}
+  else checks[id].extra=n;
   const row=input.closest('tr'),kpi=row.querySelector('[data-check="kpi"]');
-  kpi.disabled=cases>0;if(cases)kpi.checked=false;
-  kpi.nextElementSibling.textContent=kpi.checked?'ครบ':'ยังไม่ครบ';
+  if(isCase){kpi.disabled=n>0;if(n)kpi.checked=false;kpi.nextElementSibling.textContent=kpi.checked?'ครบ':'ยังไม่ครบ';}
   const results=closingResults(),r=results.find(x=>x.e.id===id),cell=row.lastElementChild;
   const delta=cell.querySelector('strong');delta.textContent=signed(r.delta);delta.className=r.delta<0?'negative':'accent';
   cell.querySelector('.balance-after').textContent=`เหลือ ${r.after} NMP`;
   document.querySelector('.closing-total strong').textContent=`${signed(results.reduce((n,x)=>n+x.delta,0))} NMP`;
-  document.querySelector('.closing-total small').textContent=`Investigation ${results.reduce((n,x)=>n+x.cases,0)} เคส · KPI ครบ ${results.filter(x=>x.kpi).length} คน${teamTop?' · ทีม Top +1 ทุกคน':''}`;
+  document.querySelector('.closing-total small').textContent=`Investigation ${results.reduce((n,x)=>n+x.cases,0)} เคส · KPI ครบ ${results.filter(x=>x.kpi).length} คน · Point พิเศษ +${results.reduce((n,x)=>n+x.extra,0)}${teamTop?' · ทีม Top +1 ทุกคน':''}`;
 });
 document.addEventListener('change',event=>{
   const target=event.target;
@@ -80,10 +81,20 @@ document.addEventListener('change',event=>{
     if(!Number.isInteger(n)||n<0||n>999){target.value=checks[id]?.cases||0;return toast('จำนวนเคสต้องเป็นจำนวนเต็ม 0–999');}
     checks[id]??={};checks[id].cases=n;if(n)checks[id].kpi=false;restoreFocusedControl(`[data-cases="${id}"]`);
   }
+  if(target.dataset.extra){
+    const id=target.dataset.extra,n=Number(target.value);
+    if(!Number.isInteger(n)||n<0||n>1000){target.value=checks[id]?.extra||0;return toast('Point พิเศษต้องเป็นจำนวนเต็ม 0–1000');}
+    checks[id]??={};checks[id].extra=n;restoreFocusedControl(`[data-extra="${id}"]`);
+  }
   if(target.id==='team-top'){teamTop=target.checked;restoreFocusedControl('#team-top');}
   if(target.id==='month-picker'){selectedMonth=target.value;checks={};teamTop=false;render();}
   if(target.id==='report-month'){reportMonth=target.value;render();}
   if(target.id==='profile-input')uploadPhoto(target.files[0]);
   if(target.id==='reward-image-input')rewardPhoto(target.files[0]);
-  if(target.name==='type'&&target.closest('#reward-form'))document.getElementById('cash-fields').hidden=target.value!=='cash';
+  if(target.name==='type'&&target.closest('#reward-form')){
+    const cash=target.value==='cash',stock=document.querySelector('#stock-label input'),value=document.querySelector('#reward-form [name="value"]');
+    document.querySelector('#stock-label span').textContent=cash?`จำนวนสิทธิ์ปี ${YEAR}`:'จำนวนสิทธิ์ทั้งหมด';
+    stock.max=cash?3:999;stock.required=true;value.required=cash;
+    if(cash&&Number(stock.value)>3)stock.value=3;
+  }
 });

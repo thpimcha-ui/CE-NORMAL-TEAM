@@ -24,15 +24,17 @@
     if (hour >= 17 && hour < 22) return `สวัสดีตอนเย็น ${name}`;
     return `ยังไม่นอนอีกหรอ ${name}`;
   }
-  function award({ streak, balance, cases = 0, kpi = false, teamTop = false, floorZero = true }) {
+  function award({ streak, balance, cases = 0, kpi = false, teamTop = false, extra = 0, floorZero = true }) {
     if (!Number.isInteger(cases) || cases < 0) throw new Error('จำนวนเคสต้องเป็นจำนวนเต็มตั้งแต่ 0');
+    if (!Number.isSafeInteger(extra) || extra < 0 || extra > 1000) throw new Error('Point พิเศษต้องเป็น 0–1000');
     const base = tier(streak).points;
     const kpiBonus = kpi && cases === 0 ? 1 : 0;
     const teamBonus = teamTop ? 1 : 0;
     const deduction = cases * 2;
-    const calculated = base + kpiBonus + teamBonus - deduction;
+    const extraBonus = extra;
+    const calculated = base + kpiBonus + teamBonus + extraBonus - deduction;
     const after = floorZero ? Math.max(0, balance + calculated) : balance + calculated;
-    return { base, kpiBonus, teamBonus, deduction, calculated, delta: after - balance, after, streakAfter: cases ? 0 : streak + 1 };
+    return { base, kpiBonus, teamBonus, extraBonus, deduction, calculated, delta: after - balance, after, streakAfter: cases ? 0 : streak + 1 };
   }
   function summarize(record) {
     if (!record || !Array.isArray(record.entries)) return null;
