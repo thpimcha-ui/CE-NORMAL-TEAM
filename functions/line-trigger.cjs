@@ -15,7 +15,14 @@ module.exports=onDocumentCreated({document:prefix+'Requests/{requestId}',region:
   if(action==='busy')throw new Error('LINE_DELIVERY_BUSY');
   if(action==='expired'||now-event.data.createTime.toMillis()>=L.MAX_AGE){tx.set(ref,{status:'failed',reason:'retry_window_expired',leaseUntil:0,updatedAt:now},{merge:true});return null;}
   if(!current.exists||current.data().status!=='pending'){tx.set(ref,{status:'skipped',reason:'already_processed',updatedAt:now},{merge:true});return null;}
-  const body=old?.body||L.payload(recipient.value()),key=old?.key||L.retryKey(event.data.ref.path);
+  const request=current.data();
+  let employeeName=request.employeeName;
+  if(!employeeName&&typeof request.employeeId==='string'&&request.employeeId){
+   const member=await tx.get(db.collection(prefix+'Members').doc(request.employeeId));
+   employeeName=member.data()?.name;
+  }
+  if(!employeeName||!request.name){tx.set(ref,{status:'skipped',reason:'missing_request_details',updatedAt:now},{merge:true});return null;}
+  const body=old?.body||L.payload(recipient.value(),{employeeName,rewardName:request.name}),key=old?.key||L.retryKey(event.data.ref.path);
   const next={body,key,status:'sending',attempts:(old?.attempts||0)+1,firstAttemptAt:old?.firstAttemptAt||now,leaseUntil:now+L.LEASE,updatedAt:now};
   tx.set(ref,next);return next;
  });

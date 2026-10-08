@@ -12,7 +12,7 @@ const pending=requests=>requests.filter(r=>r.status==='pending');
 const reserved=(requests,id)=>pending(requests).filter(r=>r.employeeId===id).reduce((n,r)=>n+r.cost,0);
 function redeem({actor,reward,requests,now}){
  if(!actor.active||actor.role!=='employee')fail('บัญชีนี้ขอแลกรางวัลไม่ได้');
- if(!reward?.active)fail('รางวัลนี้ปิดรับแลกแล้ว');
+ if(!reward?.active||reward.archived)fail('รางวัลนี้ปิดรับแลกแล้ว');
  int(reward.cost,1,100000,'แต้มรางวัลไม่ถูกต้อง');
  if(actor.points-reserved(requests,actor.id)<reward.cost)fail('แต้มพร้อมแลกไม่เพียงพอ');
  const year=Number(now.slice(0,4));
@@ -50,7 +50,7 @@ function closeMonth({employees,requests,months,startMonth,month,checks,teamTop,n
 }
 function rewardInput(data,old,requests,year){
  const type=old?.type||data.type;if(!['coffee','cash'].includes(type))fail('ประเภทรางวัลไม่ถูกต้อง');
- const reward={name:text(data.name,70,'กรุณาระบุชื่อรางวัล'),description:text(data.description,140,'กรุณาระบุรายละเอียด'),cost:int(data.cost,1,100000,'แต้มรางวัลไม่ถูกต้อง'),value:int(data.value,1,100000,'มูลค่ารางวัลไม่ถูกต้อง'),type,active:bool(data.active),photo:image(data.photo??null)};
+ const reward={name:text(data.name,70,'กรุณาระบุชื่อรางวัล'),description:text(data.description,140,'กรุณาระบุรายละเอียด'),cost:int(data.cost,1,100000,'แต้มรางวัลไม่ถูกต้อง'),value:int(data.value,1,100000,'มูลค่ารางวัลไม่ถูกต้อง'),type,active:old?.archived?false:bool(data.active),archived:Boolean(old?.archived),photo:image(data.photo??null)};
  if(type==='cash'){
   reward.year=old?.year||year;reward.stock=int(data.stock,1,3,'สิทธิ์เงินรางวัลต้องเป็น 1–3');
   const used=requests.filter(r=>r.rewardId===old?.id&&r.year===reward.year&&['pending','approved'].includes(r.status)).length;

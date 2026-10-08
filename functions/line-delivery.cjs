@@ -2,9 +2,12 @@
 const {createHash}=require('node:crypto');
 const MAX_AGE=23*60*60*1000,MAX_ATTEMPTS=8,LEASE=120000;
 function retryKey(id){const h=createHash('sha256').update('ce-line-request:'+id).digest('hex');return `${h.slice(0,8)}-${h.slice(8,12)}-4${h.slice(13,16)}-a${h.slice(17,20)}-${h.slice(20,32)}`;}
-function payload(recipient){
+function label(value,fallback){return String(value||fallback).replace(/[\r\n\t\u0000-\u001f\u007f]/g,' ').replace(/\s+/g,' ').trim().slice(0,70)||fallback;}
+function payload(recipient,{employeeName,rewardName}={}){
  if(!/^U[a-f0-9]{32}$/.test(recipient))throw new Error('LINE_RECIPIENT_INVALID');
- return {to:recipient,messages:[{type:'template',altText:'CE Point · มีคำขอแลกรางวัลใหม่',template:{type:'buttons',title:'มีคำขอแลกรางวัลใหม่ ✦',text:'ทีมส่งคำขอมาแล้ว แตะเปิดเว็บเพื่อดูรายละเอียดและอนุมัติ',actions:[{type:'uri',label:'เปิดคำขอ',uri:'https://ce-point-lite-preview.netlify.app/?view=requests'}]}}]};
+ const employee=label(employeeName,'พนักงาน'),reward=label(rewardName,'รางวัล');
+ const message=`ผู้ขอ: ${employee}\nรางวัล: ${reward}`;
+ return {to:recipient,messages:[{type:'template',altText:`CE Point · ${message.replace('\n',' · ')}`,template:{type:'buttons',text:message,actions:[{type:'uri',label:'เปิดคำขอ',uri:'https://ce-point-lite-preview.netlify.app/?view=requests'}]}}]};
 }
 function decision(record,now){
  if(record?.status==='accepted'||record?.status==='failed'||record?.status==='skipped')return 'done';

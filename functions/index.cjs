@@ -36,7 +36,7 @@ async function stateFor(actor,knownRevision){
  const rewards=rows(rs).map(r=>({...r,cashRemaining:r.type==='cash'?Math.max(0,r.stock-allRequests.filter(q=>q.rewardId===r.id&&q.year===r.year&&['pending','approved'].includes(q.status)).length):null}));
  const months=rows(xs),monthlyRecords=Object.fromEntries(months.map(m=>[m.month,admin?m:{...m,entries:m.entries.filter(e=>e.employeeId===actor.id)}]));
  const logs=rows(hs).filter(l=>admin||l.employeeId===actor.id);
- return {mode:PREFIX==='ceLitePreview'?'preview':'live',revision:cfg.revision||0,role:actor.role,me,employees:admin?members:[me],rewards:admin?rewards:rewards.filter(r=>r.active),requests:admin?allRequests:allRequests.filter(r=>r.employeeId===actor.id),logs,monthlyRecords,closedMonths:months.map(m=>m.month),startMonth:cfg.startMonth,announcement:cfg.announcement||{active:false},rewardBudget:admin?cfg.rewardBudget||{}:{},supervisor:me,notificationReads:{[admin?'admin':actor.id]:readDoc.data()?.ids||[]},teamRank:{position:1+active.filter(e=>e.streak>me.streak).length,total:active.length,tied:active.filter(e=>e.streak===me.streak).length>1}};
+ return {mode:PREFIX==='ceLitePreview'?'preview':'live',revision:cfg.revision||0,role:actor.role,me,employees:admin?members:[me],rewards:admin?rewards:rewards.filter(r=>r.active&&!r.archived),requests:admin?allRequests:allRequests.filter(r=>r.employeeId===actor.id),logs,monthlyRecords,closedMonths:months.map(m=>m.month),startMonth:cfg.startMonth,announcement:cfg.announcement||{active:false},rewardBudget:admin?cfg.rewardBudget||{}:{},supervisor:me,notificationReads:{[admin?'admin':actor.id]:readDoc.data()?.ids||[]},teamRank:{position:1+active.filter(e=>e.streak>me.streak).length,total:active.length,tied:active.filter(e=>e.streak===me.streak).length>1}};
 }
 async function mutate(actor,data){
  const op=D.text(data.operationId,80,'รหัสรายการไม่ถูกต้อง');
@@ -55,7 +55,7 @@ async function mutate(actor,data){
   switch(data.action){
    case 'redeem':{
     const reward=rewards.find(r=>r.id===data.rewardId),r=D.redeem({actor:fresh,reward,requests,now:timestamp});
-    tx.create(reqRef(op),r);result.requestId=op;break;
+    tx.create(reqRef(op),{...r,employeeName:fresh.name});result.requestId=op;break;
    }
    case 'decide':{
     staffOnly(fresh);const request=requests.find(r=>r.id===data.id),e=employees.find(e=>e.id===request?.employeeId),out=D.decide({request,employee:e,status:data.status,now:timestamp});
@@ -73,6 +73,16 @@ async function mutate(actor,data){
     staffOnly(fresh);const old=rewards.find(r=>r.id===data.id),r=D.rewardInput(data.reward,old,requests,year),id=old?.id||op;
     if(!old&&r.type==='cash'&&rewards.some(x=>x.type==='cash'&&x.year===year))D.fail('ปีนี้มีเงินรางวัลแล้ว กรุณาแก้ไขรายการเดิม');
     tx.set(col('Rewards').doc(id),r);break;
+   }
+   case 'archiveReward':{
+    staffOnly(fresh);const reward=rewards.find(r=>r.id===data.id);
+    if(!reward||reward.archived)D.fail('ไม่พบรางวัลที่ต้องการนำออก');
+    tx.update(col('Rewards').doc(data.id),{active:false,archived:true,archivedAt:timestamp,archivedBy:actor.id});break;
+   }
+   case 'restoreReward':{
+    staffOnly(fresh);const reward=rewards.find(r=>r.id===data.id);
+    if(!reward?.archived)D.fail('ไม่พบรางวัลที่ต้องการคืน');
+    tx.update(col('Rewards').doc(data.id),{active:true,archived:false,restoredAt:timestamp,restoredBy:actor.id});break;
    }
    case 'announcement':{
     staffOnly(fresh);tx.update(control,{announcement:{title:D.text(data.title,90,'กรุณาระบุหัวข้อ'),body:D.text(data.body,1800,'กรุณาระบุรายละเอียด'),active:D.bool(data.active),version:(cfg.announcement?.version||0)+1,updatedAt:timestamp}});break;
