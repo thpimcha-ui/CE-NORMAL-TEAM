@@ -1,9 +1,13 @@
 'use strict';
 const test=require('node:test'),assert=require('node:assert/strict'),L=require('../functions/line-delivery.cjs');
-test('stable retry keys and private notification content',()=>{
+test('stable retry keys and named reward notification within LINE template limits',()=>{
  assert.equal(L.retryKey('requests/a'),L.retryKey('requests/a'));assert.notEqual(L.retryKey('requests/a'),L.retryKey('requests/b'));
  assert.match(L.retryKey('requests/a'),/^[a-f0-9]{8}-[a-f0-9]{4}-4[a-f0-9]{3}-a[a-f0-9]{3}-[a-f0-9]{12}$/);
- const body=L.payload('U'+'a'.repeat(32));assert.equal(body.messages.length,1);assert.match(body.messages[0].template.actions[0].uri,/\?view=requests$/);
+ const body=L.payload('U'+'a'.repeat(32),{employeeName:'ปอนด์',rewardName:'กาแฟแก้วโปรด'});assert.equal(body.messages.length,1);assert.match(body.messages[0].template.actions[0].uri,/\?view=requests$/);
+ assert.match(body.messages[0].template.text,/ผู้ขอ: ปอนด์\nรางวัล: กาแฟแก้วโปรด/);
+ assert.match(body.messages[0].altText,/ปอนด์.*กาแฟแก้วโปรด/);
+ assert.ok(L.payload('U'+'a'.repeat(32),{employeeName:'ก'.repeat(100),rewardName:'ข'.repeat(100)}).messages[0].template.text.length<=160);
+ assert.doesNotMatch(L.payload('U'+'a'.repeat(32),{employeeName:'คน\nทดสอบ',rewardName:'กาแฟ'}).messages[0].template.text,/คน\nทดสอบ/);
  assert.throws(()=>L.payload('C'+'a'.repeat(32)));
 });
 test('lease, terminal statuses and retry expiry prevent duplicate/spam delivery',()=>{
@@ -15,7 +19,7 @@ test('lease, terminal statuses and retry expiry prevent duplicate/spam delivery'
  assert.equal(L.decision({firstAttemptAt:1,attempts:1},L.MAX_AGE+1),'expired');
 });
 test('LINE accepted retry is success; permanent failures stop and transient failures retry',async()=>{
- const args={token:'test-only',body:L.payload('U'+'a'.repeat(32)),key:L.retryKey('a')};
+ const args={token:'test-only',body:L.payload('U'+'a'.repeat(32),{employeeName:'พนักงานทดสอบ',rewardName:'กาแฟ'}),key:L.retryKey('a')};
  let seen;
  const accepted=await L.push({...args,fetchImpl:async(url,options)=>{seen={url,options};return new Response(null,{status:200});}});
  assert.equal(accepted.status,'accepted');assert.equal(seen.options.headers['X-Line-Retry-Key'],args.key);
