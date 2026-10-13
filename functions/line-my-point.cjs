@@ -20,7 +20,7 @@ async function lineApi(token,path,body,fetchImpl=fetch){
  return response.status===204?{}:response.json();
 }
 async function reply(token,replyToken,text){return lineApi(token,'message/reply',{replyToken,messages:[{type:'text',text:text.slice(0,4900)}]});}
-function createHandler({db,token,secret,prefix='ceLitePreview',siteUrl='https://ce-point-lite-preview.netlify.app/',fetchImpl=fetch}){
+function createHandler({db,token,secret,prefix='ceLitePreview',siteUrl='https://ce-normal-point-pilot-thkittoz.netlify.app/',fetchImpl=fetch}){
  const col=name=>db.collection(prefix+name),members=col('Members'),links=col('LineLinks'),tokens=col('LineLinkTokens'),nonces=col('LineLinkNonces'),control=col('Control').doc('settings');
  async function myPoint(lineId){
   const link=await links.doc(lineId).get();

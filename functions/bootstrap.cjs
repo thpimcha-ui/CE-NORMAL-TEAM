@@ -27,6 +27,6 @@ const approvedAdmins=new Set(['8bo6h0Bym6cHOeHuVtT1xrjjOSm1','CF4XPqE0Vlcf6O0GeT
  const year=Number(startMonth.slice(0,4));
  batch.create(db.collection(prefix+'Rewards').doc('coffee'),{name:'กาแฟแก้วโปรด',description:'พักเติมพลังสักแก้ว เลือกร้านที่ชอบได้เลย',cost:10,value:50,type:'coffee',active:true,photo:null});
  batch.create(db.collection(prefix+'Rewards').doc('cash'),{name:'รางวัลพิเศษ 1,000 บาท',description:'3 คนต่อปี · คนละ 1 สิทธิ์ · ใครถึงก่อนแลกก่อน',cost:100,value:1000,type:'cash',stock:3,year,active:true,photo:null});
- batch.create(cfg,{startMonth,revision:0,createdAt,mode:'preview',rewardBudget:{},announcement:{title:'พื้นที่ใหม่ของทีม CE ✦',body:'เก็บความสม่ำเสมอทีละเดือน แล้วให้รางวัลตัวเอง\nเว็บนี้เป็นพื้นที่ทดสอบ ระบบใช้สำเนายอดแต้มจากเว็บเดิม',active:true,version:1,updatedAt:createdAt}});
+ batch.create(cfg,{startMonth,revision:0,createdAt,mode:'preview',announcement:{title:'พื้นที่ใหม่ของทีม CE ✦',body:'เก็บความสม่ำเสมอทีละเดือน แล้วให้รางวัลตัวเอง\nเว็บนี้เป็นพื้นที่ทดสอบ ระบบใช้สำเนายอดแต้มจากเว็บเดิม',active:true,version:1,updatedAt:createdAt}});
  await batch.commit();console.log('Preview initialized:',snapshots.users.length,'accounts. Original documents unchanged. Backup:',backup);
 })().catch(e=>{console.error(e.message);process.exitCode=1;});

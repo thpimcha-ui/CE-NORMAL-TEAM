@@ -7,7 +7,7 @@ function payload(recipient,{employeeName,rewardName}={}){
  if(!/^U[a-f0-9]{32}$/.test(recipient))throw new Error('LINE_RECIPIENT_INVALID');
  const employee=label(employeeName,'พนักงาน'),reward=label(rewardName,'รางวัล');
  const message=`ผู้ขอ: ${employee}\nรางวัล: ${reward}`;
- return {to:recipient,messages:[{type:'template',altText:`CE Point · ${message.replace('\n',' · ')}`,template:{type:'buttons',text:message,actions:[{type:'uri',label:'เปิดคำขอ',uri:'https://ce-point-lite-preview.netlify.app/?view=requests'}]}}]};
+ return {to:recipient,messages:[{type:'template',altText:`CE Point · ${message.replace('\n',' · ')}`,template:{type:'buttons',text:message,actions:[{type:'uri',label:'เปิดคำขอ',uri:'https://ce-normal-point-pilot-thkittoz.netlify.app/?view=requests'}]}}]};
 }
 function decision(record,now){
  if(record?.status==='accepted'||record?.status==='failed'||record?.status==='skipped')return 'done';

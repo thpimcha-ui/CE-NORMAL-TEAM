@@ -3,9 +3,10 @@ const {onCall,onRequest,HttpsError}=require('firebase-functions/v2/https');
 const {defineSecret}=require('firebase-functions/params');
 const {initializeApp}=require('firebase-admin/app');
 const {getAuth}=require('firebase-admin/auth');
-const {getFirestore,FieldValue}=require('firebase-admin/firestore');
+const {getFirestore,FieldValue,FieldPath}=require('firebase-admin/firestore');
 const {randomBytes,createHash}=require('node:crypto');
 const D=require('./domain.cjs');
+const Reporting=require('./reporting.cjs');
 const Line=require('./line-my-point.cjs');
 initializeApp();
 const db=getFirestore(),auth=getAuth();
@@ -35,14 +36,32 @@ async function stateFor(actor,knownRevision){
  if(actor.mustChangePassword)return {mustChangePassword:true,me:{id:actor.id,name:actor.name}};
  const cs=await control.get();if(!cs.exists)throw new HttpsError('failed-precondition','ยังไม่ได้ตั้งค่าระบบ');
  if(Number.isSafeInteger(knownRevision)&&knownRevision===cs.data().revision)return {unchanged:true};
- const [ms,rs,qs,hs,xs,readDoc]=await Promise.all([col('Members').get(),col('Rewards').get(),col('Requests').get(),actor.role==='employee'?col('History').where('employeeId','==',actor.id).orderBy('date','desc').limit(200).get():Promise.resolve({docs:[]}),col('Months').get(),col('Reads').doc(actor.id).get()]);
+ const [ms,rs,qs,hs,xs,readDoc,as]=await Promise.all([col('Members').get(),col('Rewards').get(),col('Requests').get(),actor.role==='employee'?col('History').where('employeeId','==',actor.id).orderBy('date','desc').limit(200).get():col('History').orderBy('date','desc').limit(500).get(),col('Months').get(),col('Reads').doc(actor.id).get(),actor.role==='admin'?col('History').where('kind','==','adjustment').get():Promise.resolve({docs:[]})]);
  const allMembers=rows(ms).map(e=>({id:e.id,name:e.name,username:e.username,role:e.role,active:e.active,points:e.points,streak:e.streak,photo:e.photo||null})),allRequests=rows(qs),members=allMembers.filter(e=>e.role==='employee'),me=allMembers.find(e=>e.id===actor.id),active=members.filter(e=>e.active),admin=actor.role==='admin',cfg=cs.data();
  if(!cfg)throw new HttpsError('failed-precondition','ยังไม่ได้ตั้งค่าระบบ');
  const rewards=rows(rs).map(r=>({...r,cashRemaining:r.type==='cash'?Math.max(0,r.stock-allRequests.filter(q=>q.rewardId===r.id&&q.year===r.year&&['pending','approved'].includes(q.status)).length):null,remaining:r.type!=='cash'&&r.stock!=null?Math.max(0,r.stock-allRequests.filter(q=>q.rewardId===r.id&&q.status==='approved').length):null}));
- const months=rows(xs),monthlyRecords=Object.fromEntries(months.map(m=>[m.month,admin?m:{...m,entries:m.entries.filter(e=>e.employeeId===actor.id)}]));
- const logs=rows(hs).filter(l=>admin||l.employeeId===actor.id);
+ const months=rows(xs),monthlyRecords=Object.fromEntries(months.map(m=>[m.month,admin?m:{month:m.month,closedAt:m.closedAt,editedAt:m.editedAt||null,entries:m.entries.filter(e=>e.employeeId===actor.id)}]));
+ const monthlyLogs=months.flatMap(m=>m.entries.filter(e=>admin||e.employeeId===actor.id).map(e=>({id:'month-'+m.month+'-'+e.employeeId,employeeId:e.employeeId,title:'สรุปแต้มประจำเดือน',detail:`${m.month} · Tier +${e.base} · KPI +${e.kpiBonus} · Top +${e.teamBonus} · พิเศษ +${e.extraBonus||0} · Inves ${e.cases} เคส −${e.deduction}`,amount:e.delta,kind:'point',date:`${m.month}-28T12:00:00+07:00`})));
+ const logs=[...rows(hs).filter(l=>(admin||l.employeeId===actor.id)&&!(l.kind==='point'&&l.title==='สรุปแต้มประจำเดือน')),...monthlyLogs].sort((a,b)=>b.date.localeCompare(a.date));
  const standing=D.rules.standing(actor,allMembers);
- return {mode:PREFIX==='ceLitePreview'?'preview':'live',revision:cfg.revision||0,role:actor.role,me,employees:admin?members:[me],rewards:admin?rewards:rewards.filter(r=>r.active&&!r.archived),requests:admin?allRequests:allRequests.filter(r=>r.employeeId===actor.id),logs,monthlyRecords,closedMonths:months.map(m=>m.month),startMonth:cfg.startMonth,announcement:cfg.announcement||{active:false},rewardBudget:admin?cfg.rewardBudget||{}:{},supervisor:me,lineLinked:!!actor.lineUserId,notificationReads:{[admin?'admin':actor.id]:readDoc.data()?.ids||[]},teamRank:{position:standing.rank,total:standing.total,tied:standing.tied}};
+ return {mode:PREFIX==='ceLitePreview'?'preview':'live',revision:cfg.revision||0,role:actor.role,me,employees:admin?members:[me],rewards:admin?rewards:rewards.filter(r=>r.active&&!r.archived),requests:admin?allRequests:allRequests.filter(r=>r.employeeId===actor.id),logs,adjustments:admin?rows(as):[],monthlyRecords,closedMonths:months.map(m=>m.month),startMonth:cfg.startMonth,announcement:cfg.announcement||{active:false},supervisor:me,lineLinked:!!actor.lineUserId,notificationReads:{[admin?'admin':actor.id]:readDoc.data()?.ids||[]},teamRank:{position:standing.rank,total:standing.total,tied:standing.tied}};
+}
+async function exportPointRows(actor,data){
+ staffOnly(actor);
+ const sources={month:'Months',history:'History',audit:'Audit'},source=data.source;
+ if(!Object.hasOwn(sources,source))D.fail('ประเภทรายงานไม่ถูกต้อง');
+ const cursor=data.cursor??null;
+ if(cursor!==null&&(typeof cursor!=='string'||cursor.length>256||!cursor.trim()))D.fail('ตำแหน่งรายงานไม่ถูกต้อง');
+ const [settings,members]=await Promise.all([control.get(),col('Members').get()]);
+ if(!settings.exists)D.fail('ยังไม่ได้ตั้งค่าระบบ');
+ const revision=settings.data().revision||0;
+ if(data.expectedRevision!==undefined&&data.expectedRevision!==revision)D.fail('ข้อมูลเปลี่ยนระหว่างส่งออก กรุณาลองใหม่');
+ const names=new Map(rows(members).map(person=>[person.id,person.name]));
+ let query=col(sources[source]).orderBy(FieldPath.documentId()).limit(100);
+ if(cursor)query=query.startAfter(cursor);
+ const snapshot=await query.get(),docs=rows(snapshot),startMonth=settings.data().startMonth;
+ const result=docs.flatMap(doc=>source==='month'?(doc.month>=startMonth?Reporting.monthRows(doc,names):[]):source==='history'?Reporting.historyRows(doc,names,startMonth):Reporting.auditRows(doc,names));
+ return {revision,rows:result,nextCursor:snapshot.docs.length===100?snapshot.docs.at(-1).id:null};
 }
 async function mutate(actor,data){
  const op=D.text(data.operationId,80,'รหัสรายการไม่ถูกต้อง');
@@ -55,25 +74,42 @@ async function mutate(actor,data){
   if(prior.exists){if(prior.data().fingerprint!==fingerprint)D.fail('รหัสรายการซ้ำกับงานอื่น');return prior.data().result;}
   const cfg=ctl.data();if(!cfg)D.fail('ยังไม่ได้ตั้งค่าระบบ');
   const employees=rows(ms),rewards=rows(rs),requests=rows(qs),months=rows(xs),year=Number(timestamp.slice(0,4));
-  let result={ok:true};
+  let result={ok:true},auditEntry=null;
   const userRef=id=>col('Members').doc(id),reqRef=id=>col('Requests').doc(id);
-  const log=(id,entry)=>tx.create(col('History').doc(id),{...entry,date:timestamp,performedBy:actor.id});
+  const log=(id,entry)=>tx.create(col('History').doc(id),{...entry,date:timestamp,performedBy:actor.id,performedByName:actor.name});
   switch(data.action){
    case 'redeem':{
     const reward=rewards.find(r=>r.id===data.rewardId),r=D.redeem({actor:fresh,reward,requests,now:timestamp});
-    tx.create(reqRef(op),{...r,employeeName:fresh.name});result.requestId=op;break;
+    tx.create(reqRef(op),{...r,employeeName:fresh.name});result.requestId=op;
+    auditEntry={label:'ส่งคำขอแลกรางวัล',employeeId:fresh.id,employeeName:fresh.name,rewardId:r.rewardId,reason:r.name,amount:0,afterDetail:`รออนุมัติ · ใช้ ${r.cost} NMP`};break;
    }
    case 'decide':{
     staffOnly(fresh);const request=requests.find(r=>r.id===data.id),e=employees.find(e=>e.id===request?.employeeId),out=D.decide({request,employee:e,status:data.status,now:timestamp,reward:rewards.find(r=>r.id===request?.rewardId),requests});
     tx.update(reqRef(data.id),{status:out.request.status,decidedAt:timestamp,decidedBy:actor.id});
-    if(data.status==='approved'){tx.update(userRef(e.id),{points:out.employee.points});log(op,{employeeId:e.id,title:'แลก'+request.name,detail:'อนุมัติแล้ว',amount:-request.cost,kind:'reward'});}break;
+    if(data.status==='approved'){tx.update(userRef(e.id),{points:out.employee.points});log(op,{employeeId:e.id,employeeName:e.name,title:'แลก'+request.name,detail:'อนุมัติแล้ว',amount:-request.cost,balanceBefore:e.points,balanceAfter:out.employee.points,kind:'reward'});}
+    auditEntry={label:data.status==='approved'?'อนุมัติรางวัล':'ปฏิเสธรางวัล',employeeId:e.id,employeeName:e.name,rewardId:request.rewardId,requestId:request.id,reason:request.name,amount:data.status==='approved'?-request.cost:0,balanceBefore:e.points,balanceAfter:out.employee.points};break;
+   }
+   case 'adjustPoints':{
+    staffOnly(fresh);
+    const employee=employees.find(e=>e.id===data.id),change=D.adjustPoints({employee,amount:data.amount,reason:data.reason,requests});
+    tx.update(userRef(employee.id),{points:change.balanceAfter});
+    log(op,{employeeId:employee.id,employeeName:employee.name,title:change.requestedAmount>0?'เพิ่ม Point':'ลด Point',detail:change.reason,amount:change.amount,requestedAmount:change.requestedAmount,balanceBefore:change.balanceBefore,balanceAfter:change.balanceAfter,kind:'adjustment'});
+    auditEntry={label:'ปรับ Point',employeeId:employee.id,employeeName:employee.name,requestedAmount:change.requestedAmount,amount:change.amount,balanceBefore:change.balanceBefore,balanceAfter:change.balanceAfter,reason:change.reason};
+    result={ok:true,...change};break;
    }
    case 'closeMonth':{
     staffOnly(fresh);
     if(data.expectedRevision!==cfg.revision)D.fail('ข้อมูลทีมเปลี่ยนแล้ว กรุณารีเฟรชและตรวจยอดใหม่');
-    const report=D.closeMonth({employees,requests,months,startMonth:cfg.startMonth,month:data.month,checks:data.checks,teamTop:data.teamTop,now:timestamp});
-    tx.create(col('Months').doc(data.month),{...report,closedBy:actor.id});
-    for(const e of report.entries){tx.update(userRef(e.employeeId),{points:e.balanceAfter,streak:e.streakAfter});log(op+'_'+e.employeeId,{employeeId:e.employeeId,title:'สรุปแต้มประจำเดือน',detail:`${data.month} · Tier +${e.base} · KPI +${e.kpiBonus} · ทีม Top +${e.teamBonus} · พิเศษ +${e.extraBonus} · Inves ${e.cases} เคส −${e.deduction}`,amount:e.delta,kind:'point'});}break;
+    if(!Object.hasOwn(data,'topEmployeeId'))D.fail('กรุณารีเฟรชหน้าเว็บก่อนปิดเดือน');
+    const adjustmentSnap=await tx.get(col('History').where('kind','==','adjustment'));
+    const plan=D.reviseMonth({employees,requests,months,startMonth:cfg.startMonth,month:data.month,checks:data.checks,topEmployeeId:data.topEmployeeId,adjustments:rows(adjustmentSnap),now:timestamp});
+    for(const report of plan.months){const {id:unused,...value}=report;tx.set(col('Months').doc(report.month),{...value,closedBy:report.closedBy||actor.id,editedBy:report.month===data.month&&plan.edited?actor.id:report.editedBy||null});}
+    for(const e of employees.filter(e=>e.role==='employee')){const balance=plan.balances.get(e.id)||{points:0,streak:0};tx.update(userRef(e.id),{points:balance.points,streak:balance.streak});}
+    for(const change of plan.adjustmentResults)tx.update(col('History').doc(change.id),{amount:change.amount,balanceBefore:change.balanceBefore,balanceAfter:change.balanceAfter});
+    const previous=months.find(m=>m.month===data.month),current=plan.months.find(m=>m.month===data.month);
+    auditEntry={label:plan.edited?'แก้เดือนย้อนหลัง':'ปิดเดือน',month:data.month,edited:plan.edited,topEmployeeId:current.topEmployeeId||null,previousEntries:previous?.entries||[],newEntries:current.entries,previousBalances:Object.fromEntries(employees.filter(e=>e.role==='employee').map(e=>[e.id,e.points])),newBalances:Object.fromEntries(employees.filter(e=>e.role==='employee').map(e=>[e.id,plan.balances.get(e.id)?.points||0])),replayedMonths:plan.months.filter(m=>m.month>=data.month).map(m=>m.month)};
+    result.edited=plan.edited;
+    break;
    }
    case 'reward':{
     staffOnly(fresh);const old=rewards.find(r=>r.id===data.id),r=D.rewardInput(data.reward,old,requests,year),id=old?.id||op;
@@ -94,7 +130,6 @@ async function mutate(actor,data){
     staffOnly(fresh);tx.update(control,{announcement:{title:D.text(data.title,90,'กรุณาระบุหัวข้อ'),body:D.text(data.body,1800,'กรุณาระบุรายละเอียด'),active:D.bool(data.active),version:(cfg.announcement?.version||0)+1,updatedAt:timestamp}});break;
    }
    case 'profile':tx.update(userRef(actor.id),{photo:D.image(data.photo),photoUpdatedAt:timestamp});break;
-   case 'budget':staffOnly(fresh);tx.update(control,{['rewardBudget.'+year]:D.int(data.budget,0,10000000,'งบไม่ถูกต้อง')});break;
    case 'deliver':{
     staffOnly(fresh);const r=requests.find(r=>r.id===data.id);if(r?.status!=='approved'||r.deliveredAt)D.fail('รายการนี้ยังส่งมอบไม่ได้หรือบันทึกแล้ว');
     if(!Number.isFinite(data.paidAmount)||data.paidAmount<0||data.paidAmount>1000000)D.fail('ยอดจ่ายไม่ถูกต้อง');
@@ -111,6 +146,7 @@ async function mutate(actor,data){
    }
    default:D.fail('ไม่พบคำสั่งนี้');
   }
+  if(auditEntry)tx.create(col('Audit').doc(actor.id+'_'+op),{...auditEntry,action:data.action,date:timestamp,performedBy:actor.id,performedByName:actor.name});
   tx.update(control,{revision:(cfg.revision||0)+1,updatedAt:timestamp});
   tx.create(receipt,{fingerprint,result,createdAt:timestamp,actor:actor.id,action:data.action});
   return result;
@@ -120,6 +156,7 @@ exports.ceLiteApi=onCall({region:'asia-southeast1',maxInstances:1,minInstances:0
  try{
   const actor=await actorFor(req),data=req.data||{};
   if(data.action==='state')return await stateFor(actor,data.knownRevision);
+  if(data.action==='exportPointRows')return await exportPointRows(actor,data);
   if(data.action==='prepareLineLink')return await lineHandler().prepareLink(actor,data.linkToken);
   if(data.action==='unlinkLine')return await lineHandler().unlink(actor);
   if(data.action==='changePassword'){
