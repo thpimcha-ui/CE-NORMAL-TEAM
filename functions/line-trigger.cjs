@@ -4,7 +4,7 @@ const {defineSecret}=require('firebase-functions/params');
 const {getFirestore}=require('firebase-admin/firestore');
 const L=require('./line-delivery.cjs');
 const token=defineSecret('CE_LINE_ACCESS_TOKEN'),recipient=defineSecret('CE_LINE_OWNER_ID');
-const prefix=process.env.CE_NAMESPACE||'ceLitePreview';
+const prefix=process.env.CE_NAMESPACE||'ceLiteLive';
 module.exports=onDocumentCreated({document:prefix+'Requests/{requestId}',region:'asia-southeast1',secrets:[token,recipient],retry:true,maxInstances:1,memory:'256MiB',timeoutSeconds:60},async event=>{
  if(process.env.FUNCTIONS_EMULATOR==='true'||!event.data)return;
  const db=getFirestore(),ref=db.collection(prefix+'LineDeliveries').doc(event.params.requestId);
