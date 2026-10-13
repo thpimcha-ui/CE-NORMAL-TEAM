@@ -12,8 +12,8 @@ initializeApp();
 const db=getFirestore(),auth=getAuth();
 // Deploy this worker only after both LINE secrets are configured.
 exports.ceLineRequestNotification=require('./line-trigger.cjs');
-// Test site uses a separate ledger. Original users/rewards/history are never written.
-const PREFIX=process.env.CE_NAMESPACE||'ceLitePreview';
+// Live site uses a separate ledger. Original users/rewards/history are never written.
+const PREFIX=process.env.CE_NAMESPACE||'ceLiteLive';
 const col=name=>db.collection(PREFIX+name);
 const control=col('Control').doc('settings');
 const lineToken=defineSecret('CE_LINE_ACCESS_TOKEN'),lineSecret=defineSecret('CE_LINE_CHANNEL_SECRET');
