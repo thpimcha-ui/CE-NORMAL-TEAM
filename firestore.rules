@@ -7,6 +7,7 @@
 // Rewards: id -> name,description,cost,value,type,active,photo,stock/year(optional).
 // Months: YYYY-MM -> month,teamTop,closedAt/By,entries[] (server-validated fields).
 // History: id -> employeeId,title,detail,amount,kind,date,performedBy.
+// Audit: immutable point/reward/month action snapshots, including before/after month edits.
 // Control: settings -> startMonth,revision,announcement,rewardBudget,updatedAt.
 // Operations: immutable idempotency receipt, fingerprint,result,createdAt,actor,action.
 // Reads: UID -> ids[],updatedAt. No client writes; API validates shape and ownership.
