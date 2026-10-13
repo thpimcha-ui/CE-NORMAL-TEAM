@@ -10,13 +10,32 @@ async function refresh(showAnnouncementOnLogin=false){
  if(data.unchanged)return;
  if(data.mustChangePassword){loggedIn=false;passwordScreen(data.me);return;}
  const first=!loggedIn;state=data;currentEmployeeId=data.me.id;role=data.role;loggedIn=true;
- if(first){view=role==='admin'?(new URLSearchParams(location.search).get('view')==='requests'?'admin-rewards':'overview'):'home';selectedMonth=state.closedMonths.length?nextMonth([...state.closedMonths].sort().at(-1)):state.startMonth;reportMonth=[...state.closedMonths].sort().at(-1)||state.startMonth;}
+ if(first){view=role==='admin'?(new URLSearchParams(location.search).get('view')==='requests'?'admin-rewards':'overview'):'home';const latest=[...state.closedMonths].sort().at(-1);const candidate=latest?nextMonth(latest):state.startMonth;selectedMonth=candidate<CURRENT_MONTH?candidate:(latest||state.startMonth);reportMonth=[...state.closedMonths].sort().at(-1)||state.startMonth;}
  if(!dialog.open)render();
  if(first&&role==='employee'&&!linePrompted&&new URLSearchParams(location.search).has('lineLinkToken')){
   linePrompted=true;openDialog('เชื่อม My Point กับ LINE',`<p>LINE จะเห็นเฉพาะชื่อ แต้ม Tier และอันดับทีมของบัญชีนี้ เมื่อกด My Point เท่านั้น</p><p>เชื่อมบัญชีนี้กับ LINE ของคุณหรือไม่? ยกเลิกได้ในหน้าโปรไฟล์</p>`,`<button class="secondary" data-action="dismiss-line-link">ไว้ก่อน</button><button class="primary" data-action="confirm-line-link">เชื่อม LINE</button>`);
  }else if(showAnnouncementOnLogin&&role==='employee')showAnnouncement();
 }
 function errorText(error){const code=error.code||'';return /invalid-credential|wrong-password|user-not-found/.test(code)?'ชื่อผู้ใช้หรือรหัสผ่านไม่ถูกต้อง':/too-many-requests/.test(code)?'ลองหลายครั้งเกินไป กรุณารอสักครู่':/network/.test(code)?'เชื่อมต่อไม่ได้ กรุณาตรวจอินเทอร์เน็ต':error.message?.replace(/^Firebase:\s*/,'')||'ทำรายการไม่สำเร็จ';}
+async function exportPointsCsv(button){
+ if(busy||role!=='admin')return;
+ busy=true;button.disabled=true;button.textContent='กำลังเตรียม CSV…';
+ try{
+  const all=[];let revision;
+  for(const source of ['month','history','audit']){
+   let cursor=null,pages=0;
+   do{
+    const page=await api({action:'exportPointRows',source,cursor,...(revision===undefined?{}:{expectedRevision:revision})});
+    revision=page.revision;all.push(...page.rows);cursor=page.nextCursor;
+    if(++pages>1000)throw new Error('รายงานมีรายการมากเกินไป กรุณาติดต่อผู้ดูแลระบบ');
+   }while(cursor);
+  }
+  const date=new Date().toLocaleDateString('sv-SE',{timeZone:'Asia/Bangkok'});
+  CEExport.download(CEExport.toCsv(all),`CE-Point-Log-${date}.csv`);
+  toast(`ดาวน์โหลด CSV แล้ว · ${all.length} รายการ`);
+ }catch(error){toast(errorText(error));}
+ finally{busy=false;if(button.isConnected){button.disabled=false;button.textContent='Export CSV';}}
+}
 async function runTask(data,message){
  if(busy)return;busy=true;const buttons=[...document.querySelectorAll('button[type="submit"],.dialog-actions button')];buttons.forEach(b=>b.disabled=true);
  try{const result=await api({...data,operationId:uid()});if(dialog.open)dialog.close();await refresh();if(message)toast(message);return result;}
@@ -46,9 +65,9 @@ document.addEventListener('click',async event=>{
    if(action==='logout'){await authSDK.signOut(firebaseAuth);if(dialog.open)dialog.close();loggedIn=false;state={employees:[],requests:[],rewards:[],logs:[],closedMonths:[],monthlyRecords:{}};render();return;}
    if(action==='refresh'){await refresh();toast('ข้อมูลล่าสุดแล้ว');return;}
    if(action==='reset-password'){openDialog('ออกรหัสชั่วคราวใหม่?',`<p>${esc(employee(id).name)} จะต้องเข้าสู่ระบบด้วยรหัสใหม่ และตั้งรหัสส่วนตัวอีกครั้ง</p>`,`<button class="secondary" data-action="dismiss">กลับ</button><button class="primary" data-action="confirm-password-reset" data-id="${id}">ออกรหัสใหม่</button>`);return;}
-   const task=action==='confirm-redeem'?{action:'redeem',rewardId:id}:action==='confirm-request'?{action:'decide',id,status:b.dataset.status}:action==='confirm-close'?{action:'closeMonth',month:selectedMonth,checks,teamTop,expectedRevision:state.revision}:action==='confirm-employee'?{action:'toggleEmployee',id}:action==='confirm-archive-reward'?{action:'archiveReward',id}:action==='restore-reward'?{action:'restoreReward',id}:action==='remove-photo'?{action:'profile',photo:null}:{action:'resetPassword',id};
+   const task=action==='confirm-redeem'?{action:'redeem',rewardId:id}:action==='confirm-request'?{action:'decide',id,status:b.dataset.status}:action==='confirm-close'?{action:'closeMonth',month:selectedMonth,checks,topEmployeeId,expectedRevision:state.revision}:action==='confirm-employee'?{action:'toggleEmployee',id}:action==='confirm-archive-reward'?{action:'archiveReward',id}:action==='restore-reward'?{action:'restoreReward',id}:action==='remove-photo'?{action:'profile',photo:null}:{action:'resetPassword',id};
    const message=action==='confirm-archive-reward'?'ลบออกจากร้านแล้ว ✦':action==='restore-reward'?'คืนรางวัลเข้าร้านแล้ว ✦':'บันทึกเรียบร้อย ✦';
-   const result=await runTask(task,message);if(action==='confirm-password-reset')temporaryCredential(result);if(action==='confirm-close'){reportMonth=selectedMonth;selectedMonth=nextMonth(selectedMonth);checks={};teamTop=false;render();}
+   const editing=action==='confirm-close'&&state.closedMonths.includes(selectedMonth);const result=await runTask(task,message);if(action==='confirm-password-reset')temporaryCredential(result);if(action==='confirm-close'){reportMonth=selectedMonth;if(!editing&&nextMonth(selectedMonth)<CURRENT_MONTH)selectedMonth=nextMonth(selectedMonth);loadMonthDraft(selectedMonth);render();}
   }catch{}
   return;
  }
@@ -67,6 +86,9 @@ document.addEventListener('click',async event=>{
   case 'remove-reward-photo':draftRewardPhoto=null;document.getElementById('reward-image-preview').innerHTML='<div class="image-empty">เพิ่มรูปให้รางวัลน่าแลกขึ้น</div>';b.disabled=true;break;
   case 'add-employee':addEmployee();break;
   case 'toggle-employee':askEmployee(id);break;
+  case 'adjust-point':if(role==='admin')adjustPoint(id);break;
+  case 'point-history':if(role==='admin')pointHistory(id);break;
+  case 'export-points':if(role==='admin')await exportPointsCsv(b);break;
   case 'read-announcement':showAnnouncement();break;
   case 'edit-announcement':editAnnouncement();break;
   case 'report-detail':reportDetail();break;
@@ -88,8 +110,8 @@ document.addEventListener('submit',async event=>{
   if(!loggedIn||busy)return;
   let task;
   if(form.id==='employee-form')task={action:'createEmployee',name:String(data.get('name')),username:String(data.get('username'))};
+  if(form.id==='adjust-point-form')task={action:'adjustPoints',id:form.dataset.id,amount:Number(data.get('amount')),reason:String(data.get('reason'))};
   if(form.id==='announcement-form')task={action:'announcement',title:String(data.get('title')),body:String(data.get('body')),active:data.has('active')};
-  if(form.id==='budget-form')task={action:'budget',budget:Number(data.get('budget'))};
   if(form.id==='delivery-form')task={action:'deliver',id:form.dataset.id,paidAmount:Number(data.get('paid'))};
   if(form.id==='reward-form'){
    if(photoBusy)throw new Error('รอรูปภาพสักครู่');const old=state.rewards.find(r=>r.id===form.dataset.id);

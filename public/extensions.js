@@ -34,7 +34,7 @@ function trendChart() {
 function reportDetail() {
   const record=state.monthlyRecords[reportMonth];
   if(!record)return toast('เดือนนี้ยังไม่มีรายละเอียดรายคน');
-  openDialog('รายละเอียด '+monthText(reportMonth),`<p>Investigation นับเป็นเคส ส่วน Clean นับเป็นคน</p><div class="report-detail-list">${record.entries.map(e=>`<div><span>${esc(e.name)}</span><span class="${e.cases?'negative':'accent'}">${e.cases?e.cases+' เคส':'Clean'}</span></div>`).join('')}</div>`,`<button class="primary" data-action="dismiss">ปิด</button>`);
+  openDialog('รายละเอียด '+monthText(reportMonth),`<p>Top Performance: ${esc(record.entries.find(e=>e.employeeId===record.topEmployeeId)?.name||'รอบนี้ไม่ใช่ของเรา')}</p><p>Investigation นับเป็นเคส ส่วน Clean นับเป็นคน</p><div class="report-detail-list">${record.entries.map(e=>`<div><span>${esc(e.name)}${e.repeatCases?`<small class="repeat-report-note">ซ้ำเรื่อง ${esc(e.repeatIssue||'เดิม')} ${e.repeatCases} เคส · หักรวม ${e.deduction} NMP</small>`:''}</span><span class="${e.cases?'negative':'accent'}">${e.cases?e.cases+' เคส':'Clean'}</span></div>`).join('')}</div>`,`<button class="primary" data-action="dismiss">ปิด</button>`);
 }
 async function rewardPhoto(file) {
   if(!file)return;
@@ -58,12 +58,14 @@ function restoreFocusedControl(selector) {
   if(selector)document.querySelector(selector)?.focus({preventScroll:true});
 }
 document.addEventListener('input',event=>{
-  const input=event.target,id=input.dataset.cases||input.dataset.extra;
+  const input=event.target,id=input.dataset.cases||input.dataset.repeat||input.dataset.extra;
   if(!id)return;
-  const n=Number(input.value),isCase=!!input.dataset.cases,max=isCase?999:1000;
+  if(input.value==='')return;
+  const n=Number(input.value),isCase=!!input.dataset.cases,isRepeat=!!input.dataset.repeat,max=isCase?999:isRepeat?Math.max(0,(checks[id]?.cases||0)-1):1000;
   if(!Number.isInteger(n)||n<0||n>max)return;
   checks[id]??={};
-  if(isCase){checks[id].cases=n;if(n)checks[id].kpi=false;}
+  if(isCase){checks[id].cases=n;checks[id].repeatCases=Math.min(checks[id].repeatCases||0,Math.max(0,n-1));if(!checks[id].repeatCases)checks[id].repeatIssue='';if(n)checks[id].kpi=false;}
+  else if(isRepeat){checks[id].repeatCases=n;if(!n)checks[id].repeatIssue='';}
   else checks[id].extra=n;
   const row=input.closest('tr'),kpi=row.querySelector('[data-check="kpi"]');
   if(isCase){kpi.disabled=n>0;if(n)kpi.checked=false;kpi.nextElementSibling.textContent=kpi.checked?'ครบ':'ยังไม่ครบ';}
@@ -71,7 +73,8 @@ document.addEventListener('input',event=>{
   const delta=cell.querySelector('strong');delta.textContent=signed(r.delta);delta.className=r.delta<0?'negative':'accent';
   cell.querySelector('.balance-after').textContent=`เหลือ ${r.after} NMP`;
   document.querySelector('.closing-total strong').textContent=`${signed(results.reduce((n,x)=>n+x.delta,0))} NMP`;
-  document.querySelector('.closing-total small').textContent=`Investigation ${results.reduce((n,x)=>n+x.cases,0)} เคส · KPI ครบ ${results.filter(x=>x.kpi).length} คน · Point พิเศษ +${results.reduce((n,x)=>n+x.extra,0)}${teamTop?' · ทีม Top +1 ทุกคน':''}`;
+  const repeats=results.reduce((n,x)=>n+(x.repeatCases||0),0);
+  document.querySelector('.closing-total small').textContent=`Investigation ${results.reduce((n,x)=>n+x.cases,0)} เคส${repeats?' · ซ้ำ '+repeats+' เคส':''} · KPI ครบ ${results.filter(x=>x.kpi).length} คน · Point พิเศษ +${results.reduce((n,x)=>n+x.extra,0)}${topEmployeeId?' · Top '+(state.employees.find(e=>e.id===topEmployeeId)?.name||'')+' +5 · ทีม KPI ครบ +1':''}`;
 });
 document.addEventListener('change',event=>{
   const target=event.target;
@@ -79,15 +82,21 @@ document.addEventListener('change',event=>{
   if(target.dataset.cases){
     const id=target.dataset.cases,n=Number(target.value);
     if(!Number.isInteger(n)||n<0||n>999){target.value=checks[id]?.cases||0;return toast('จำนวนเคสต้องเป็นจำนวนเต็ม 0–999');}
-    checks[id]??={};checks[id].cases=n;if(n)checks[id].kpi=false;restoreFocusedControl(`[data-cases="${id}"]`);
+    checks[id]??={};checks[id].cases=n;checks[id].repeatCases=Math.min(checks[id].repeatCases||0,Math.max(0,n-1));if(!checks[id].repeatCases)checks[id].repeatIssue='';if(n)checks[id].kpi=false;restoreFocusedControl(`[data-cases="${id}"]`);
   }
+  if(target.dataset.repeat){
+    const id=target.dataset.repeat,n=Number(target.value),max=Math.max(0,(checks[id]?.cases||0)-1);
+    if(target.value===''||!Number.isInteger(n)||n<0||n>max){target.value=checks[id]?.repeatCases||0;return toast(`เคสซ้ำต้องเป็นจำนวนเต็ม 0–${max}`);}
+    checks[id]??={};checks[id].repeatCases=n;if(!n)checks[id].repeatIssue='';restoreFocusedControl(n?`[data-repeat-issue="${id}"]`:`[data-repeat="${id}"]`);
+  }
+  if(target.dataset.repeatIssue){const id=target.dataset.repeatIssue;checks[id]??={};checks[id].repeatIssue=target.value.trim().slice(0,140);target.value=checks[id].repeatIssue;}
   if(target.dataset.extra){
     const id=target.dataset.extra,n=Number(target.value);
     if(!Number.isInteger(n)||n<0||n>1000){target.value=checks[id]?.extra||0;return toast('Point พิเศษต้องเป็นจำนวนเต็ม 0–1000');}
     checks[id]??={};checks[id].extra=n;restoreFocusedControl(`[data-extra="${id}"]`);
   }
-  if(target.id==='team-top'){teamTop=target.checked;restoreFocusedControl('#team-top');}
-  if(target.id==='month-picker'){selectedMonth=target.value;checks={};teamTop=false;render();}
+  if(target.id==='top-employee'){topEmployeeId=target.value||null;restoreFocusedControl('#top-employee');}
+  if(target.id==='month-picker'){selectedMonth=target.value;loadMonthDraft(selectedMonth);render();}
   if(target.id==='report-month'){reportMonth=target.value;render();}
   if(target.id==='profile-input')uploadPhoto(target.files[0]);
   if(target.id==='reward-image-input')rewardPhoto(target.files[0]);
