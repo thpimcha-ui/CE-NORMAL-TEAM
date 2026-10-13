@@ -1,6 +1,7 @@
 node_modules/
 *-debug.log
 .firebase/
+.netlify/
 source-audit/
 qa/artifacts/
 *.zip
